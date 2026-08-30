@@ -44,11 +44,20 @@
   },
 
   // Base de producción. Creada con: npx wrangler d1 create aume-produccion
+  //
+  // ⚠️ EL "binding" TIENE QUE LLAMARSE "DB", NO COMO LA BASE.
+  // El código del worker la busca por ese nombre (env.DB, en
+  // worker/index.js). Si el dashboard de Cloudflare regenera este
+  // archivo lo suele renombrar a "aume_produccion", y ahí el panel
+  // entero deja de funcionar: la API empieza a responder 503 diciendo
+  // que falta el binding "DB". Si eso pasa, se arregla acá.
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "aume-produccion",
-      "database_id": "3fec9051-f953-4230-b7b3-89a6ac4dab69"
+      "database_id": "3fec9051-f953-4230-b7b3-89a6ac4dab69",
+      // Que `wrangler dev` use la base de Cloudflare y no una local.
+      "remote": true
     }
   ],
 
@@ -85,7 +94,8 @@
         {
           "binding": "DB",
           "database_name": "aume-staging",
-          "database_id": "68212180-4240-4e47-bd67-a542a3468591"
+          "database_id": "68212180-4240-4e47-bd67-a542a3468591",
+          "remote": true
         }
       ]
     }
