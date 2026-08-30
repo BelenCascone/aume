@@ -2,3 +2,13 @@ package.json
 playwright.config.js
 tests/
 README.md
+
+# Nada de esto tiene que quedar publicado en la web.
+# Ojo: .gitignore NO sirve para esto — Cloudflare sube los archivos de la
+# carpeta y sólo respeta ESTE archivo.
+AUME-propuesta-comercial.pdf
+test-results/
+playwright-report/
+.gitignore
+.gitattributes
+wrangler.jsonc
