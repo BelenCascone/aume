@@ -1,0 +1,10 @@
+{
+  "name": "aume-web",
+  "private": true,
+  "description": "Web de pedidos de AUMÉ. El sitio no necesita nada instalado; esto es sólo para correr los tests.",
+  "scripts": {
+    "test": "playwright test",
+    "test:ver": "playwright test --headed",
+    "servidor": "node tests/server.js"
+  }
+}

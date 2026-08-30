@@ -1,0 +1,23 @@
+IMÁGENES DE LA MARCA
+
+Todo lo de esta carpeta YA ESTÁ GENERADO a partir del logo original de AUMÉ.
+No hace falta agregar nada.
+
+  logo.png               El logo de AUMÉ con fondo transparente (487x320 px).
+                         Se usa en la barra superior, en el pie de página y
+                         como imagen de vista previa cuando se comparte el
+                         link por WhatsApp o Instagram.
+
+  favicon-64.png         Ícono chiquito de la pestaña del navegador.
+
+  icon-192.png           Ícono para la pantalla de inicio del celular.
+  icon-512.png           Igual, en alta resolución.
+  icon-maskable-512.png  Versión con más margen, para los celulares Android
+                         que recortan el ícono en círculo.
+
+SI ALGÚN DÍA CAMBIA EL LOGO
+  Reemplazá logo.png por el nuevo (fondo transparente, alto 300 px o más) y
+  volvé a generar los íconos cuadrados con el mismo dibujo centrado sobre
+  fondo crema #F9F6F0.
+
+Los nombres tienen que ser exactamente esos, en minúscula.

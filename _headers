@@ -1,0 +1,27 @@
+# Cabeceras de seguridad del sitio publicado.
+#
+# Netlify lee este archivo automáticamente (tiene que estar en la raíz, al
+# lado de index.html). En Vercel el equivalente va en vercel.json y en
+# Cloudflare Pages funciona igual que acá.
+#
+# No hace falta tocarlo para actualizar el menú ni los precios.
+
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; form-action 'none'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+# Notas
+#
+# 'unsafe-inline' en style-src hace falta porque el código pinta los colores
+# de cada categoría con atributos style. Para sacarlo habría que mover esos
+# colores a clases CSS.
+#
+# form-action 'none' es seguro: el formulario del pedido nunca se envía al
+# servidor, lo arma JavaScript y va a WhatsApp.
+#
+# fonts.googleapis.com y fonts.gstatic.com son las tipografías. Si algún día
+# se descargan a assets/fonts/, se pueden borrar de acá las dos líneas.

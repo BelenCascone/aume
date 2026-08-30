@@ -1,0 +1,6 @@
+node_modules/
+test-results/
+playwright-report/
+
+# Material comercial interno, no forma parte de la web
+AUME-propuesta-comercial.pdf
