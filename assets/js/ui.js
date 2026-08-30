@@ -182,6 +182,33 @@
       '</div>';
   }
 
+  /* Lo que dijo la API sobre esta semana: qué fecha es cada día, cuáles
+     son feriado y qué día es hoy. Vacío mientras la API no responda. */
+  var semanaApi = { fechas: {}, feriados: {}, hoy: null };
+
+  /* Un día se cierra cuando ya pasó: si hoy es miércoles, el lunes de
+     esta semana ya no se puede pedir. La fecha de "hoy" la manda el
+     servidor, no el celular: el reloj de la clienta puede estar en
+     cualquier lado, y de eso depende que se cobre o no una vianda. */
+  function estadoDia(diaId) {
+    if (semanaApi.feriados[diaId]) return 'feriado';
+    var fecha = semanaApi.fechas[diaId];
+    if (fecha && semanaApi.hoy && fecha < semanaApi.hoy) return 'pasado';
+    return 'abierto';
+  }
+
+  /* Tarjeta de un día que no se puede pedir. Sin botones: la única forma
+     de que no se sume algo que no se puede entregar es no ofrecerlo. */
+  function diaCerrado(d, cabecera, motivo, detalle) {
+    return '' +
+      '<article class="dia dia--cerrado">' + cabecera +
+        '<div class="dia__cuerpo">' +
+          '<p class="dia__plato">' + esc(motivo) + '</p>' +
+          '<p class="dia__desc">' + esc(detalle) + '</p>' +
+        '</div>' +
+      '</article>';
+  }
+
   function pintarDias() {
     var catId = Store.estado.categoria;
 
@@ -200,6 +227,16 @@
           '<h3 class="dia__nombre">' + esc(d.nombre) + '</h3>' +
           (enDia ? '<span class="dia__n">' + enDia + ' en tu pedido</span>' : '') +
         '</div>';
+
+      var estado = estadoDia(d.id);
+      if (estado === 'feriado') {
+        return diaCerrado(d, cabecera, 'Feriado',
+          'Este día no cocinamos. Volvemos al día siguiente.');
+      }
+      if (estado === 'pasado') {
+        return diaCerrado(d, cabecera, 'Ya pasó',
+          'Este día ya no se puede pedir. Elegí uno de los que vienen.');
+      }
 
       if (!p) {
         return '' +
@@ -331,8 +368,167 @@
 
   /* ------------------------------------------------------------ Export */
 
+  /* ============================================================ API
+     PRECIOS DESDE EL PANEL
+     -------------------------------------------------------------------
+     Hasta acá, todo lo de arriba lee de assets/js/data/config.js. Ahora
+     los precios los edita la nutri desde /admin/precios/ y viven en la
+     base, así que los pedimos a /api/precios y los mezclamos ENCIMA de
+     la config estática.
+
+     Esa mezcla es a propósito y en ese orden:
+
+     · Si la API responde, manda la base.
+     · Si no responde (worker caído, sin internet, la API todavía no
+       existe), la web se queda con los valores de config.js y sigue
+       funcionando igual. config.js pasa a ser el respaldo, no la fuente
+       de verdad.
+
+     Por eso NUNCA se vacía nada: sólo se pisa lo que llegó completo y
+     con forma válida. Una respuesta rara deja la web como estaba.
+     ================================================================= */
+
+  /* Arrancan apenas carga el script, para no esperar al DOM */
+  function traer(ruta) {
+    if (typeof fetch !== 'function') return null;
+    return fetch(ruta, { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (c) { return (c && c.ok === true && c.datos) ? c.datos : null; })
+      .catch(function () { return null; });
+  }
+
+  var promesaPrecios = traer('/api/precios');
+  var promesaMenu    = traer('/api/menus');
+
+  function lista(v) { return Array.isArray(v) && v.length ? v : null; }
+
+  function aplicarPrecios(d) {
+    if (!d) return false;
+    var cambio = false;
+
+    /* Precio de la vianda: sólo tamaños que ya existen y con número */
+    if (d.preciosVianda) {
+      Object.keys(CFG.preciosVianda).forEach(function (id) {
+        var n = d.preciosVianda[id];
+        if (typeof n === 'number' && n >= 0) { CFG.preciosVianda[id] = n; cambio = true; }
+      });
+    }
+
+    /* Envío por zona: se actualiza el costo de las zonas que ya están.
+       No agregamos ni sacamos zonas desde acá: el carrito guardado en el
+       celular referencia una zona por id y no queremos invalidarlo. */
+    if (d.envio) {
+      var zonas = lista(d.envio.zonas);
+      if (zonas) {
+        zonas.forEach(function (z) {
+          var actual = Store.buscarZona(z.id);
+          if (actual && typeof z.costo === 'number' && z.costo >= 0) {
+            actual.costo = z.costo; cambio = true;
+          }
+        });
+      }
+      if (typeof d.envio.aclaracion === 'string' && d.envio.aclaracion) {
+        CFG.envio.aclaracion = d.envio.aclaracion; cambio = true;
+      }
+    }
+
+    /* Estos no los usa el carrito todavía, pero sí los textos de la
+       página, así que conviene que salgan de la misma fuente. */
+    var packs = d.packs && lista(d.packs.opciones);
+    if (packs) { CFG.packs.opciones = packs; cambio = true; }
+    if (d.planMensual && d.planMensual.precios) { CFG.planMensual = d.planMensual; cambio = true; }
+    var productos = lista(d.productos);
+    if (productos) { CFG.productos = productos; cambio = true; }
+
+    return cambio;
+  }
+
+  /* Este archivo se carga ANTES que app.js, así que cuando lleguen los
+     precios puede que la app todavía no haya arrancado. Esperamos a que
+     el DOM esté listo y el Store exista antes de repintar. */
+  function cuandoArranco(fn) {
+    if (document.readyState !== 'loading' && global.AUME && global.AUME.Store) {
+      setTimeout(fn, 0);
+      return;
+    }
+    setTimeout(function () { cuandoArranco(fn); }, 30);
+  }
+
+  /* --- Menú de la semana ------------------------------------------
+     Lo que la nutri publica desde /admin/menus/ reemplaza a
+     assets/js/data/menu.js. Misma regla que con los precios: si no
+     llega un menú publicado, se muestra el del archivo. */
+  function aplicarMenu(d) {
+    /* platos en null = no hay ningún día publicado para esta semana.
+       Ojo con no confundirlo con {}: eso sería una semana publicada
+       pero sin platos, y tampoco la queremos mostrar. */
+    if (!d || !d.platos || !Object.keys(d.platos).length) return false;
+
+    MENU.platos = d.platos;
+    if (d.semana) MENU.semana = d.semana;
+    if (typeof d.nota === 'string') MENU.nota = d.nota;
+
+    semanaApi = {
+      fechas: d.fechas || {},
+      feriados: d.feriados || {},
+      hoy: d.hoy || null
+    };
+    return true;
+  }
+
+  /* Si cambió el menú, puede que el carrito guardado en el celular tenga
+     viandas de platos que ya no existen. store.js limpia eso al
+     restaurar, pero para entonces todavía teníamos el menú del archivo.
+     Las sacamos ahora, usando el mismo camino que el botón "−". */
+  function limpiarCarritoViejo() {
+    var Store = global.AUME.Store;
+    /* Se van tanto las viandas de platos que ya no existen como las de
+       días cerrados: alguien pudo dejar el carrito armado el domingo y
+       volver el miércoles. */
+    var sobrantes = Store.items().filter(function (it) {
+      return !it.plato || estadoDia(it.diaId) !== 'abierto';
+    });
+    sobrantes.forEach(function (it) {
+      Store.sumar(it.diaId, it.catId, it.tamanoId, -it.cantidad);
+    });
+    return sobrantes.length;
+  }
+
+  /* Cuando llegan los datos, repintamos. avisar() hace que app.js
+     redibuje todo lo que depende del estado (tarjetas, barra, carrito y
+     el resumen del checkout) sin que haya que tocar app.js. */
+  function escucharApi() {
+    if (!promesaPrecios && !promesaMenu) return;
+
+    /* Esperamos a los dos y repintamos UNA sola vez: si no, la web
+       parpadearía dos veces seguidas con datos a medio actualizar. */
+    Promise.all([
+      promesaPrecios || Promise.resolve(null),
+      promesaMenu || Promise.resolve(null)
+    ]).then(function (r) {
+      var cambio = aplicarPrecios(r[0]);
+      var cambioMenu = aplicarMenu(r[1]);
+      if (!cambio && !cambioMenu) return;
+
+      cuandoArranco(function () {
+        try {
+          pintarEstaticos();
+          if (cambioMenu) {
+            var sacadas = limpiarCarritoViejo();
+            if (sacadas) toast('Actualizamos el menú y sacamos lo que ya no se puede pedir');
+          }
+          global.AUME.Store.avisar();
+        } catch (e) { /* si falla el repintado, quedan los datos de los archivos */ }
+      });
+    });
+  }
+
+  /* Arranca solo: no hace falta tocar app.js para engancharlo. */
+  escucharApi();
+
   global.AUME.UI = {
     el: el,
+    escucharApi: escucharApi,
     esc: esc,
     plural: plural,
     toast: toast,

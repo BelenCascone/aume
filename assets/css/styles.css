@@ -581,3 +581,28 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
   *,*::before,*::after{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
   html{ scroll-behavior:auto; }
 }
+
+/* Día que no se puede pedir: feriado, o un día de esta semana que ya
+   pasó. Se muestra igual que los demás para que la semana se lea
+   completa, pero apagado y sin botones. */
+.dia--cerrado{ opacity:.62; }
+.dia--cerrado .dia__plato{ color:var(--tinta-60); }
+
+/* Segundo camino del checkout: el pedido queda confirmado sin pasar por
+   WhatsApp. AUMÉ se comunica después para coordinar entrega y pago. */
+.pie-nota{ margin-top:8px; text-align:center; font-size:.8rem; color:var(--tinta-60); }
+
+.listo{ text-align:center; padding:12px 0 4px; }
+.listo__ico{ font-size:2.6rem; line-height:1; margin-bottom:10px; }
+.listo__t{ font-size:1.5rem; margin-bottom:6px; }
+.listo__d{ color:var(--tinta-60); font-size:.95rem; margin-bottom:18px; }
+.listo__caja{
+  background:var(--crema-alt); border-radius:var(--r-md);
+  padding:14px 16px; margin-bottom:16px; text-align:left;
+}
+.listo__l{ display:flex; justify-content:space-between; gap:12px; padding:3px 0; font-size:.92rem; }
+.listo__l--suelto{ display:block; color:var(--tinta-60); font-size:.86rem; margin-top:6px; }
+.listo__aviso{
+  background:var(--c-vegetariano-suave); border-radius:var(--r-md);
+  padding:14px 16px; margin-bottom:18px; font-size:.9rem; line-height:1.5; text-align:left;
+}

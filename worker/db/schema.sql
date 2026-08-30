@@ -35,6 +35,9 @@ CREATE TABLE IF NOT EXISTS esquema_version (
 INSERT OR IGNORE INTO esquema_version (version, descripcion)
 VALUES (1, 'Esquema inicial: catálogo, precios, menús y pedidos');
 
+INSERT OR IGNORE INTO esquema_version (version, descripcion)
+VALUES (2, 'Días feriados en el menú');
+
 
 -- =====================================================================
 -- CATÁLOGO  (lo que hoy vive en assets/js/data/config.js)
@@ -182,6 +185,11 @@ CREATE TABLE IF NOT EXISTS menus (
   estado         TEXT    NOT NULL DEFAULT 'borrador'
                          CHECK (estado IN ('borrador', 'publicado')),
   nota           TEXT    NOT NULL DEFAULT '',      -- nota opcional del día
+  -- 1 = ese día no se cocina (feriado). La nutri lo escribe así en su
+  -- planilla y la web lo muestra como "Feriado" en vez de ofrecer menú.
+  -- Un feriado SÍ se puede publicar sin ningún plato: es la única
+  -- excepción, porque justamente eso es lo que hay que comunicar.
+  feriado        INTEGER NOT NULL DEFAULT 0,
   publicado_en   TEXT,                             -- NULL mientras es borrador
   creado_en      TEXT    NOT NULL DEFAULT (datetime('now')),
   actualizado_en TEXT    NOT NULL DEFAULT (datetime('now'))
