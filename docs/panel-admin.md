@@ -56,11 +56,26 @@ npx wrangler d1 create aume-staging
 npx wrangler d1 create aume-produccion
 ```
 
-Cada comando imprime un `database_id`. **Copiá cada uno a
-`wrangler.jsonc`**, reemplazando los textos `PENDIENTE-CREAR-BASE-DE-…`:
+Cada comando imprime un `database_id`.
 
-- el de `aume-staging` → dentro de `env.staging.d1_databases`
-- el de `aume-produccion` → dentro del `d1_databases` de arriba de todo
+Ahora abrí **`wrangler.jsonc`**. Vas a encontrar dos bloques
+`d1_databases` **comentados**, marcados con `⚠️ PASO 1`. Para cada uno:
+
+1. Sacale las barras `//` de las líneas del bloque.
+2. Pegá el `database_id` que te devolvió el comando de esa base.
+
+- el id de `aume-staging` → en el bloque de adentro de `env.staging`
+- el id de `aume-produccion` → en el bloque de arriba de todo
+
+> **Por qué vienen comentados:** wrangler no puede publicar apuntando a
+> una base que no existe. Si el `database_id` es inventado, el deploy
+> falla entero y **no se publica nada, ni siquiera un cambio de la
+> landing**. Por eso el binding queda afuera hasta que la base exista de
+> verdad.
+>
+> Mientras estén comentados, la API del panel responde 503 diciendo
+> justamente que falta el binding `DB`. La landing pública no se ve
+> afectada: no pasa por el worker.
 
 ```bash
 # 2. Crear las tablas

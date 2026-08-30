@@ -43,15 +43,30 @@
     "ACCESS_AUD": ""            // el "Application Audience (AUD) Tag"
   },
 
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "aume-produccion",
-      // ⚠️ Reemplazar por el id que devuelve:
-      //    npx wrangler d1 create aume-produccion
-      "database_id": "PENDIENTE-CREAR-BASE-DE-PRODUCCION"
-    }
-  ],
+  // ===================================================================
+  // ⚠️ PASO 1 · DESCOMENTAR ESTE BLOQUE CUANDO EXISTA LA BASE
+  // -------------------------------------------------------------------
+  // Está comentado a propósito: wrangler NO puede publicar apuntando a
+  // una base que todavía no existe, y si falla, no se publica NADA —
+  // ni siquiera un cambio de la landing. Por eso queda afuera hasta que
+  // la base esté creada de verdad.
+  //
+  //   npx wrangler d1 create aume-produccion
+  //
+  // Ese comando te devuelve un database_id. Pegalo abajo, sacá las
+  // barras "//" de las 7 líneas y volvé a publicar.
+  //
+  // Mientras esto siga comentado, la API del panel responde 503 con un
+  // mensaje que dice exactamente esto. La landing pública no se entera:
+  // no pasa por el worker.
+  // ===================================================================
+  // "d1_databases": [
+  //   {
+  //     "binding": "DB",
+  //     "database_name": "aume-produccion",
+  //     "database_id": "pegar-acá-el-id-que-devolvió-wrangler"
+  //   }
+  // ],
 
   // -------------------------------------------------------------------
   // STAGING: mismo código, worker aparte y base aparte.
@@ -80,15 +95,20 @@
         "ACCESS_AUD": ""
       },
 
-      "d1_databases": [
-        {
-          "binding": "DB",
-          "database_name": "aume-staging",
-          // ⚠️ Reemplazar por el id que devuelve:
-          //    npx wrangler d1 create aume-staging
-          "database_id": "PENDIENTE-CREAR-BASE-DE-STAGING"
-        }
-      ]
+      // ⚠️ PASO 1 (staging) · misma historia que arriba:
+      //
+      //   npx wrangler d1 create aume-staging
+      //
+      // pegás el id, sacás las barras "//" y ya podés probar el panel
+      // contra una base de verdad sin tocar nada de producción.
+      //
+      // "d1_databases": [
+      //   {
+      //     "binding": "DB",
+      //     "database_name": "aume-staging",
+      //     "database_id": "pegar-acá-el-id-que-devolvió-wrangler"
+      //   }
+      // ]
     }
   }
 }
