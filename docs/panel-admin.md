@@ -37,10 +37,10 @@ porque no pasa por él.
 | `/api/menus/:fecha`              | GET    | panel       | 2 ✅ |
 | `/api/menus/:fecha`              | PUT    | panel       | 2 ✅ |
 | `/api/menus/:fecha/publicar`     | POST   | panel       | 2 ✅ |
-| `/api/pedidos`                   | POST   | **público** (checkout de la landing) | 3 |
-| `/api/pedidos`                   | GET    | panel       | 3    |
-| `/api/pedidos/manual`            | POST   | panel       | 3    |
-| `/api/pedidos/:id`               | PATCH  | panel       | 3    |
+| `/api/pedidos`                   | POST   | **público** (checkout de la landing) | 3 ✅ |
+| `/api/pedidos`                   | GET    | panel       | 3 ✅ |
+| `/api/pedidos/manual`            | POST   | panel       | 3 ✅ |
+| `/api/pedidos/:id`               | PATCH  | panel       | 3 ✅ |
 | `/api/estadisticas`              | GET    | panel       | 4    |
 
 Las rutas marcadas "panel" exigen una identidad válida de Cloudflare
@@ -249,6 +249,34 @@ desajustado no puede habilitar un pedido que no se puede entregar.
 
 ---
 
+### Los dos caminos del checkout
+
+La landing tiene dos botones, y **los dos registran el pedido** con
+canal `app`:
+
+| Botón | Qué hace |
+|---|---|
+| *Confirmar pedido por WhatsApp* | El de siempre. Registra el pedido y abre WhatsApp con el mensaje armado. |
+| *Dejar mi pedido confirmado* | Registra el pedido y muestra una pantalla de confirmación. No abre WhatsApp: desde AUMÉ se comunican después. |
+
+> **El registro nunca bloquea la venta.** En el camino de WhatsApp el
+> pedido se manda a la API *sin esperar la respuesta*, y WhatsApp se
+> abre en el mismo gesto de la clienta. Si esperáramos a la API, el
+> navegador ya no consideraría la apertura parte del toque y los
+> bloqueadores de pop-ups la frenarían. Y si la API falla, el pedido
+> igual llega por WhatsApp: registrar es un extra, abrir WhatsApp no.
+
+> **Los precios no los pone el navegador.** `POST /api/pedidos` es la
+> única ruta pública que escribe, así que el worker recalcula todo
+> contra la base: el precio de cada vianda, el costo del envío y el
+> total. Del cuerpo del pedido se usa sólo *qué* se pidió, nunca
+> *cuánto* sale. Tampoco se puede pedir un día que ya pasó, uno que es
+> feriado, ni una categoría que ese día no está publicada.
+
+No hay pasarela de pago online: eso sigue igual que siempre.
+
+---
+
 ## 3. Publicar
 
 ```bash
@@ -400,7 +428,7 @@ corren igual.
 | 0 | Rama, esqueleto del worker, `schema.sql`, staging separado | ✅ hecha |
 | 1 | Módulo de precios + la landing lee precios de la API | ✅ hecha |
 | 2 | Módulo de menú (borrador/publicar) + la landing lee el menú | ✅ hecha |
-| 3 | Módulo de pedidos + doble camino del checkout | pendiente |
+| 3 | Módulo de pedidos + doble camino del checkout | ✅ hecha |
 | 4 | Módulo de estadísticas | pendiente |
 
 En cada fase se corren los tests de Playwright (`npm test`) para

@@ -233,6 +233,75 @@
     return L.join('\n');
   }
 
+  /* ======================================================== API
+     REGISTRAR EL PEDIDO
+     -------------------------------------------------------------------
+     Los dos botones del checkout registran el pedido en /api/pedidos con
+     canal "app": tanto el que abre WhatsApp como el que lo deja
+     confirmado. Así los dos caminos cuentan igual en las estadísticas.
+
+     Ojo con lo que NO mandamos: ni precios, ni subtotales, ni el total.
+     El servidor los recalcula contra la base. Lo que va acá es sólo QUÉ
+     se pidió, nunca CUÁNTO sale.
+     ================================================================= */
+
+  /* Una clave por intento de compra. Si la clienta toca dos veces, o se
+     corta la señal y reintenta, el servidor reconoce que es el mismo
+     pedido y no lo duplica. Se renueva cuando el pedido entra bien. */
+  var claveIntento = null;
+
+  function nuevaClave() {
+    try {
+      if (global.crypto && global.crypto.randomUUID) return global.crypto.randomUUID();
+    } catch (e) { /* seguimos con el respaldo */ }
+    return 'aume-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+  }
+
+  function cuerpoPedido(origen) {
+    var d = leerForm();
+    if (!claveIntento) claveIntento = nuevaClave();
+
+    return {
+      claveIdem: claveIntento,
+      origen: origen,
+      cliente: { nombre: d.nombre, telefono: d.telefono },
+      modalidad: Store.estado.modalidad,
+      zonaId: Store.estado.zona,
+      direccion: d.direccion,
+      puntoId: Store.estado.punto,
+      metodoPago: d.pago,
+      notas: d.notas,
+      items: Store.items().map(function (it) {
+        return {
+          dia: it.diaId,
+          categoria: it.catId,
+          tamano: it.tamanoId,
+          cantidad: it.cantidad
+        };
+      })
+    };
+  }
+
+  function registrar(origen) {
+    if (typeof fetch !== 'function') return Promise.reject({ mensaje: 'Sin conexión.' });
+
+    return fetch('/api/pedidos', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cuerpoPedido(origen))
+    }).then(function (res) {
+      return res.json().catch(function () { return null; }).then(function (c) {
+        if (res.ok && c && c.ok === true) return c.datos;
+        var err = (c && c.error) || {};
+        throw {
+          mensaje: err.mensaje || 'No pudimos registrar el pedido.',
+          detalles: err.detalles || []
+        };
+      });
+    });
+  }
+
   /* ---------------------------------------------------------- Enviar */
 
   function enviar() {
@@ -250,6 +319,22 @@
       UI.toast('Completá los datos marcados en rojo');
       return;
     }
+
+    /* Registramos el pedido SIN esperar la respuesta, y abrimos WhatsApp
+       en el mismo gesto de la clienta.
+
+       El orden importa: si esperáramos a la API, el navegador ya no
+       consideraría la apertura como parte del toque y los bloqueadores
+       de pop-ups la frenarían. Y si la API falla, el pedido igual llega
+       por WhatsApp, que es exactamente como funcionaba antes de que
+       existiera todo esto. Registrar es un extra; abrir WhatsApp no. */
+    registrar('checkout-whatsapp').then(function () {
+      claveIntento = null;
+    }).catch(function () {
+      /* Silencio a propósito: la clienta ya está en WhatsApp con su
+         pedido. Un cartel de error acá sólo la asustaría por algo que
+         no le impide comprar. */
+    });
 
     var texto = armarMensaje();
     var url = 'https://wa.me/' + CFG.whatsapp + '?text=' + encodeURIComponent(texto);
@@ -282,6 +367,87 @@
     } else {
       el('btnAbrirWa').hidden = true;
       UI.toast('¡Listo! Enviános el mensaje por WhatsApp');
+    }
+  }
+
+  /* ============================ DEJAR EL PEDIDO CONFIRMADO
+     El segundo camino: el pedido queda registrado y NO se abre WhatsApp.
+     Desde AUMÉ se comunican para coordinar entrega y pago. No hay pago
+     online: eso sigue igual que siempre.
+     ================================================================= */
+
+  function pantallaConfirmada(datos) {
+    var esRetiro = Store.estado.modalidad === 'retiro';
+    var punto = esRetiro ? Store.buscarPunto(Store.estado.punto) : null;
+    var d = leerForm();
+
+    var entrega = esRetiro
+      ? 'Retirás en ' + esc(punto.nombre) + ' — ' + esc(punto.direccion)
+      : 'Te lo llevamos a ' + esc(d.direccion);
+
+    el('panelCuerpoCheckout').innerHTML =
+      '<div class="listo">' +
+        '<div class="listo__ico" aria-hidden="true">🎉</div>' +
+        '<h3 class="listo__t">¡Pedido recibido!</h3>' +
+        '<p class="listo__d">' +
+          'Gracias ' + esc(d.nombre.split(' ')[0]) + '. Ya tenemos tu pedido anotado.' +
+        '</p>' +
+
+        '<div class="listo__caja">' +
+          '<p class="listo__l"><span>Nº de pedido</span><b>#' + esc(String(datos.id)) + '</b></p>' +
+          '<p class="listo__l"><span>' + datos.cantidad + ' ' +
+            UI.plural(datos.cantidad, 'vianda', 'viandas') + '</span><b>' +
+            Store.plata(datos.total) + '</b></p>' +
+          '<p class="listo__l listo__l--suelto">' + entrega + '</p>' +
+        '</div>' +
+
+        '<p class="listo__aviso">' +
+          '📞 <b>Desde AUMÉ nos comunicamos con vos</b> al ' + esc(d.telefono) +
+          ' para coordinar la entrega y el pago. No hace falta que hagas nada más.' +
+        '</p>' +
+
+        '<button type="button" class="btn btn--fantasma btn--bloque" data-cerrar>Listo</button>' +
+      '</div>';
+
+    /* El pedido ya está anotado: el carrito cumplió su función y dejarlo
+       lleno sólo invita a mandarlo dos veces. */
+    Store.vaciar();
+  }
+
+  async function confirmar() {
+    if (!Store.totales().cantidad) {
+      UI.toast('Tu pedido está vacío');
+      return;
+    }
+
+    var campoMalo = validar();
+    if (campoMalo) {
+      var nodo = el(campoMalo);
+      nodo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      var foco = nodo.querySelector('input, select, textarea');
+      if (foco) foco.focus({ preventScroll: true });
+      UI.toast('Completá los datos marcados en rojo');
+      return;
+    }
+
+    var btn = el('btnConfirmado');
+    btn.disabled = true;
+    btn.textContent = 'Enviando…';
+
+    try {
+      var datos = await registrar('checkout-confirmado');
+      claveIntento = null;
+      pantallaConfirmada(datos);
+    } catch (e) {
+      /* Si la API falla, el camino de WhatsApp sigue disponible y es el
+         que siempre funcionó: se lo decimos en vez de dejarla trabada. */
+      el('planBTexto').textContent = armarMensaje();
+      el('planB').hidden = false;
+      UI.toast(e.mensaje || 'No pudimos registrar el pedido');
+      el('planB').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '✓ Dejar mi pedido confirmado';
     }
   }
 
@@ -318,7 +484,33 @@
 
   /* ---------------------------------------------------------- Montaje */
 
+  /* El segundo botón y el id del cuerpo del panel se agregan desde acá
+     para no tener que tocar index.html: la landing pública sigue con su
+     marcado de siempre. */
+  function prepararPanel() {
+    var panel = document.getElementById('panelCheckout');
+    var cuerpo = panel.querySelector('.panel__cuerpo');
+    if (cuerpo && !cuerpo.id) cuerpo.id = 'panelCuerpoCheckout';
+
+    if (document.getElementById('btnConfirmado')) return;
+
+    var pie = panel.querySelector('.panel__pie');
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'btnConfirmado';
+    btn.className = 'btn btn--primario btn--bloque';
+    btn.style.marginTop = '10px';
+    btn.textContent = '✓ Dejar mi pedido confirmado';
+    pie.appendChild(btn);
+
+    var nota = document.createElement('p');
+    nota.className = 'pie-nota';
+    nota.textContent = 'Te contactamos para coordinar entrega y pago.';
+    pie.appendChild(nota);
+  }
+
   function montar() {
+    prepararPanel();
     pintarModalidad();
     pintarPuntos();
     pintarZonas();
@@ -365,6 +557,7 @@
     });
 
     el('btnWhatsapp').addEventListener('click', enviar);
+    el('btnConfirmado').addEventListener('click', confirmar);
     el('btnCopiar').addEventListener('click', copiar);
   }
 
@@ -372,6 +565,8 @@
 
   global.AUME.Checkout = {
     montar: montar,
+    confirmar: confirmar,
+    cuerpoPedido: cuerpoPedido,
     pintarResumen: pintarResumen,
     pintarPuntos: pintarPuntos,
     pintarModalidad: pintarModalidad,
