@@ -21,6 +21,7 @@ worker/
 docs/
 node_modules/
 .dev.vars
+.wrangler/
 
 # admin/ SÍ se publica: son las pantallas del panel. Quien lo protege es
 # Cloudflare Access, que corta el acceso antes de servir el archivo.
