@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Caveat:wght@600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/admin/assets/css/panel.css">
-<title>Editar día · Panel AUMÉ</title>
+<title>Estadísticas · Panel AUMÉ</title>
 </head>
 <body>
 <div class="entorno" id="entorno" hidden></div>
@@ -28,39 +28,30 @@
 </header>
 
 <main class="cont hoja">
-  <p class="bajada" style="margin-bottom:6px">
-    <a href="/admin/menus/">← Volver a la grilla</a>
-  </p>
-  <h1 class="titulo" id="titulo">Cargando…</h1>
-  <p class="bajada"><span class="estado estado--nuevo" id="estado">…</span> <span id="subtitulo"></span></p>
+  <h1 class="titulo">Estadísticas</h1>
+  <p class="bajada">Para decidir cuánto cocinar, qué reforzar y dónde crecer.</p>
+
+  <div class="filtros">
+    <button type="button" class="chip" id="r7" aria-pressed="false">7 días</button>
+    <button type="button" class="chip" id="r28" aria-pressed="true">28 días</button>
+    <button type="button" class="chip" id="r90" aria-pressed="false">3 meses</button>
+    <label class="campo__l" for="fDesde">Desde</label>
+    <input class="mes__sel" type="date" id="fDesde">
+    <label class="campo__l" for="fHasta">Hasta</label>
+    <input class="mes__sel" type="date" id="fHasta">
+  </div>
 
   <div id="aviso"></div>
-  <p class="cargando" id="cargando">Cargando el día…</p>
+  <p class="cargando" id="cargando">Cargando el tablero…</p>
 
-  <form id="form" hidden novalidate>
-    <div id="platos"></div>
-
-    <div class="caja">
-      <div class="campo">
-        <label class="campo__l" for="nota">Nota de la semana <span style="font-weight:400">(opcional)</span></label>
-        <input class="campo__i" type="text" id="nota" maxlength="200"
-               placeholder="Los pedidos se reciben hasta el domingo a las 20:00 hs.">
-        <p class="campo__ayuda">Se muestra debajo del título del menú en la web.</p>
-      </div>
-    </div>
-
-    <div class="guardar">
-      <div class="cont guardar__in" style="padding-inline:0">
-        <button type="submit" class="btn btn--fan" id="btnGuardar">Guardar borrador</button>
-        <button type="button" class="btn btn--pri" id="btnPublicar">Publicar</button>
-        <span class="guardar__n" id="nota2"></span>
-      </div>
-    </div>
-  </form>
+  <div id="tablero" hidden>
+    <div class="kpis" id="kpis"></div>
+    <div class="paneles" id="paneles"></div>
+  </div>
 </main>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="/admin/assets/js/panel.js"></script>
-<script src="/admin/menus/dia.js"></script>
+<script src="/admin/estadisticas/estadisticas.js"></script>
 </body>
 </html>

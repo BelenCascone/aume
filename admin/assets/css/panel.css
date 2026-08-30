@@ -209,3 +209,77 @@ input,select,textarea{font-family:inherit;font-size:15px;color:inherit}
 .sel-estado{padding:5px 9px;border:1px solid var(--linea);border-radius:var(--r-sm);
   background:var(--crema);font-size:.82rem}
 .linea-item{display:flex;gap:8px;justify-content:space-between;padding:1px 0}
+
+/* =====================================================================
+   TABLERO
+   ---------------------------------------------------------------------
+   PALETA DE GRÁFICOS · no es la de la marca, y es a propósito.
+
+   Los colores de assets/css/styles.css funcionan como acento de una
+   pestaña, donde cada uno viene con su nombre al lado. Como colores de
+   gráfico fallan: Proteico (#9B7AA2) y Ensalada (#5B9B97) quedan a ΔE
+   12,5 en visión normal y 3,1 en deuteranopía — o sea, ni con visión
+   normal se distinguen bien dos barras vecinas.
+
+   Estos son los mismos hues corridos hasta que pasan las seis
+   verificaciones (banda de luminosidad, piso de croma, separación CVD,
+   piso de visión normal y contraste contra el fondo). Se mantiene el
+   naranja de marca tal cual, que es el que más identifica a AUMÉ.
+
+   Además ninguna barra depende sólo del color: todas llevan su nombre y
+   su número al lado.
+   ===================================================================== */
+:root{
+  --g-clasico:     #D97838;
+  --g-vegetariano: #2E7D4F;
+  --g-proteico:    #8A4FB0;
+  --g-ensalada:    #2196A8;
+  --g-cesar:       #B5446E;
+  --g-uno:         #D97838;   /* series única */
+  --g-neutro:      #6B6560;
+}
+
+.kpis{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:18px}
+.kpi{background:var(--blanco);border:1px solid var(--linea);border-radius:var(--r-md);
+  padding:16px;box-shadow:var(--sombra)}
+.kpi__n{font-family:var(--f-display);font-size:1.9rem;font-weight:700;line-height:1.05;
+  letter-spacing:-.02em}
+.kpi__l{font-size:.78rem;color:var(--tinta-60);text-transform:uppercase;
+  letter-spacing:.04em;margin-top:4px}
+.kpi__pie{font-size:.8rem;color:var(--tinta-60);margin-top:6px}
+.kpi__delta--sube{color:var(--exito);font-weight:700}
+.kpi__delta--baja{color:var(--alerta);font-weight:700}
+
+.paneles{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+
+/* Barras horizontales. El fill arranca en la línea de base y se redondea
+   sólo del lado del dato; el 2px de separación evita que dos barras
+   vecinas se lean como una sola. */
+.gr{display:flex;flex-direction:column;gap:2px}
+.gr__f{display:grid;grid-template-columns:minmax(88px,auto) 1fr auto;gap:10px;
+  align-items:center;font-size:.87rem;padding:3px 0}
+.gr__e{color:var(--tinta);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gr__p{height:10px;background:var(--crema-alt);border-radius:2px;overflow:hidden}
+.gr__b{height:100%;background:var(--g-uno);border-radius:0 4px 4px 0;min-width:2px;
+  transition:width .3s}
+.gr__v{font-weight:700;font-variant-numeric:tabular-nums;color:var(--tinta);min-width:34px;text-align:right}
+.gr__s{font-size:.78rem;color:var(--tinta-60);font-variant-numeric:tabular-nums}
+
+/* Columnas para la evolución semana a semana */
+.cols{display:flex;align-items:flex-end;gap:6px;height:130px;padding-top:18px;
+  border-bottom:1px solid var(--linea)}
+.col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;
+  height:100%;position:relative;min-width:24px}
+.col__b{width:100%;background:var(--g-uno);border-radius:4px 4px 0 0;min-height:2px;
+  transition:height .3s}
+.col__v{position:absolute;top:-16px;font-size:.75rem;font-weight:700;
+  font-variant-numeric:tabular-nums;color:var(--tinta)}
+.cols-pie{display:flex;gap:6px;margin-top:5px}
+.cols-pie span{flex:1;text-align:center;font-size:.72rem;color:var(--tinta-60);min-width:24px}
+
+.tabla{width:100%;border-collapse:collapse;font-size:.87rem}
+.tabla th{text-align:left;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;
+  color:var(--tinta-60);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--linea)}
+.tabla td{padding:7px 8px;border-bottom:1px solid var(--linea)}
+.tabla td:last-child,.tabla th:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.vacio-g{color:var(--tinta-60);font-size:.87rem;font-style:italic;padding:8px 0}
