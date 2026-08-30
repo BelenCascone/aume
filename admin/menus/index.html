@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/assets/img/favicon-64.png" sizes="64x64" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Caveat:wght@600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/assets/css/panel.css">
+<title>Menú · Panel AUMÉ</title>
+</head>
+<body>
+<div class="entorno" id="entorno" hidden></div>
+<header class="cab">
+  <div class="cont cab__in">
+    <a class="cab__marca" href="/admin/">AUMÉ<span>panel</span></a>
+    <nav class="cab__nav">
+      <a class="cab__a" href="/admin/">Inicio</a>
+      <a class="cab__a" href="/admin/menus/">Menú</a>
+      <a class="cab__a" href="/admin/precios/">Precios</a>
+      <a class="cab__a" href="/">Ver la web</a>
+    </nav>
+  </div>
+</header>
+
+<main class="cont hoja">
+  <h1 class="titulo">Menú</h1>
+  <p class="bajada">
+    Cargá el menú de cada día. Queda como borrador hasta que le des
+    publicar; recién ahí lo ve la clienta.
+  </p>
+
+  <div id="aviso"></div>
+
+  <div class="mes">
+    <label class="campo__l" for="selMes">Mes</label>
+    <select class="mes__sel" id="selMes"></select>
+    <span class="guardar__n" id="resumenMes"></span>
+  </div>
+
+  <p class="cargando" id="cargando">Cargando…</p>
+  <div class="dias" id="dias"></div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="/admin/assets/js/panel.js"></script>
+<script src="/admin/menus/menus.js"></script>
+</body>
+</html>

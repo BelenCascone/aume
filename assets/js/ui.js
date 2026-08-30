@@ -351,14 +351,17 @@
      con forma válida. Una respuesta rara deja la web como estaba.
      ================================================================= */
 
-  /* Arranca apenas carga el script, para no esperar al DOM */
-  var promesaPrecios = (function () {
+  /* Arrancan apenas carga el script, para no esperar al DOM */
+  function traer(ruta) {
     if (typeof fetch !== 'function') return null;
-    return fetch('/api/precios', { credentials: 'same-origin' })
+    return fetch(ruta, { credentials: 'same-origin' })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (c) { return (c && c.ok === true && c.datos) ? c.datos : null; })
       .catch(function () { return null; });
-  })();
+  }
+
+  var promesaPrecios = traer('/api/precios');
+  var promesaMenu    = traer('/api/menus');
 
   function lista(v) { return Array.isArray(v) && v.length ? v : null; }
 
@@ -414,28 +417,70 @@
     setTimeout(function () { cuandoArranco(fn); }, 30);
   }
 
-  /* Cuando llegan los precios, repintamos. avisar() hace que app.js
+  /* --- Menú de la semana ------------------------------------------
+     Lo que la nutri publica desde /admin/menus/ reemplaza a
+     assets/js/data/menu.js. Misma regla que con los precios: si no
+     llega un menú publicado, se muestra el del archivo. */
+  function aplicarMenu(d) {
+    /* platos en null = no hay ningún día publicado para esta semana.
+       Ojo con no confundirlo con {}: eso sería una semana publicada
+       pero sin platos, y tampoco la queremos mostrar. */
+    if (!d || !d.platos || !Object.keys(d.platos).length) return false;
+
+    MENU.platos = d.platos;
+    if (d.semana) MENU.semana = d.semana;
+    if (typeof d.nota === 'string') MENU.nota = d.nota;
+    return true;
+  }
+
+  /* Si cambió el menú, puede que el carrito guardado en el celular tenga
+     viandas de platos que ya no existen. store.js limpia eso al
+     restaurar, pero para entonces todavía teníamos el menú del archivo.
+     Las sacamos ahora, usando el mismo camino que el botón "−". */
+  function limpiarCarritoViejo() {
+    var Store = global.AUME.Store;
+    var sobrantes = Store.items().filter(function (it) { return !it.plato; });
+    sobrantes.forEach(function (it) {
+      Store.sumar(it.diaId, it.catId, it.tamanoId, -it.cantidad);
+    });
+    return sobrantes.length;
+  }
+
+  /* Cuando llegan los datos, repintamos. avisar() hace que app.js
      redibuje todo lo que depende del estado (tarjetas, barra, carrito y
      el resumen del checkout) sin que haya que tocar app.js. */
-  function escucharPrecios() {
-    if (!promesaPrecios) return;
-    promesaPrecios.then(function (d) {
-      if (!aplicarPrecios(d)) return;
+  function escucharApi() {
+    if (!promesaPrecios && !promesaMenu) return;
+
+    /* Esperamos a los dos y repintamos UNA sola vez: si no, la web
+       parpadearía dos veces seguidas con datos a medio actualizar. */
+    Promise.all([
+      promesaPrecios || Promise.resolve(null),
+      promesaMenu || Promise.resolve(null)
+    ]).then(function (r) {
+      var cambio = aplicarPrecios(r[0]);
+      var cambioMenu = aplicarMenu(r[1]);
+      if (!cambio && !cambioMenu) return;
+
       cuandoArranco(function () {
         try {
           pintarEstaticos();
+          if (cambioMenu) {
+            var sacadas = limpiarCarritoViejo();
+            if (sacadas) toast('El menú se actualizó y sacamos lo que ya no está');
+          }
           global.AUME.Store.avisar();
-        } catch (e) { /* si falla el repintado, quedan los precios de config.js */ }
+        } catch (e) { /* si falla el repintado, quedan los datos de los archivos */ }
       });
     });
   }
 
   /* Arranca solo: no hace falta tocar app.js para engancharlo. */
-  escucharPrecios();
+  escucharApi();
 
   global.AUME.UI = {
     el: el,
-    escucharPrecios: escucharPrecios,
+    escucharApi: escucharApi,
     esc: esc,
     plural: plural,
     toast: toast,

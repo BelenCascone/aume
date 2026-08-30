@@ -30,10 +30,11 @@ porque no pasa por él.
 | `/api/salud`                     | GET    | panel       | 0 ✅ |
 | `/api/precios`                   | GET    | **público** | 1 ✅ |
 | `/api/precios`                   | PUT    | panel       | 1 ✅ |
-| `/api/menus`                     | GET    | **público** (sólo publicados) | 2 |
-| `/api/menus/:fecha`              | GET    | panel       | 2    |
-| `/api/menus/:fecha`              | PUT    | panel       | 2    |
-| `/api/menus/:fecha/publicar`     | POST   | panel       | 2    |
+| `/api/menus`                     | GET    | **público** (sólo publicados) | 2 ✅ |
+| `/api/menus/mes/:mes`            | GET    | panel       | 2 ✅ |
+| `/api/menus/:fecha`              | GET    | panel       | 2 ✅ |
+| `/api/menus/:fecha`              | PUT    | panel       | 2 ✅ |
+| `/api/menus/:fecha/publicar`     | POST   | panel       | 2 ✅ |
 | `/api/pedidos`                   | POST   | **público** (checkout de la landing) | 3 |
 | `/api/pedidos`                   | GET    | panel       | 3    |
 | `/api/pedidos/manual`            | POST   | panel       | 3    |
@@ -376,7 +377,7 @@ corren igual.
 |---|---|---|
 | 0 | Rama, esqueleto del worker, `schema.sql`, staging separado | ✅ hecha |
 | 1 | Módulo de precios + la landing lee precios de la API | ✅ hecha |
-| 2 | Módulo de menú (borrador/publicar) + la landing lee el menú | pendiente |
+| 2 | Módulo de menú (borrador/publicar) + la landing lee el menú | ✅ hecha |
 | 3 | Módulo de pedidos + doble camino del checkout | pendiente |
 | 4 | Módulo de estadísticas | pendiente |
 

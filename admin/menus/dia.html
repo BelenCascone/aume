@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Panel · AUMÉ</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="/assets/img/favicon-64.png" sizes="64x64" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Caveat:wght@600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/admin/assets/css/panel.css">
+<title>Editar día · Panel AUMÉ</title>
 </head>
 <body>
 <div class="entorno" id="entorno" hidden></div>
@@ -26,39 +26,39 @@
 </header>
 
 <main class="cont hoja">
-  <h1 class="titulo">Panel de AUMÉ</h1>
-  <p class="bajada">Todo lo que antes se editaba a mano, desde acá.</p>
+  <p class="bajada" style="margin-bottom:6px">
+    <a href="/admin/menus/">← Volver a la grilla</a>
+  </p>
+  <h1 class="titulo" id="titulo">Cargando…</h1>
+  <p class="bajada"><span class="estado estado--nuevo" id="estado">…</span> <span id="subtitulo"></span></p>
 
-  <div class="modulos">
-    <a class="modulo" href="/admin/precios/">
-      <div class="modulo__i" aria-hidden="true">💲</div>
-      <p class="modulo__t">Precios</p>
-      <p class="modulo__d">Vianda por tamaño, envío por zona, packs semanales y plan mensual.</p>
-    </a>
+  <div id="aviso"></div>
+  <p class="cargando" id="cargando">Cargando el día…</p>
 
-    <a class="modulo" href="/admin/menus/">
-      <div class="modulo__i" aria-hidden="true">🍱</div>
-      <p class="modulo__t">Menú</p>
-      <p class="modulo__d">Cargar el menú de cada día, guardarlo como borrador y publicarlo.</p>
-    </a>
+  <form id="form" hidden novalidate>
+    <div id="platos"></div>
 
-    <div class="modulo modulo--pronto">
-      <div class="modulo__i" aria-hidden="true">📋</div>
-      <p class="modulo__t">Pedidos</p>
-      <p class="modulo__d">Los que entran solos por la web y los que llegan por WhatsApp.</p>
-      <span class="pastilla">Próximamente</span>
+    <div class="caja">
+      <div class="campo">
+        <label class="campo__l" for="nota">Nota de la semana <span style="font-weight:400">(opcional)</span></label>
+        <input class="campo__i" type="text" id="nota" maxlength="200"
+               placeholder="Los pedidos se reciben hasta el domingo a las 20:00 hs.">
+        <p class="campo__ayuda">Se muestra debajo del título del menú en la web.</p>
+      </div>
     </div>
 
-    <div class="modulo modulo--pronto">
-      <div class="modulo__i" aria-hidden="true">📊</div>
-      <p class="modulo__t">Estadísticas</p>
-      <p class="modulo__d">Qué menú se pide más, cuánto se recaudó y de dónde vienen los pedidos.</p>
-      <span class="pastilla">Próximamente</span>
+    <div class="guardar">
+      <div class="cont guardar__in" style="padding-inline:0">
+        <button type="submit" class="btn btn--fan" id="btnGuardar">Guardar borrador</button>
+        <button type="button" class="btn btn--pri" id="btnPublicar">Publicar</button>
+        <span class="guardar__n" id="nota2"></span>
+      </div>
     </div>
-  </div>
+  </form>
 </main>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="/admin/assets/js/panel.js"></script>
+<script src="/admin/menus/dia.js"></script>
 </body>
 </html>

@@ -58,7 +58,7 @@ export async function correr(t) {
   await responde('un método que no corresponde da 405',
     pedir('/api/precios', { method: 'DELETE' }), staging, 405, 'metodo_no_permitido');
 
-  for (const [ruta, fase] of [['/api/menus', 2], ['/api/estadisticas', 4]]) {
+  for (const [ruta, fase] of [['/api/estadisticas', 4]]) {
     await responde(ruta + ' está registrada (llega en la fase ' + fase + ')',
       pedir(ruta), staging, 501, 'no_implementado');
   }
