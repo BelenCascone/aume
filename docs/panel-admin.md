@@ -45,60 +45,170 @@ Access **y** que el pedido salga del propio sitio (defensa contra CSRF).
 
 ---
 
-## 2. Crear las bases de datos D1
+## 2. Las bases de datos D1
 
-Se hace una sola vez. **Empezá siempre por staging** y no toques
-producción hasta que esté todo probado.
+Hay **dos bases separadas**, y esa separación es el seguro de todo lo
+demás:
+
+| Base | Para qué |
+|---|---|
+| `aume-staging` | Probar. Si algo sale mal acá, no pasa nada. |
+| `aume-produccion` | La de verdad, la que ve la clienta. |
+
+**Las dos ya están creadas y conectadas** en `wrangler.jsonc`. Esta
+sección queda escrita paso a paso por si alguna vez hay que rehacerlas
+(cuenta nueva, base borrada por error, alguien más retomando el
+proyecto).
+
+Todo se hace **en la terminal, parada dentro de la carpeta del
+proyecto** — la que tiene `index.html` y `wrangler.jsonc`.
+
+### 2.1. Tener el proyecto al día
 
 ```bash
-# 1. Crear las dos bases
+git checkout main
+git pull
+ls worker/db          # tienen que aparecer schema.sql y semilla.sql
+```
+
+Si esos dos archivos no están, lo que sigue va a fallar.
+
+### 2.2. Entrar a Cloudflare
+
+```bash
+npx wrangler login
+```
+
+- La primera vez, `npx` pregunta si puede descargar wrangler: **`y`** + Enter.
+- Se abre el navegador con **"Allow Wrangler to make changes to your
+  account"** → **Allow**. Si no se abre solo, la terminal imprime un link.
+- La terminal termina diciendo `Successfully logged in.`
+
+Confirmá en qué cuenta quedaste:
+
+```bash
+npx wrangler whoami
+```
+
+Tiene que ser la misma cuenta donde está publicada la web de AUMÉ.
+
+### 2.3. Crear las bases
+
+```bash
 npx wrangler d1 create aume-staging
 npx wrangler d1 create aume-produccion
 ```
 
-Cada comando imprime un `database_id`.
+Cada comando termina imprimiendo algo así:
 
-Ahora abrí **`wrangler.jsonc`**. Vas a encontrar dos bloques
-`d1_databases` **comentados**, marcados con `⚠️ PASO 1`. Para cada uno:
+```
+✅ Successfully created DB 'aume-staging'
 
-1. Sacale las barras `//` de las líneas del bloque.
-2. Pegá el `database_id` que te devolvió el comando de esa base.
+[[d1_databases]]
+binding = "DB"
+database_name = "aume-staging"
+database_id = "68212180-4240-4e47-bd67-a542a3468591"
+```
 
-- el id de `aume-staging` → en el bloque de adentro de `env.staging`
-- el id de `aume-produccion` → en el bloque de arriba de todo
+> ⚠️ **Ojo, acá es donde todo el mundo se traba:** wrangler imprime ese
+> bloque en formato **TOML** (`[[d1_databases]]`), pero nuestro
+> `wrangler.jsonc` está en **JSON**. **No pegues el bloque tal cual.**
+> Lo único que se copia es el `database_id`.
 
-> **Por qué vienen comentados:** wrangler no puede publicar apuntando a
-> una base que no existe. Si el `database_id` es inventado, el deploy
-> falla entero y **no se publica nada, ni siquiera un cambio de la
-> landing**. Por eso el binding queda afuera hasta que la base exista de
-> verdad.
->
-> Mientras estén comentados, la API del panel responde 503 diciendo
-> justamente que falta el binding `DB`. La landing pública no se ve
-> afectada: no pasa por el worker.
+Si alguna vez perdés los ids, no hace falta recrear nada:
 
 ```bash
-# 2. Crear las tablas
-npx wrangler d1 execute aume-staging --remote --file=worker/db/schema.sql
+npx wrangler d1 list
+```
 
-# 3. Cargar los datos iniciales (los precios y el menú de hoy)
+### 2.4. Poner los ids en `wrangler.jsonc`
+
+Hay dos bloques `d1_databases` y **no se pueden cruzar**. El
+`database_name` que ya está escrito en cada uno te dice cuál es cuál:
+
+- el bloque de **arriba de todo** → id de `aume-produccion`
+- el bloque de adentro de **`"staging"`** → id de `aume-staging`
+
+```jsonc
+"d1_databases": [
+  {
+    "binding": "DB",
+    "database_name": "aume-produccion",
+    "database_id": "acá-va-el-id"
+  }
+],
+```
+
+Cuidado con las comas: el bloque de producción cierra con `],` y el de
+staging con `]` (sin coma, porque es el último).
+
+> **Nunca dejes un `database_id` inventado o de relleno.** Wrangler no
+> puede publicar apuntando a una base que no existe: el deploy falla
+> entero y **no se publica nada, ni siquiera una corrección de la
+> landing**. Si la base todavía no existe, es preferible comentar el
+> bloque completo: la API del panel responde 503 avisando que falta el
+> binding `DB`, y la landing pública sigue intacta porque no pasa por el
+> worker.
+
+### 2.5. Crear las tablas y cargar los datos
+
+**Siempre staging primero.**
+
+```bash
+npx wrangler d1 execute aume-staging --remote --file=worker/db/schema.sql
 npx wrangler d1 execute aume-staging --remote --file=worker/db/semilla.sql
 ```
 
-Cuando llegue el momento de producción, los mismos dos comandos con
-`aume-produccion`.
+Cada uno pregunta `Ok to proceed? (y/N)` → **`y`**.
+
+- `schema.sql` crea las tablas vacías.
+- `semilla.sql` carga los datos reales de hoy: precios, envíos, puntos de
+  retiro, métodos de pago y el menú de la semana.
+
+> **`--remote` es la base de verdad en Cloudflare.** `--local` sería una
+> copia en tu compu. Si te olvidás la bandera, wrangler te la reclama.
 
 Los dos archivos se pueden correr **todas las veces que haga falta**:
 `schema.sql` usa `CREATE TABLE IF NOT EXISTS` y `semilla.sql` usa
 `INSERT OR IGNORE`, así que no pisan nada que ya hayas editado desde el
-panel.
+panel. Si un comando falla a la mitad, D1 deja la base como estaba y se
+puede reintentar sin miedo.
 
-Los cambios de esquema que vengan después van como archivos nuevos y
-numerados en `worker/db/cambios/` (`0002_…sql`, `0003_…sql`), y además se
-reflejan en `schema.sql` para que ese archivo siga describiendo la base
-completa.
+### 2.6. Comprobar que quedó bien
 
-### Probar sin internet
+```bash
+npx wrangler d1 execute aume-staging --remote --command="SELECT id, precio FROM tamanos"
+```
+
+Tiene que devolver `estandar 9000` y `xl 12800`. Y el menú:
+
+```bash
+npx wrangler d1 execute aume-staging --remote --command="SELECT COUNT(*) FROM menu_platos"
+```
+
+Tiene que devolver **20** (5 días × 4 tipos de menú).
+
+### 2.7. Producción
+
+Los mismos comandos de 2.5 pero con `aume-produccion`, **recién cuando
+esté todo probado en staging**. No hay apuro: la landing no depende de
+esto para funcionar.
+
+### Si algo sale mal
+
+| Qué ves | Qué pasa |
+|---|---|
+| `not logged in` / `authentication error` | Corré `npx wrangler login` de nuevo |
+| `A database with that name already exists` | Ya existe. Sacá el id con `npx wrangler d1 list` |
+| `Couldn't find wrangler.jsonc` | Estás fuera de la carpeta del proyecto |
+| `no such file: worker/db/schema.sql` | Falta el `git pull` de 2.1 |
+| `too many terms in compound SELECT` | Un `.sql` con una cadena larga de `UNION ALL`. D1 tolera menos términos que el SQLite de escritorio: hay que partirlo en varios `INSERT` |
+| Error de JSON al publicar | Sobra o falta una coma en `wrangler.jsonc` |
+
+Nada de esto toca la web pública: aunque falle todo, la landing sigue
+funcionando porque no pasa por la base.
+
+### Probar sin tocar Cloudflare
 
 ```bash
 npx wrangler d1 execute aume-staging --local --file=worker/db/schema.sql
@@ -106,14 +216,13 @@ npx wrangler d1 execute aume-staging --local --file=worker/db/semilla.sql
 npx wrangler dev --env staging
 ```
 
-`--local` usa una base SQLite en tu propia compu: no toca nada de
-Cloudflare.
+`--local` usa una base SQLite en tu propia compu.
 
-Para mirar qué hay adentro:
+### Cambios de esquema más adelante
 
-```bash
-npx wrangler d1 execute aume-staging --local --command="SELECT id, nombre, precio FROM tamanos"
-```
+Van como archivos nuevos y numerados en `worker/db/cambios/`
+(`0002_…sql`, `0003_…sql`), y además se reflejan en `schema.sql` para que
+ese archivo siga describiendo la base completa.
 
 ---
 

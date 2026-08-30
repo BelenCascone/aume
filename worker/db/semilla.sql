@@ -110,32 +110,64 @@ INSERT OR IGNORE INTO menus (fecha, dia_id, mes, estado, publicado_en) VALUES
   ('2026-09-03', 'jueves',    '2026-09', 'publicado', datetime('now')),
   ('2026-09-04', 'viernes',   '2026-09', 'publicado', datetime('now'));
 
-INSERT OR IGNORE INTO menu_platos (menu_id, categoria_id, nombre, descripcion, etiquetas)
-SELECT m.id, p.categoria_id, p.nombre, p.descripcion, p.etiquetas
-FROM menus m
-JOIN (
-  SELECT '2026-08-31' AS fecha, 'clasico'     AS categoria_id, 'Milanesa de ternera al horno con puré rústico' AS nombre, 'Milanesa horneada con costra de avena y puré de papa y calabaza.' AS descripcion, '["Sin fritura"]' AS etiquetas
-  UNION ALL SELECT '2026-08-31', 'vegetariano', 'Tarta de calabaza, puerro y queso',              'Masa casera integral con relleno cremoso de calabaza asada.',       '["Vegetariano"]'
-  UNION ALL SELECT '2026-08-31', 'proteico',    'Pollo grillado con quinoa y vegetales asados',   'Suprema marinada en hierbas sobre quinoa y mix de estación.',       '["Alto en proteína","Sin TACC"]'
-  UNION ALL SELECT '2026-08-31', 'ensalada',    'César de pollo',                                 'Lechuga, pollo grillado, croutons, queso y aderezo césar liviano.', '["Fresca"]'
+-- Un INSERT por día. Antes esto era un solo INSERT ... SELECT encadenando
+-- 20 SELECT con UNION ALL, y D1 lo rechazaba con "too many terms in
+-- compound SELECT": su límite de términos en un SELECT compuesto es más
+-- bajo que el del SQLite de escritorio, así que andaba en la prueba local
+-- y fallaba contra la base de verdad. Sin UNION no hay límite que romper,
+-- y de paso se lee mucho mejor.
 
-  UNION ALL SELECT '2026-09-01', 'clasico',     'Pastel de papas',                                'Carne cortada a cuchillo con cubierta de papa y batata.',           '[]'
-  UNION ALL SELECT '2026-09-01', 'vegetariano', 'Wok de vegetales con arroz yamaní',              'Salteado de vegetales de estación con salsa de soja y jengibre.',   '["Vegano"]'
-  UNION ALL SELECT '2026-09-01', 'proteico',    'Salmón rosado con puré de coliflor',             'Al horno con limón y eneldo, sobre puré liviano de coliflor.',      '["Omega 3","Sin TACC"]'
-  UNION ALL SELECT '2026-09-01', 'ensalada',    'Mediterránea con garbanzos',                     'Garbanzos, tomate, pepino, aceitunas, queso y oliva.',              '["Vegetariana"]'
+-- LUNES · 2026-08-31 ------------------------------------------------
+INSERT OR IGNORE INTO menu_platos (menu_id, categoria_id, nombre, descripcion, etiquetas) VALUES
+  ((SELECT id FROM menus WHERE fecha = '2026-08-31'), 'clasico', 'Milanesa de ternera al horno con puré rústico',
+   'Milanesa horneada con costra de avena y puré de papa y calabaza.', '["Sin fritura"]'),
+  ((SELECT id FROM menus WHERE fecha = '2026-08-31'), 'vegetariano', 'Tarta de calabaza, puerro y queso',
+   'Masa casera integral con relleno cremoso de calabaza asada.', '["Vegetariano"]'),
+  ((SELECT id FROM menus WHERE fecha = '2026-08-31'), 'proteico', 'Pollo grillado con quinoa y vegetales asados',
+   'Suprema marinada en hierbas sobre quinoa y mix de estación.', '["Alto en proteína","Sin TACC"]'),
+  ((SELECT id FROM menus WHERE fecha = '2026-08-31'), 'ensalada', 'César de pollo',
+   'Lechuga, pollo grillado, croutons, queso y aderezo césar liviano.', '["Fresca"]');
 
-  UNION ALL SELECT '2026-09-02', 'clasico',     'Canelones de carne y verdura',                   'Con salsa de tomate casera y un toque de queso gratinado.',          '[]'
-  UNION ALL SELECT '2026-09-02', 'vegetariano', 'Ñoquis de calabaza con salsa fileto',            'Ñoquis caseros de calabaza con albahaca fresca.',                   '["Vegetariano"]'
-  UNION ALL SELECT '2026-09-02', 'proteico',    'Bowl de carne magra, boniato y brócoli',         'Cubos de nalga salteados con boniato asado y brócoli al vapor.',    '["Alto en proteína"]'
-  UNION ALL SELECT '2026-09-02', 'ensalada',    'Verde con atún y huevo',                         'Mix de hojas, atún, huevo, tomate cherry y semillas.',              '["Sin TACC"]'
+-- MARTES · 2026-09-01 -----------------------------------------------
+INSERT OR IGNORE INTO menu_platos (menu_id, categoria_id, nombre, descripcion, etiquetas) VALUES
+  ((SELECT id FROM menus WHERE fecha = '2026-09-01'), 'clasico', 'Pastel de papas',
+   'Carne cortada a cuchillo con cubierta de papa y batata.', '[]'),
+  ((SELECT id FROM menus WHERE fecha = '2026-09-01'), 'vegetariano', 'Wok de vegetales con arroz yamaní',
+   'Salteado de vegetales de estación con salsa de soja y jengibre.', '["Vegano"]'),
+  ((SELECT id FROM menus WHERE fecha = '2026-09-01'), 'proteico', 'Salmón rosado con puré de coliflor',
+   'Al horno con limón y eneldo, sobre puré liviano de coliflor.', '["Omega 3","Sin TACC"]'),
+  ((SELECT id FROM menus WHERE fecha = '2026-09-01'), 'ensalada', 'Mediterránea con garbanzos',
+   'Garbanzos, tomate, pepino, aceitunas, queso y oliva.', '["Vegetariana"]');
 
-  UNION ALL SELECT '2026-09-03', 'clasico',     'Pollo al verdeo con arroz primavera',            'Pechuga en salsa de verdeo liviana y arroz con vegetales.',          '[]'
-  UNION ALL SELECT '2026-09-03', 'vegetariano', 'Hamburguesas de lentejas con puré de zanahoria', 'Burgers caseras de lenteja y avena, horneadas.',                    '["Vegano","Fuente de fibra"]'
-  UNION ALL SELECT '2026-09-03', 'proteico',    'Omelette de claras con vegetales y pavita',      'Relleno de espinaca, morrón y pavita, con ensalada tibia.',         '["Alto en proteína","Sin TACC"]'
-  UNION ALL SELECT '2026-09-03', 'ensalada',    'Caprese con quinoa',                             'Tomate, muzzarella, albahaca y quinoa con oliva.',                  '["Vegetariana"]'
+-- MIÉRCOLES · 2026-09-02 --------------------------------------------
+INSERT OR IGNORE INTO menu_platos (menu_id, categoria_id, nombre, descripcion, etiquetas) VALUES
+  ((SELECT id FROM menus WHERE fecha = '2026-09-02'), 'clasico', 'Canelones de carne y verdura',
+   'Con salsa de tomate casera y un toque de queso gratinado.', '[]'),
+  ((SELECT id FROM menus WHERE fecha = '2026-09-02'), 'vegetariano', 'Ñoquis de calabaza con salsa fileto',
+   'Ñoquis caseros de calabaza con albahaca fresca.', '["Vegetariano"]'),
+  ((SELECT id FROM menus WHERE fecha = '2026-09-02'), 'proteico', 'Bowl de carne magra, boniato y brócoli',
+   'Cubos de nalga salteados con boniato asado y brócoli al vapor.', '["Alto en proteína"]'),
+  ((SELECT id FROM menus WHERE fecha = '2026-09-02'), 'ensalada', 'Verde con atún y huevo',
+   'Mix de hojas, atún, huevo, tomate cherry y semillas.', '["Sin TACC"]');
 
-  UNION ALL SELECT '2026-09-04', 'clasico',     'Lasaña de carne y bechamel',                     'Capas de pasta fresca, carne y bechamel casera.',                    '[]'
-  UNION ALL SELECT '2026-09-04', 'vegetariano', 'Zapallitos rellenos con arroz integral',         'Rellenos de vegetales, arroz integral y queso gratinado.',          '["Vegetariano"]'
-  UNION ALL SELECT '2026-09-04', 'proteico',    'Merluza al horno con ensalada de legumbres',     'Filet de merluza con provenzal y ensalada tibia de porotos.',       '["Alto en proteína","Sin TACC"]'
-  UNION ALL SELECT '2026-09-04', 'ensalada',    'Thai de pollo y repollo',                        'Repollo, zanahoria, pollo, maní y aderezo de lima y jengibre.',     '["Fresca"]'
-) AS p ON p.fecha = m.fecha;
+-- JUEVES · 2026-09-03 -----------------------------------------------
+INSERT OR IGNORE INTO menu_platos (menu_id, categoria_id, nombre, descripcion, etiquetas) VALUES
+  ((SELECT id FROM menus WHERE fecha = '2026-09-03'), 'clasico', 'Pollo al verdeo con arroz primavera',
+   'Pechuga en salsa de verdeo liviana y arroz con vegetales.', '[]'),
+  ((SELECT id FROM menus WHERE fecha = '2026-09-03'), 'vegetariano', 'Hamburguesas de lentejas con puré de zanahoria',
+   'Burgers caseras de lenteja y avena, horneadas.', '["Vegano","Fuente de fibra"]'),
+  ((SELECT id FROM menus WHERE fecha = '2026-09-03'), 'proteico', 'Omelette de claras con vegetales y pavita',
+   'Relleno de espinaca, morrón y pavita, con ensalada tibia.', '["Alto en proteína","Sin TACC"]'),
+  ((SELECT id FROM menus WHERE fecha = '2026-09-03'), 'ensalada', 'Caprese con quinoa',
+   'Tomate, muzzarella, albahaca y quinoa con oliva.', '["Vegetariana"]');
+
+-- VIERNES · 2026-09-04 ----------------------------------------------
+INSERT OR IGNORE INTO menu_platos (menu_id, categoria_id, nombre, descripcion, etiquetas) VALUES
+  ((SELECT id FROM menus WHERE fecha = '2026-09-04'), 'clasico', 'Lasaña de carne y bechamel',
+   'Capas de pasta fresca, carne y bechamel casera.', '[]'),
+  ((SELECT id FROM menus WHERE fecha = '2026-09-04'), 'vegetariano', 'Zapallitos rellenos con arroz integral',
+   'Rellenos de vegetales, arroz integral y queso gratinado.', '["Vegetariano"]'),
+  ((SELECT id FROM menus WHERE fecha = '2026-09-04'), 'proteico', 'Merluza al horno con ensalada de legumbres',
+   'Filet de merluza con provenzal y ensalada tibia de porotos.', '["Alto en proteína","Sin TACC"]'),
+  ((SELECT id FROM menus WHERE fecha = '2026-09-04'), 'ensalada', 'Thai de pollo y repollo',
+   'Repollo, zanahoria, pollo, maní y aderezo de lima y jengibre.', '["Fresca"]');
