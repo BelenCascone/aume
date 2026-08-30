@@ -169,3 +169,43 @@ input,select,textarea{font-family:inherit;font-size:15px;color:inherit}
 .mini{border-left:3px solid var(--c-cat,var(--linea));padding-left:10px}
 .mini__t{font-size:.82rem;font-weight:700;color:var(--tinta-60);margin-bottom:6px}
 .mini input,.mini textarea{margin-bottom:6px}
+
+/* ------------------------------------------------------- Pedidos */
+.filtros{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.chip{padding:7px 14px;border-radius:999px;border:1px solid var(--linea);
+  background:var(--blanco);font-size:.86rem;font-weight:600;color:var(--tinta-60)}
+.chip[aria-pressed="true"]{background:var(--c-clasico);border-color:var(--c-clasico);color:#fff}
+
+.tarjetas{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-bottom:14px}
+.tarjeta{background:var(--blanco);border:1px solid var(--linea);border-radius:var(--r-md);
+  padding:14px;box-shadow:var(--sombra)}
+.tarjeta__n{font-family:var(--f-display);font-size:1.7rem;font-weight:700;line-height:1.1}
+.tarjeta__l{font-size:.78rem;color:var(--tinta-60);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+.tarjeta--app{border-left:4px solid var(--c-clasico)}
+.tarjeta--wa{border-left:4px solid var(--exito)}
+
+.barras{display:flex;flex-direction:column;gap:7px;margin-bottom:6px}
+.barra-t{display:grid;grid-template-columns:96px 1fr 44px;gap:9px;align-items:center;font-size:.85rem}
+.barra-t__b{height:9px;border-radius:999px;background:var(--crema-alt);overflow:hidden}
+.barra-t__f{height:100%;background:var(--c-cat,var(--c-clasico));border-radius:999px}
+.barra-t__n{text-align:right;font-weight:700}
+
+.pedido{background:var(--blanco);border:1px solid var(--linea);border-radius:var(--r-md);
+  padding:14px 16px;margin-bottom:9px;box-shadow:var(--sombra);
+  border-left:4px solid var(--c-canal,var(--linea))}
+.pedido--app{--c-canal:var(--c-clasico)}
+.pedido--whatsapp{--c-canal:var(--exito)}
+.pedido__cab{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.pedido__n{font-family:var(--f-display);font-size:1.05rem;font-weight:600}
+.pedido__tel{font-size:.84rem;color:var(--tinta-60)}
+.pedido__tot{margin-left:auto;font-weight:700}
+.pedido__d{font-size:.85rem;color:var(--tinta-60);margin-top:5px}
+.pedido__items{font-size:.85rem;margin-top:7px;padding-top:7px;border-top:1px solid var(--linea)}
+.pedido__pie{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:9px}
+.canal{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+  padding:2px 8px;border-radius:999px}
+.canal--app{background:var(--c-clasico-suave);color:var(--c-clasico-dark)}
+.canal--whatsapp{background:var(--c-vegetariano-suave);color:#2A5A42}
+.sel-estado{padding:5px 9px;border:1px solid var(--linea);border-radius:var(--r-sm);
+  background:var(--crema);font-size:.82rem}
+.linea-item{display:flex;gap:8px;justify-content:space-between;padding:1px 0}

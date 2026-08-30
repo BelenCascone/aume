@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/assets/img/favicon-64.png" sizes="64x64" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Caveat:wght@600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/assets/css/panel.css">
+<title>Pedidos · Panel AUMÉ</title>
+</head>
+<body>
+<div class="entorno" id="entorno" hidden></div>
+<header class="cab">
+  <div class="cont cab__in">
+    <a class="cab__marca" href="/admin/">AUMÉ<span>panel</span></a>
+    <nav class="cab__nav">
+      <a class="cab__a" href="/admin/">Inicio</a>
+      <a class="cab__a" href="/admin/menus/">Menú</a>
+      <a class="cab__a" href="/admin/pedidos/">Pedidos</a>
+      <a class="cab__a" href="/admin/precios/">Precios</a>
+      <a class="cab__a" href="/">Ver la web</a>
+    </nav>
+  </div>
+</header>
+
+<main class="cont hoja">
+  <h1 class="titulo">Pedidos</h1>
+  <p class="bajada">
+    Los que entran solos desde la web y los que cargás vos cuando llegan
+    por WhatsApp.
+  </p>
+
+  <div id="aviso"></div>
+
+  <div class="filtros">
+    <button type="button" class="chip" id="fDia" aria-pressed="true">Por día</button>
+    <button type="button" class="chip" id="fSemana" aria-pressed="false">Por semana</button>
+    <input class="mes__sel" type="date" id="fFecha">
+    <button type="button" class="chip" id="fTodos" aria-pressed="true">Todos</button>
+    <button type="button" class="chip" id="fApp" aria-pressed="false">Solo app</button>
+    <button type="button" class="chip" id="fWa" aria-pressed="false">Solo WhatsApp</button>
+  </div>
+
+  <p class="cargando" id="cargando">Cargando…</p>
+
+  <section id="resumen" hidden>
+    <div class="tarjetas" id="tarjetas"></div>
+    <div class="caja">
+      <h2 class="caja__t">Por tipo de menú</h2>
+      <p class="caja__d" id="totalViandas"></p>
+      <div class="barras" id="barras"></div>
+    </div>
+  </section>
+
+  <div class="caja">
+    <h2 class="caja__t">Anotar un pedido de WhatsApp</h2>
+    <p class="caja__d">Para los que te llegan por mensaje directo.</p>
+    <button type="button" class="btn btn--fan" id="btnAbrirManual">+ Nuevo pedido</button>
+
+    <form id="formManual" hidden style="margin-top:16px">
+      <div class="grilla">
+        <div class="campo" id="cNombre">
+          <label class="campo__l" for="mNombre">Cliente</label>
+          <input class="campo__i" type="text" id="mNombre" maxlength="60">
+          <p class="campo__e">Poné el nombre.</p>
+        </div>
+        <div class="campo" id="cTel">
+          <label class="campo__l" for="mTel">Teléfono</label>
+          <input class="campo__i" type="tel" id="mTel" maxlength="30">
+          <p class="campo__e">Poné un teléfono válido.</p>
+        </div>
+      </div>
+
+      <p class="campo__l" style="margin:14px 0 6px">Viandas</p>
+      <div id="mItems"></div>
+      <button type="button" class="btn btn--fan" id="btnMasItem">+ Agregar vianda</button>
+
+      <div class="grilla" style="margin-top:14px">
+        <div class="campo">
+          <label class="campo__l" for="mModalidad">Entrega</label>
+          <select class="mes__sel" id="mModalidad">
+            <option value="envio">Envío a domicilio</option>
+            <option value="retiro">Retiro en punto</option>
+          </select>
+        </div>
+        <div class="campo" id="cZona">
+          <label class="campo__l" for="mZona">Zona</label>
+          <select class="mes__sel" id="mZona"></select>
+        </div>
+        <div class="campo" id="cPunto" hidden>
+          <label class="campo__l" for="mPunto">Punto de retiro</label>
+          <select class="mes__sel" id="mPunto"></select>
+        </div>
+        <div class="campo" id="cPago">
+          <label class="campo__l" for="mPago">Pago</label>
+          <select class="mes__sel" id="mPago"></select>
+        </div>
+      </div>
+
+      <div class="campo" id="cDireccion" style="margin-top:12px">
+        <label class="campo__l" for="mDireccion">Dirección</label>
+        <input class="campo__i" type="text" id="mDireccion" maxlength="120">
+        <p class="campo__e">Falta la dirección.</p>
+      </div>
+
+      <div class="campo" style="margin-top:12px">
+        <label class="campo__l" for="mNotas">Aclaraciones</label>
+        <input class="campo__i" type="text" id="mNotas" maxlength="300">
+      </div>
+
+      <div class="guardar__in" style="margin-top:16px">
+        <button type="submit" class="btn btn--pri" id="btnGuardarManual">Anotar pedido</button>
+        <button type="button" class="btn btn--fan" id="btnCancelarManual">Cancelar</button>
+      </div>
+    </form>
+  </div>
+
+  <h2 class="caja__t" style="margin-bottom:10px" id="tituloLista">Listado</h2>
+  <div id="lista"></div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="/admin/assets/js/panel.js"></script>
+<script src="/admin/pedidos/pedidos.js"></script>
+</body>
+</html>

@@ -62,8 +62,9 @@ export async function correr(t) {
     await responde(ruta + ' está registrada (llega en la fase ' + fase + ')',
       pedir(ruta), staging, 501, 'no_implementado');
   }
-  await responde('POST /api/pedidos está registrada (llega en la fase 3)',
-    pedir('/api/pedidos', { method: 'POST' }), staging, 501, 'no_implementado');
+  /* 422 = llegó a validar el cuerpo vacío, que es lo que se quiere ver */
+  await responde('POST /api/pedidos está viva y valida lo que recibe',
+    pedir('/api/pedidos', { method: 'POST' }), staging, 422, 'datos_invalidos');
 
   /* --- Parámetros en la ruta -------------------------------------- */
   const r = crearRouter();
@@ -75,7 +76,7 @@ export async function correr(t) {
   await responde('sin ACCESS_AUD el panel no abre (falla cerrado)',
     pedir('/api/estadisticas'), produccion, 503, 'sin_configurar');
   await responde('pero la landing igual puede dejar pedidos',
-    pedir('/api/pedidos', { method: 'POST' }), produccion, 501, 'no_implementado');
+    pedir('/api/pedidos', { method: 'POST' }), produccion, 422, 'datos_invalidos');
 
   /* --- CSRF: escribir desde otro sitio ----------------------------- */
   await responde('un PUT desde otro sitio se rechaza',
