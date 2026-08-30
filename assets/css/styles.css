@@ -520,6 +520,20 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
 .planb{ margin-top:14px; padding-top:14px; border-top:1px dashed var(--linea); }
 .planb__t{ font-size:.85rem; font-weight:700; margin-bottom:6px; }
 .planb__d{ font-size:.78rem; color:var(--tinta-60); margin-bottom:10px; }
+/* Opción fija dentro de cada tarjeta de día (Ensalada César) */
+.fijo{
+  margin-top:16px; padding-top:16px;
+  border-top:1px dashed var(--linea);
+}
+.fijo__cab{
+  font-family:var(--f-script); font-size:1.02rem;
+  color:var(--c-fijo, var(--c-ensalada));
+  line-height:1; margin-bottom:6px;
+}
+.fijo__t{ font-weight:600; font-size:.98rem; }
+.fijo__d{ font-size:.85rem; color:var(--tinta-60); margin-top:2px; }
+.fijo .tamanos{ margin-top:10px; }
+
 .planb__wa{ margin-block:12px; text-decoration:none; }
 .planb__pre{
   font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.72rem;

@@ -19,9 +19,19 @@
 
   function plata(n) { return fmtMoneda.format(n || 0); }
 
+  /* La opción fija (Ensalada César) se comporta como una categoría más a la
+     hora de armar el carrito, aunque no tenga pestaña propia. */
   function buscarCategoria(id) {
+    if (CFG.extraFijo && CFG.extraFijo.id === id) return CFG.extraFijo;
     for (var i = 0; i < CFG.categorias.length; i++) {
       if (CFG.categorias[i].id === id) return CFG.categorias[i];
+    }
+    return null;
+  }
+
+  function buscarZona(id) {
+    for (var i = 0; i < CFG.envio.zonas.length; i++) {
+      if (CFG.envio.zonas[i].id === id) return CFG.envio.zonas[i];
     }
     return null;
   }
@@ -47,17 +57,26 @@
     return null;
   }
 
-  /* Devuelve el plato del día/categoría, o null si ese día no hay opción */
+  var tiene = function (obj, k) {
+    return !!obj && Object.prototype.hasOwnProperty.call(obj, k);
+  };
+
+  /* Devuelve el plato del día/categoría, o null si ese día no hay opción.
+     La opción fija está disponible todos los días sin cargarla en menu.js. */
   function plato(diaId, catId) {
-    var delDia = MENU.platos && MENU.platos[diaId];
-    if (!delDia) return null;
+    if (!buscarDia(diaId)) return null;
+    if (CFG.extraFijo && CFG.extraFijo.id === catId) return CFG.extraFijo;
+
+    var platos = MENU.platos;
+    if (!tiene(platos, diaId)) return null;
+    var delDia = platos[diaId];
+    if (!tiene(delDia, catId)) return null;
     return delDia[catId] || null;
   }
 
-  function precio(catId, tamId) {
-    var cat = buscarCategoria(catId);
-    if (!cat || !cat.precios) return 0;
-    return cat.precios[tamId] || 0;
+  /* El precio depende sólo del tamaño: una Clásica y una Proteica valen igual */
+  function precio(tamId) {
+    return (CFG.preciosVianda && CFG.preciosVianda[tamId]) || 0;
   }
 
   function clave(diaId, catId, tamId) { return diaId + '|' + catId + '|' + tamId; }
@@ -69,6 +88,7 @@
     /* carrito: { "lunes|clasico|estandar": 2, ... } */
     carrito: {},
     modalidad: 'envio',      /* 'envio' | 'retiro' */
+    zona: CFG.envio.zonas[0].id,   /* dentro / fuera de bulevares */
     punto: null              /* id del punto de retiro elegido */
   };
 
@@ -89,6 +109,7 @@
         carrito: estado.carrito,
         categoria: estado.categoria,
         modalidad: estado.modalidad,
+        zona: estado.zona,
         punto: estado.punto
       }));
     } catch (e) { /* modo incógnito o storage lleno: seguimos sin persistir */ }
@@ -111,7 +132,9 @@
       Object.keys(d.carrito || {}).forEach(function (k) {
         var p = k.split('|');
         var cant = parseInt(d.carrito[k], 10);
-        if (p.length === 3 && cant > 0 && plato(p[0], p[1]) && buscarTamano(p[2])) {
+        if (p.length === 3 && cant > 0 &&
+            buscarDia(p[0]) && buscarCategoria(p[1]) && buscarTamano(p[2]) &&
+            plato(p[0], p[1])) {
           limpio[k] = Math.min(cant, 99);
         }
       });
@@ -119,6 +142,7 @@
 
       if (buscarCategoria(d.categoria)) estado.categoria = d.categoria;
       if (d.modalidad === 'envio' || d.modalidad === 'retiro') estado.modalidad = d.modalidad;
+      if (buscarZona(d.zona)) estado.zona = d.zona;
       if (buscarPunto(d.punto)) estado.punto = d.punto;
     } catch (e) {
       try { localStorage.removeItem(CLAVE); } catch (e2) {}
@@ -169,6 +193,12 @@
     avisar();
   }
 
+  function setZona(id) {
+    if (!buscarZona(id) || estado.zona === id) return;
+    estado.zona = id;
+    avisar();
+  }
+
   /* ------------------------------------------------------- Derivados */
 
   /* Ítems ordenados por día (lunes → viernes) y luego por tamaño */
@@ -180,7 +210,7 @@
       var p = k.split('|');
       var cat = buscarCategoria(p[1]);
       var tam = buscarTamano(p[2]);
-      var pr  = precio(p[1], p[2]);
+      var pr  = precio(p[2]);
       var cant = estado.carrito[k];
       return {
         clave: k,
@@ -213,18 +243,18 @@
       subtotal += it.subtotal;
     });
 
-    var esRetiro    = estado.modalidad === 'retiro';
-    var envioGratis = cantidad >= CFG.envio.minimoGratis;
-    var costoEnvio  = (esRetiro || envioGratis || cantidad === 0) ? 0 : CFG.envio.costo;
-    var faltan      = Math.max(0, CFG.envio.minimoGratis - cantidad);
+    /* Las viandas sueltas siempre pagan envío: el bonificado quedó sólo para
+       los packs semanales. El costo depende de la zona. */
+    var esRetiro   = estado.modalidad === 'retiro';
+    var zona       = buscarZona(estado.zona);
+    var costoEnvio = (esRetiro || cantidad === 0 || !zona) ? 0 : zona.costo;
 
     return {
       cantidad: cantidad,
       subtotal: subtotal,
       envio: costoEnvio,
-      envioGratis: envioGratis,
       esRetiro: esRetiro,
-      faltanParaGratis: faltan,
+      zona: zona,
       total: subtotal + costoEnvio
     };
   }
@@ -244,6 +274,7 @@
     vaciar: vaciar,
     setModalidad: setModalidad,
     setPunto: setPunto,
+    setZona: setZona,
 
     items: items,
     totales: totales,
@@ -254,7 +285,8 @@
     buscarCategoria: buscarCategoria,
     buscarDia: buscarDia,
     buscarTamano: buscarTamano,
-    buscarPunto: buscarPunto
+    buscarPunto: buscarPunto,
+    buscarZona: buscarZona
   };
 
 })(window);

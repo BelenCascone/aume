@@ -81,11 +81,12 @@
     if (MENU.nota) { nota.textContent = MENU.nota; } else { nota.hidden = true; }
 
     el('envioDesc').textContent =
-      'Llevamos tu pedido a ' + CFG.envio.zona + '. ' + CFG.envio.aclaracion +
-      ' Costo: ' + Store.plata(CFG.envio.costo) + '.';
+      CFG.envio.zonas.map(function (z) {
+        return z.nombre + ': ' + Store.plata(z.costo);
+      }).join(' · ') + '. ' + CFG.envio.aclaracion;
 
     el('envioPromo').textContent =
-      '🎉 Envío bonificado con ' + CFG.envio.minimoGratis + ' viandas o más';
+      '🎉 Los packs semanales llevan el envío bonificado';
 
     el('puntos').innerHTML = CFG.puntosRetiro.map(function (p) {
       return '' +
@@ -135,25 +136,81 @@
 
   /* ------------------------------------------------------ Días / menú */
 
+  /* Botones de tamaño (o stepper si ya hay unidades) para un día+categoría */
+  function controlesTamano(d, catId) {
+    return CFG.tamanos.map(function (t) {
+      var n = Store.cantidadDe(d.id, catId, t.id);
+      var precio = Store.plata(Store.precio(t.id));
+      var datos = ' data-dia="' + esc(d.id) + '" data-cat="' + esc(catId) + '"' +
+                  ' data-tam="' + esc(t.id) + '"';
+
+      if (n === 0) {
+        return '' +
+          '<button type="button" class="tamano" data-accion="mas"' + datos +
+          ' aria-label="Agregar ' + esc(d.nombre) + ' ' + esc(t.nombre) + ' ' + esc(t.gramos) + '">' +
+            '<span class="tamano__t">' + esc(t.nombre) + '</span>' +
+            '<span class="tamano__g">' + esc(t.gramos) + '</span>' +
+            '<span class="tamano__p">' + precio + '</span>' +
+          '</button>';
+      }
+
+      return '' +
+        '<div class="stepper">' +
+          '<button type="button" class="stepper__b" data-accion="menos"' + datos +
+          ' aria-label="Quitar una unidad de ' + esc(d.nombre) + ' ' + esc(t.nombre) + '">−</button>' +
+          '<span class="stepper__c">' +
+            '<span class="stepper__n">' + n + '</span><br>' +
+            '<span class="stepper__l">' + esc(t.nombre) + ' · ' + esc(t.gramos) + '</span>' +
+          '</span>' +
+          '<button type="button" class="stepper__b" data-accion="mas"' + datos +
+          ' aria-label="Agregar una unidad de ' + esc(d.nombre) + ' ' + esc(t.nombre) + '">+</button>' +
+        '</div>';
+    }).join('');
+  }
+
+  /* La opción fija va en TODOS los días, mires la categoría que mires */
+  function bloqueFijo(d) {
+    var f = CFG.extraFijo;
+    if (!f) return '';
+
+    return '' +
+      '<div class="fijo" style="--c-fijo:' + esc(f.color) + '">' +
+        '<p class="fijo__cab">Además, todos los días</p>' +
+        '<p class="fijo__t">' + esc(f.nombre) + '</p>' +
+        (f.descripcion ? '<p class="fijo__d">' + esc(f.descripcion) + '</p>' : '') +
+        '<div class="tamanos">' + controlesTamano(d, f.id) + '</div>' +
+      '</div>';
+  }
+
   function pintarDias() {
     var catId = Store.estado.categoria;
 
     el('dias').innerHTML = CFG.dias.map(function (d) {
       var p = Store.plato(d.id, catId);
 
+      /* Cuenta lo del día completo: la categoría activa y la opción fija */
+      var enDia = 0;
+      CFG.tamanos.forEach(function (t) {
+        enDia += Store.cantidadDe(d.id, catId, t.id);
+        if (CFG.extraFijo) enDia += Store.cantidadDe(d.id, CFG.extraFijo.id, t.id);
+      });
+
+      var cabecera = '' +
+        '<div class="dia__cab">' +
+          '<h3 class="dia__nombre">' + esc(d.nombre) + '</h3>' +
+          (enDia ? '<span class="dia__n">' + enDia + ' en tu pedido</span>' : '') +
+        '</div>';
+
       if (!p) {
         return '' +
-          '<article class="dia dia--vacio">' +
-            '<div class="dia__cab"><h3 class="dia__nombre">' + esc(d.nombre) + '</h3></div>' +
+          '<article class="dia">' + cabecera +
             '<div class="dia__cuerpo">' +
               '<p class="dia__vacio">Esta semana no hay opción ' +
               esc(Store.buscarCategoria(catId).nombre.toLowerCase()) + ' para este día.</p>' +
+              bloqueFijo(d) +
             '</div>' +
           '</article>';
       }
-
-      var enDia = 0;
-      CFG.tamanos.forEach(function (t) { enDia += Store.cantidadDe(d.id, catId, t.id); });
 
       var etiquetas = (p.etiquetas && p.etiquetas.length)
         ? '<div class="etiquetas">' + p.etiquetas.map(function (e) {
@@ -161,47 +218,14 @@
           }).join('') + '</div>'
         : '';
 
-      var controles = CFG.tamanos.map(function (t) {
-        var n = Store.cantidadDe(d.id, catId, t.id);
-        var precio = Store.plata(Store.precio(catId, t.id));
-
-        if (n === 0) {
-          return '' +
-            '<button type="button" class="tamano" data-accion="mas"' +
-            ' data-dia="' + esc(d.id) + '" data-tam="' + esc(t.id) + '"' +
-            ' aria-label="Agregar ' + esc(d.nombre) + ' ' + esc(t.nombre) + ' ' + esc(t.gramos) + '">' +
-              '<span class="tamano__t">' + esc(t.nombre) + '</span>' +
-              '<span class="tamano__g">' + esc(t.gramos) + '</span>' +
-              '<span class="tamano__p">' + precio + '</span>' +
-            '</button>';
-        }
-
-        return '' +
-          '<div class="stepper">' +
-            '<button type="button" class="stepper__b" data-accion="menos"' +
-            ' data-dia="' + esc(d.id) + '" data-tam="' + esc(t.id) + '"' +
-            ' aria-label="Quitar una unidad de ' + esc(d.nombre) + ' ' + esc(t.nombre) + '">−</button>' +
-            '<span class="stepper__c">' +
-              '<span class="stepper__n">' + n + '</span><br>' +
-              '<span class="stepper__l">' + esc(t.nombre) + ' · ' + esc(t.gramos) + '</span>' +
-            '</span>' +
-            '<button type="button" class="stepper__b" data-accion="mas"' +
-            ' data-dia="' + esc(d.id) + '" data-tam="' + esc(t.id) + '"' +
-            ' aria-label="Agregar una unidad de ' + esc(d.nombre) + ' ' + esc(t.nombre) + '">+</button>' +
-          '</div>';
-      }).join('');
-
       return '' +
-        '<article class="dia">' +
-          '<div class="dia__cab">' +
-            '<h3 class="dia__nombre">' + esc(d.nombre) + '</h3>' +
-            (enDia ? '<span class="dia__n">' + enDia + ' en tu pedido</span>' : '') +
-          '</div>' +
+        '<article class="dia">' + cabecera +
           '<div class="dia__cuerpo">' +
             '<p class="dia__plato">' + esc(p.nombre) + '</p>' +
             (p.descripcion ? '<p class="dia__desc">' + esc(p.descripcion) + '</p>' : '') +
             etiquetas +
-            '<div class="tamanos">' + controles + '</div>' +
+            '<div class="tamanos">' + controlesTamano(d, catId) + '</div>' +
+            bloqueFijo(d) +
           '</div>' +
         '</article>';
     }).join('');
@@ -232,31 +256,20 @@
     el('barraN').textContent = t.cantidad + ' ' + plural(t.cantidad, 'vianda', 'viandas');
     el('barraT').textContent = Store.plata(t.total);
 
-    /* Progreso hacia el envío bonificado */
-    var prog = el('progreso');
-    if (t.esRetiro) {
-      prog.hidden = true;
-    } else {
-      prog.hidden = false;
-      var pct = Math.min(100, (t.cantidad / CFG.envio.minimoGratis) * 100);
-      el('progresoFill').style.width = pct + '%';
-      el('progresoTxt').textContent = t.envioGratis
-        ? '🎉 ¡Tenés el envío bonificado!'
-        : 'Te ' + plural(t.faltanParaGratis, 'falta', 'faltan') + ' ' + t.faltanParaGratis + ' ' +
-          plural(t.faltanParaGratis, 'vianda', 'viandas') + ' para el envío gratis';
-    }
+    /* Ya no hay envío bonificado por cantidad de viandas sueltas: sólo lo
+       llevan los packs semanales, que se piden aparte. */
+    el('progreso').hidden = true;
   }
 
   /* ------------------------------------------------- Panel carrito */
 
   function filaTotales(t) {
-    var envio;
+    var envio, etiquetaEnvio = 'Envío';
+
     if (t.esRetiro) {
       envio = '<span class="total-fila__gratis">Retiro en punto</span>';
-    } else if (t.envioGratis) {
-      envio = '<span><span class="tachado">' + Store.plata(CFG.envio.costo) + '</span>' +
-              '<span class="total-fila__gratis">BONIFICADO</span></span>';
     } else {
+      if (t.zona) etiquetaEnvio = 'Envío · ' + t.zona.nombre;
       envio = '<span>' + Store.plata(t.envio) + '</span>';
     }
 
@@ -264,7 +277,7 @@
       '<div class="totales">' +
         '<div class="total-fila"><span>Subtotal (' + t.cantidad + ' ' +
           plural(t.cantidad, 'vianda', 'viandas') + ')</span><span>' + Store.plata(t.subtotal) + '</span></div>' +
-        '<div class="total-fila"><span>Envío</span>' + envio + '</div>' +
+        '<div class="total-fila"><span>' + esc(etiquetaEnvio) + '</span>' + envio + '</div>' +
         '<div class="total-fila total-fila--big"><span>Total</span><span>' + Store.plata(t.total) + '</span></div>' +
       '</div>';
   }
@@ -285,16 +298,12 @@
       return;
     }
 
-    var aviso = (!t.esRetiro && !t.envioGratis)
-      ? '<p class="campo__ayuda" style="margin-top:12px;text-align:center">' +
-        'Sumá ' + t.faltanParaGratis + ' ' + plural(t.faltanParaGratis, 'vianda', 'viandas') +
-        ' más y el envío te sale gratis.</p>'
-      : '';
+    var aviso = '';
 
     cont.innerHTML =
       '<div class="items">' + lista.map(function (it) {
         return '' +
-          '<div class="item" style="--c-it:' + it.categoria.color + '">' +
+          '<div class="item" style="--c-it:' + esc(it.categoria.color) + '">' +
             '<div class="item__info">' +
               '<p class="item__d">' + esc(it.dia.nombre) + '</p>' +
               '<p class="item__p">' + esc(it.plato ? it.plato.nombre : it.categoria.nombre) + '</p>' +

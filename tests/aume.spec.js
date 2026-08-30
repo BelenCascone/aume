@@ -3,11 +3,19 @@ const { test, expect } = require('@playwright/test');
 /* Estado real de la app */
 const totales = (page) => page.evaluate(() => window.AUME.Store.totales());
 
-/** Suma N viandas del día/tamaño indicados desde las tarjetas del menú. */
-async function sumar(page, dia, tam, n) {
-  const btn = page.locator(
-    '#dias [data-accion="mas"][data-dia="' + dia + '"][data-tam="' + tam + '"]'
+/* Cada tarjeta de día muestra la categoría activa Y la opción fija (Ensalada
+   César), así que hay dos botones por tamaño: siempre decimos cuál. */
+async function botonDia(page, accion, dia, tam, cat) {
+  const catId = cat || await page.evaluate(() => window.AUME.Store.estado.categoria);
+  return page.locator(
+    '#dias [data-accion="' + accion + '"][data-dia="' + dia + '"]' +
+    '[data-cat="' + catId + '"][data-tam="' + tam + '"]'
   );
+}
+
+/** Suma N viandas del día/tamaño indicados desde las tarjetas del menú. */
+async function sumar(page, dia, tam, n, cat) {
+  const btn = await botonDia(page, 'mas', dia, tam, cat);
   for (let i = 0; i < (n || 1); i++) await btn.click();
 }
 
@@ -168,32 +176,41 @@ test.describe('Botones del inicio', () => {
 
 test.describe('Envío y promoción', () => {
 
-  test('con 4 viandas se cobra el envío', async ({ page }) => {
+  test('el envío se cobra según la zona elegida', async ({ page }) => {
     await sumar(page, 'lunes', 'estandar', 4);
-    const t = await totales(page);
+
+    await page.evaluate(() => window.AUME.Store.setZona('dentro'));
+    let t = await totales(page);
     expect(t.cantidad).toBe(4);
-    expect(t.envioGratis).toBe(false);
-    expect(t.envio).toBeGreaterThan(0);
-    expect(t.faltanParaGratis).toBe(1);
-    expect(t.total).toBe(t.subtotal + t.envio);
+    expect(t.envio).toBe(2000);
+    expect(t.zona.nombre).toBe('Dentro de bulevares');
+    expect(t.total).toBe(t.subtotal + 2000);
+
+    await page.evaluate(() => window.AUME.Store.setZona('fuera'));
+    t = await totales(page);
+    expect(t.envio).toBe(2500);
+    expect(t.total).toBe(t.subtotal + 2500);
   });
 
-  test('con 5 viandas el envío es gratis', async ({ page }) => {
-    await sumar(page, 'lunes', 'estandar', 5);
+  /* El envío bonificado por cantidad ya no existe: quedó sólo en los packs */
+  test('las viandas sueltas siempre pagan envío, sean las que sean', async ({ page }) => {
+    await sumar(page, 'lunes', 'estandar', 6);
     const t = await totales(page);
-    expect(t.cantidad).toBe(5);
-    expect(t.envioGratis).toBe(true);
-    expect(t.envio).toBe(0);
-    expect(t.total).toBe(t.subtotal);
+    expect(t.cantidad).toBe(6);
+    expect(t.envio).toBeGreaterThan(0);
+    await expect(page.locator('#progreso')).toBeHidden();
   });
 
-  test('la barra avisa cuánto falta para el envío gratis', async ({ page }) => {
-    await sumar(page, 'lunes', 'estandar', 3);
-    await expect(page.locator('#progreso')).toBeVisible();
-    await expect(page.locator('#progresoTxt')).toContainText('2');
-
-    await sumar(page, 'lunes', 'estandar', 2);
-    await expect(page.locator('#progresoTxt')).toContainText(/gratis|bonificad/i);
+  test('la vianda vale lo mismo en todas las categorías', async ({ page }) => {
+    const precios = await page.evaluate(() => {
+      const S = window.AUME.Store;
+      return {
+        estandar: S.precio('estandar'),
+        xl: S.precio('xl')
+      };
+    });
+    expect(precios.estandar).toBe(9000);
+    expect(precios.xl).toBe(12800);
   });
 
   test('retirar en un punto nunca cobra envío', async ({ page }) => {
@@ -207,9 +224,9 @@ test.describe('Envío y promoción', () => {
 
 test('los 3 puntos de retiro están con dirección y horario exactos', async ({ page }) => {
   const puntos = [
-    ['Base AUMÉ', 'San Martín 499', ['12:00 a 14:00 hs']],
-    ['OXIMARKET', 'Blas Parera y Los Robles', ['12:30 a 13:30 hs', '17:00 a 21:00 hs']],
-    ['MES AMIES', 'Venezuela 61', ['12:00 a 21:00 hs']]
+    ['Local AUMÉ', 'San Martín 499', ['12:00 a 14:00 hs']],
+    ['Oxymarket', 'Blas Parera 3308', ['12:30 a 13:30 hs', '17:00 a 21:00 hs']],
+    ['Pastelería Mes Amies', 'Shopping La Paz', ['Desde las 12:00 hs']]
   ];
 
   const bloque = page.locator('#puntos');
@@ -233,8 +250,26 @@ test.describe('Carrito', () => {
     await sumar(page, 'martes', 'xl', 2);
     await expect(page.locator('#badgeCarrito')).toHaveText('2');
 
-    await page.locator('#dias [data-accion="menos"][data-dia="martes"][data-tam="xl"]').click();
+    await (await botonDia(page, 'menos', 'martes', 'xl')).click();
     await expect(page.locator('#badgeCarrito')).toHaveText('1');
+  });
+
+  /* La Ensalada César está disponible todos los días, se mire la categoría
+     que se mire, y convive con el menú del día sin pisarlo. */
+  test('la Ensalada César se puede pedir cualquier día y en cualquier menú', async ({ page }) => {
+    for (const cat of ['clasico', 'proteico']) {
+      await page.locator('.tab[data-cat="' + cat + '"]').click();
+      await expect(page.locator('#dias .fijo').first()).toContainText('Ensalada César');
+      await expect(page.locator('#dias .fijo')).toHaveCount(5);
+    }
+
+    await sumar(page, 'jueves', 'estandar', 1, 'cesar');
+    await sumar(page, 'jueves', 'estandar', 1, 'proteico');
+
+    const items = await page.evaluate(() =>
+      window.AUME.Store.items().map((i) => i.catId + '|' + i.cantidad));
+    expect(items.sort()).toEqual(['cesar|1', 'proteico|1']);
+    await expect(page.locator('#badgeCarrito')).toHaveText('2');
   });
 
   test('"Vaciar pedido" pide confirmación y recién ahí vacía', async ({ page }) => {
@@ -334,8 +369,8 @@ test.describe('Checkout', () => {
 
     expect(texto).toContain('María González');
     expect(texto).toContain('3434123456');
-    expect(texto).toContain('OXIMARKET');
-    expect(texto).toContain('Blas Parera y Los Robles');
+    expect(texto).toContain('Oxymarket');
+    expect(texto).toContain('Blas Parera 3308');
     expect(texto).toMatch(/lunes/i);
   });
 

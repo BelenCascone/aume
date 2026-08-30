@@ -142,13 +142,18 @@
       var delta = b.dataset.accion === 'mas' ? 1 : -1;
       var restaurar = recuperarFoco(el('dias'), b);
 
-      Store.sumar(b.dataset.dia, Store.estado.categoria, b.dataset.tam, delta);
+      /* data-cat viene en el botón: la tarjeta del día muestra la categoría
+         activa y además la opción fija, que es de otra categoría. */
+      var catId = b.dataset.cat || Store.estado.categoria;
+
+      Store.sumar(b.dataset.dia, catId, b.dataset.tam, delta);
       if (restaurar) restaurar();
 
       if (delta > 0) {
         var dia = Store.buscarDia(b.dataset.dia);
+        var cat = Store.buscarCategoria(catId);
         var tam = Store.buscarTamano(b.dataset.tam);
-        UI.toast(dia.nombre + ' · ' + tam.nombre + ' agregado 🛒');
+        UI.toast(dia.nombre + ' · ' + cat.nombre + ' ' + tam.gramos + ' agregado 🛒');
       }
     });
 

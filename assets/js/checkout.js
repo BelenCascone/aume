@@ -26,8 +26,7 @@
         '<span class="op__dot" aria-hidden="true"></span>' +
         '<span class="op__txt">' +
           '<span class="op__t">🛵 Envío a domicilio</span>' +
-          '<span class="op__d">' + esc(CFG.envio.zona) + ' · ' + esc(CFG.envio.aclaracion) + '</span>' +
-          '<span class="op__badge">Gratis desde ' + CFG.envio.minimoGratis + ' viandas</span>' +
+          '<span class="op__d">' + esc(CFG.envio.aclaracion) + '</span>' +
         '</span>' +
       '</label>' +
       '<label class="op' + (m === 'retiro' ? ' op--sel' : '') + '"' +
@@ -60,6 +59,24 @@
     }).join('');
   }
 
+  function pintarZonas() {
+    var sel = Store.estado.zona;
+
+    el('opsZona').innerHTML = CFG.envio.zonas.map(function (z) {
+      return '' +
+        '<label class="op' + (z.id === sel ? ' op--sel' : '') + '"' +
+          ' style="--c-op:var(--c-clasico);--c-op-suave:var(--c-clasico-suave)">' +
+          '<input type="radio" name="zona" value="' + esc(z.id) + '"' +
+            (z.id === sel ? ' checked' : '') + '>' +
+          '<span class="op__dot" aria-hidden="true"></span>' +
+          '<span class="op__txt">' +
+            '<span class="op__t">' + esc(z.nombre) + '</span>' +
+            '<span class="op__d">Costo del envío: ' + Store.plata(z.costo) + '</span>' +
+          '</span>' +
+        '</label>';
+    }).join('');
+  }
+
   function pintarPagos() {
     el('fPago').innerHTML =
       '<option value="">Elegí una opción…</option>' +
@@ -72,9 +89,10 @@
   function alternarCampos() {
     var esEnvio = Store.estado.modalidad === 'envio';
     el('cDireccion').hidden = !esEnvio;
+    el('cZona').hidden = !esEnvio;
     el('cPunto').hidden = esEnvio;
     el('ayudaDireccion').textContent =
-      'Entregas en ' + CFG.envio.zona + '. ' + CFG.envio.aclaracion;
+      CFG.envio.aclaracion;
   }
 
   /* ------------------------------------------------- Resumen del panel */
@@ -197,10 +215,9 @@
 
     if (t.esRetiro) {
       L.push('*Envío:* No corresponde (retiro en punto)');
-    } else if (t.envioGratis) {
-      L.push('*Envío:* BONIFICADO 🎉 (' + CFG.envio.minimoGratis + ' viandas o más)');
     } else {
-      L.push('*Envío:* ' + Store.plata(t.envio));
+      L.push('*Envío:* ' + Store.plata(t.envio) +
+             (t.zona ? ' (' + t.zona.nombre + ')' : ''));
     }
 
     L.push('*TOTAL:* ' + Store.plata(t.total));
@@ -304,6 +321,7 @@
   function montar() {
     pintarModalidad();
     pintarPuntos();
+    pintarZonas();
     pintarPagos();
     alternarCampos();
 
@@ -316,6 +334,14 @@
       pintarResumen();
       marcarError('cDireccion', false);
       marcarError('cPunto', false);
+    });
+
+    /* Zona de entrega */
+    el('opsZona').addEventListener('change', function (e) {
+      if (e.target.name !== 'zona') return;
+      Store.setZona(e.target.value);
+      pintarZonas();
+      pintarResumen();
     });
 
     /* Punto de retiro */
@@ -349,6 +375,7 @@
     pintarResumen: pintarResumen,
     pintarPuntos: pintarPuntos,
     pintarModalidad: pintarModalidad,
+    pintarZonas: pintarZonas,
     alternarCampos: alternarCampos,
     armarMensaje: armarMensaje
   };
