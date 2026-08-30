@@ -271,5 +271,14 @@ esquema está en `worker/db/schema.sql` y los datos iniciales (copiados de
 **staging** con worker y base separados de producción, para probar sin
 arriesgar nada real.
 
+### Tests del backend
+
+Aparte de `npm test` (que prueba la web pública), el panel tiene su
+propia suite, que corre en segundos y sin conectarse a nada:
+
+```bash
+npm run test:api
+```
+
 👉 **Paso a paso completo** — crear las bases, correr las migraciones,
 configurar Access y publicar: [`docs/panel-admin.md`](docs/panel-admin.md)

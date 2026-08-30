@@ -331,7 +331,46 @@ Una vez creada la aplicación, Cloudflare te muestra su
 
 ---
 
-## 5. Estado por fase
+## 5. Tests
+
+Hay dos suites y cubren cosas distintas:
+
+```bash
+npm test        # la web pública (Playwright, en tests/)
+npm run test:api   # el worker y los .sql (en worker/tests/)
+```
+
+`npm run test:api` no se conecta a ninguna base ni a internet: corre en
+segundos y conviene correrlo antes de tocar D1.
+
+Los grupos que trae:
+
+| Grupo | Qué revisa |
+|---|---|
+| `sql-limites` | Que los `.sql` no tengan formas que **D1 rechaza** |
+| `sql-datos` | Aplica `schema.sql` y `semilla.sql` sobre SQLite y verifica lo que queda |
+| `tiempo` | Que las fechas se resuelvan en hora de Paraná, no en UTC |
+| `api` | Ruteo, que la landing no pase por el worker, permisos y CSRF |
+
+> **`sql-limites` es el más importante y el menos obvio.** D1 acepta
+> muchos menos términos en un SELECT compuesto que el SQLite de
+> escritorio. Y en SQLite un `INSERT INTO t VALUES (1),(2),(3)` **es**
+> un SELECT compuesto por dentro, aunque no se vea ningún `UNION`
+> escrito. Por eso un `.sql` puede pasar `sql-datos` sin problema y
+> reventar contra la base de verdad con `too many terms in compound
+> SELECT`. Este grupo lo detecta leyendo el archivo, sin conectarse a
+> nada.
+>
+> Regla para cualquier `.sql` nuevo: **una fila por `INSERT`, y nada de
+> `UNION`**.
+
+Si `sql-datos` aparece como *salteado*, es que esa versión de Node no
+trae `node:sqlite` (hace falta Node 22 o más nuevo). Los demás grupos
+corren igual.
+
+---
+
+## 6. Estado por fase
 
 | Fase | Qué incluye | Estado |
 |---|---|---|
