@@ -220,3 +220,56 @@ npx playwright install
 
 **La web publicada no necesita nada de esto.** Sigue siendo HTML, CSS y JS
 sueltos: `npm` sólo se usa para correr los tests.
+
+---
+
+## 10. Panel de administración (en construcción)
+
+Panel privado para cargar el menú, editar los precios, anotar los pedidos y
+mirar las estadísticas, sin tener que editar archivos a mano.
+
+**No reemplaza nada de lo de arriba todavía.** Se suma al lado, en carpetas
+nuevas, y la web pública sigue funcionando exactamente igual:
+
+```
+admin/     Pantallas del panel          ← protegido por Cloudflare Access
+worker/    La API en /api/*             ← código de servidor, NO se publica
+docs/      Guía de puesta en marcha     ← interna, tampoco se publica
+```
+
+Cloudflare sirve **primero** los archivos estáticos y sólo le pasa al worker
+lo que no coincide con ninguno, o sea `/api/*`. Dicho de otra forma: **si el
+worker se cae, la landing sigue andando igual**, porque no pasa por él.
+
+### Quién puede entrar
+
+El panel **no tiene login propio**: no hay usuarios ni contraseñas guardados
+en ningún lado. Quien decide si alguien entra es **Cloudflare Access**, que se
+configura a mano en el dashboard:
+
+- Una aplicación *Self-hosted* sobre el dominio real, con **Path: `admin`**.
+  Eso protege `/admin` y todo lo que cuelga de ahí; la landing pública queda
+  abierta para las clientas.
+- Una política **Allow** con selector **Emails** y los **2 mails** del equipo
+  (la dueña/nutricionista y la secretaria). Las dos tienen **exactamente los
+  mismos permisos** sobre todo el panel: no hay roles diferenciados.
+- Para agregar o sacar a alguien más adelante se edita esa lista de mails.
+  No hay que tocar ni volver a publicar el código.
+
+El *Application Audience (AUD) Tag* y el *team domain* de esa aplicación van
+en `wrangler.jsonc` (`ACCESS_AUD` y `ACCESS_TEAM_DOMAIN`).
+
+> ⚠️ Mientras esas dos variables estén vacías en producción, la API del panel
+> responde 503 **a propósito**: es preferible que se rompa a la vista antes de
+> que quede abierta sin que nadie se entere. La landing no se ve afectada.
+
+### Base de datos
+
+Los menús, los precios y los pedidos viven en una base **Cloudflare D1**. El
+esquema está en `worker/db/schema.sql` y los datos iniciales (copiados de
+`config.js` y `menu.js`) en `worker/db/semilla.sql`. Hay un entorno de
+**staging** con worker y base separados de producción, para probar sin
+arriesgar nada real.
+
+👉 **Paso a paso completo** — crear las bases, correr las migraciones,
+configurar Access y publicar: [`docs/panel-admin.md`](docs/panel-admin.md)
