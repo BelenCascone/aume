@@ -153,3 +153,19 @@ input,select,textarea{font-family:inherit;font-size:15px;color:inherit}
 .campo__ta{padding:9px 11px;border:1px solid var(--linea);border-radius:var(--r-sm);
   background:var(--crema);width:100%;min-height:62px;resize:vertical;font-family:inherit;font-size:15px}
 .campo__ta:focus{border-color:var(--c-clasico);background:var(--blanco);outline:none}
+
+/* --------------------------------------------- Editor de la semana */
+.jornada{background:var(--blanco);border:1px solid var(--linea);border-radius:var(--r-md);
+  padding:16px;margin-bottom:14px;box-shadow:var(--sombra)}
+.jornada__cab{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.jornada__t{font-family:var(--f-display);font-size:1.15rem;font-weight:600;text-transform:capitalize}
+.jornada__f{font-size:.8rem;color:var(--tinta-60)}
+.jornada__feriado{margin-left:auto}
+.jornada--feriado .jornada__cuerpo{display:none}
+.jornada--feriado{background:var(--crema-alt)}
+.jornada__aviso{display:none;font-size:.88rem;color:var(--tinta-60);font-style:italic}
+.jornada--feriado .jornada__aviso{display:block}
+.jornada__grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.mini{border-left:3px solid var(--c-cat,var(--linea));padding-left:10px}
+.mini__t{font-size:.82rem;font-weight:700;color:var(--tinta-60);margin-bottom:6px}
+.mini input,.mini textarea{margin-bottom:6px}

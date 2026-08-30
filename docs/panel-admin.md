@@ -32,6 +32,8 @@ porque no pasa por él.
 | `/api/precios`                   | PUT    | panel       | 1 ✅ |
 | `/api/menus`                     | GET    | **público** (sólo publicados) | 2 ✅ |
 | `/api/menus/mes/:mes`            | GET    | panel       | 2 ✅ |
+| `/api/menus/semana?desde=`       | GET    | panel       | 2 ✅ |
+| `/api/menus/semana`              | PUT    | panel       | 2 ✅ |
 | `/api/menus/:fecha`              | GET    | panel       | 2 ✅ |
 | `/api/menus/:fecha`              | PUT    | panel       | 2 ✅ |
 | `/api/menus/:fecha/publicar`     | POST   | panel       | 2 ✅ |
@@ -224,6 +226,26 @@ npx wrangler dev --env staging
 Van como archivos nuevos y numerados en `worker/db/cambios/`
 (`0002_…sql`, `0003_…sql`), y además se reflejan en `schema.sql` para que
 ese archivo siga describiendo la base completa.
+
+---
+
+### Cómo se carga el menú
+
+La nutri arma el menú del mes **separado por semanas**, así que la
+pantalla principal es `/admin/menus/semana.html`: los 5 días con sus 4
+tipos, y un botón que guarda y publica la semana entera de una.
+`/admin/menus/dia.html` sigue existiendo para corregir un día suelto.
+
+**Feriados.** Cada día tiene una casilla *Feriado*. Marcarla borra los
+platos de ese día (si no, la web mostraría "Feriado" y platos al mismo
+tiempo) y es la **única** forma de publicar un día sin ningún plato:
+justamente lo que hay que comunicar es que ese día no se cocina.
+
+**Días que ya pasaron.** Si hoy es miércoles, la web ya no deja pedir el
+lunes ni el martes de esta semana: esos días aparecen apagados y sin
+botones. La fecha de "hoy" la decide el **servidor**, no el celular de
+la clienta: de eso depende que se cobre o no una vianda, y un reloj
+desajustado no puede habilitar un pedido que no se puede entregar.
 
 ---
 

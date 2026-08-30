@@ -182,6 +182,33 @@
       '</div>';
   }
 
+  /* Lo que dijo la API sobre esta semana: qué fecha es cada día, cuáles
+     son feriado y qué día es hoy. Vacío mientras la API no responda. */
+  var semanaApi = { fechas: {}, feriados: {}, hoy: null };
+
+  /* Un día se cierra cuando ya pasó: si hoy es miércoles, el lunes de
+     esta semana ya no se puede pedir. La fecha de "hoy" la manda el
+     servidor, no el celular: el reloj de la clienta puede estar en
+     cualquier lado, y de eso depende que se cobre o no una vianda. */
+  function estadoDia(diaId) {
+    if (semanaApi.feriados[diaId]) return 'feriado';
+    var fecha = semanaApi.fechas[diaId];
+    if (fecha && semanaApi.hoy && fecha < semanaApi.hoy) return 'pasado';
+    return 'abierto';
+  }
+
+  /* Tarjeta de un día que no se puede pedir. Sin botones: la única forma
+     de que no se sume algo que no se puede entregar es no ofrecerlo. */
+  function diaCerrado(d, cabecera, motivo, detalle) {
+    return '' +
+      '<article class="dia dia--cerrado">' + cabecera +
+        '<div class="dia__cuerpo">' +
+          '<p class="dia__plato">' + esc(motivo) + '</p>' +
+          '<p class="dia__desc">' + esc(detalle) + '</p>' +
+        '</div>' +
+      '</article>';
+  }
+
   function pintarDias() {
     var catId = Store.estado.categoria;
 
@@ -200,6 +227,16 @@
           '<h3 class="dia__nombre">' + esc(d.nombre) + '</h3>' +
           (enDia ? '<span class="dia__n">' + enDia + ' en tu pedido</span>' : '') +
         '</div>';
+
+      var estado = estadoDia(d.id);
+      if (estado === 'feriado') {
+        return diaCerrado(d, cabecera, 'Feriado',
+          'Este día no cocinamos. Volvemos al día siguiente.');
+      }
+      if (estado === 'pasado') {
+        return diaCerrado(d, cabecera, 'Ya pasó',
+          'Este día ya no se puede pedir. Elegí uno de los que vienen.');
+      }
 
       if (!p) {
         return '' +
@@ -430,6 +467,12 @@
     MENU.platos = d.platos;
     if (d.semana) MENU.semana = d.semana;
     if (typeof d.nota === 'string') MENU.nota = d.nota;
+
+    semanaApi = {
+      fechas: d.fechas || {},
+      feriados: d.feriados || {},
+      hoy: d.hoy || null
+    };
     return true;
   }
 
@@ -439,7 +482,12 @@
      Las sacamos ahora, usando el mismo camino que el botón "−". */
   function limpiarCarritoViejo() {
     var Store = global.AUME.Store;
-    var sobrantes = Store.items().filter(function (it) { return !it.plato; });
+    /* Se van tanto las viandas de platos que ya no existen como las de
+       días cerrados: alguien pudo dejar el carrito armado el domingo y
+       volver el miércoles. */
+    var sobrantes = Store.items().filter(function (it) {
+      return !it.plato || estadoDia(it.diaId) !== 'abierto';
+    });
     sobrantes.forEach(function (it) {
       Store.sumar(it.diaId, it.catId, it.tamanoId, -it.cantidad);
     });
@@ -467,7 +515,7 @@
           pintarEstaticos();
           if (cambioMenu) {
             var sacadas = limpiarCarritoViejo();
-            if (sacadas) toast('El menú se actualizó y sacamos lo que ya no está');
+            if (sacadas) toast('Actualizamos el menú y sacamos lo que ya no se puede pedir');
           }
           global.AUME.Store.avisar();
         } catch (e) { /* si falla el repintado, quedan los datos de los archivos */ }

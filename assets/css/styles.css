@@ -581,3 +581,9 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
   *,*::before,*::after{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
   html{ scroll-behavior:auto; }
 }
+
+/* Día que no se puede pedir: feriado, o un día de esta semana que ya
+   pasó. Se muestra igual que los demás para que la semana se lea
+   completa, pero apagado y sin botones. */
+.dia--cerrado{ opacity:.62; }
+.dia--cerrado .dia__plato{ color:var(--tinta-60); }

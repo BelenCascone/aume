@@ -138,5 +138,53 @@ export async function correr(t) {
   r = await llamar('/api/menus/mes/septiembre');
   t.igual('rechaza un mes con formato raro', r.estado, 422);
 
+  /* ------------------------------------------------------ Feriados */
+  const finde = '2026-09-14';   // lunes
+  r = await llamar('/api/menus/semana', 'PUT', {
+    desde: finde,
+    nota: 'Semana con feriado',
+    publicar: true,
+    dias: {
+      lunes:     { platos: { clasico: { nombre: 'Guiso de lentejas', etiquetas: [] } } },
+      martes:    { feriado: true, platos: {} },
+      miercoles: { platos: { clasico: { nombre: 'Pollo al horno', etiquetas: [] } } }
+    }
+  });
+  t.igual('se puede guardar y publicar la semana entera de una', r.estado, 200);
+  t.igual('el martes queda marcado como feriado',
+    r.cuerpo.datos.dias.find((d) => d.dia === 'martes').feriado, true);
+  t.igual('y publicado, aunque no tenga ningún plato',
+    r.cuerpo.datos.dias.find((d) => d.dia === 'martes').estado, 'publicado');
+
+  r = await llamar('/api/menus?desde=' + finde);
+  t.igual('la landing recibe el feriado marcado', r.cuerpo.datos.feriados.martes, true);
+  t.igual('sin platos ese día', r.cuerpo.datos.platos.martes, {});
+  t.igual('y el resto de la semana normal',
+    r.cuerpo.datos.platos.lunes.clasico.nombre, 'Guiso de lentejas');
+
+  /* Marcar feriado un día que ya tenía platos los borra: si no, la web
+     mostraría "Feriado" y platos al mismo tiempo. */
+  r = await llamar('/api/menus/semana', 'PUT', {
+    desde: finde, dias: { lunes: { feriado: true, platos: {} } }
+  });
+  t.igual('marcar feriado borra los platos que hubiera',
+    r.cuerpo.datos.dias.find((d) => d.dia === 'lunes').platos, {});
+
+  /* --------------------------------------- Días que ya pasaron */
+  r = await llamar('/api/menus?desde=2026-08-31');
+  t.ok('la respuesta trae la fecha de cada día, para poder cerrar los pasados',
+    r.cuerpo.datos.fechas.lunes === '2026-08-31');
+  t.ok('y el "hoy" del servidor, no el del celular de la clienta',
+    /^\d{4}-\d{2}-\d{2}$/.test(r.cuerpo.datos.hoy));
+
+  /* ------------------------------------------- Semana: rechazos */
+  r = await llamar('/api/menus/semana', 'PUT', { desde: '2026-09-15', dias: {} });
+  t.igual('la semana tiene que empezar un lunes', r.estado, 422);
+  r = await llamar('/api/menus/semana?desde=2026-09-15');
+  t.igual('leer una semana que no empieza en lunes también se rechaza', r.estado, 422);
+  r = await llamar('/api/menus/semana?desde=' + finde);
+  t.igual('leer la semana funciona', r.estado, 200);
+  t.igual('y no se confunde con la ruta de un día', r.cuerpo.datos.desde, finde);
+
   db.close();
 }
