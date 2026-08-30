@@ -331,8 +331,111 @@
 
   /* ------------------------------------------------------------ Export */
 
+  /* ============================================================ API
+     PRECIOS DESDE EL PANEL
+     -------------------------------------------------------------------
+     Hasta acá, todo lo de arriba lee de assets/js/data/config.js. Ahora
+     los precios los edita la nutri desde /admin/precios/ y viven en la
+     base, así que los pedimos a /api/precios y los mezclamos ENCIMA de
+     la config estática.
+
+     Esa mezcla es a propósito y en ese orden:
+
+     · Si la API responde, manda la base.
+     · Si no responde (worker caído, sin internet, la API todavía no
+       existe), la web se queda con los valores de config.js y sigue
+       funcionando igual. config.js pasa a ser el respaldo, no la fuente
+       de verdad.
+
+     Por eso NUNCA se vacía nada: sólo se pisa lo que llegó completo y
+     con forma válida. Una respuesta rara deja la web como estaba.
+     ================================================================= */
+
+  /* Arranca apenas carga el script, para no esperar al DOM */
+  var promesaPrecios = (function () {
+    if (typeof fetch !== 'function') return null;
+    return fetch('/api/precios', { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (c) { return (c && c.ok === true && c.datos) ? c.datos : null; })
+      .catch(function () { return null; });
+  })();
+
+  function lista(v) { return Array.isArray(v) && v.length ? v : null; }
+
+  function aplicarPrecios(d) {
+    if (!d) return false;
+    var cambio = false;
+
+    /* Precio de la vianda: sólo tamaños que ya existen y con número */
+    if (d.preciosVianda) {
+      Object.keys(CFG.preciosVianda).forEach(function (id) {
+        var n = d.preciosVianda[id];
+        if (typeof n === 'number' && n >= 0) { CFG.preciosVianda[id] = n; cambio = true; }
+      });
+    }
+
+    /* Envío por zona: se actualiza el costo de las zonas que ya están.
+       No agregamos ni sacamos zonas desde acá: el carrito guardado en el
+       celular referencia una zona por id y no queremos invalidarlo. */
+    if (d.envio) {
+      var zonas = lista(d.envio.zonas);
+      if (zonas) {
+        zonas.forEach(function (z) {
+          var actual = Store.buscarZona(z.id);
+          if (actual && typeof z.costo === 'number' && z.costo >= 0) {
+            actual.costo = z.costo; cambio = true;
+          }
+        });
+      }
+      if (typeof d.envio.aclaracion === 'string' && d.envio.aclaracion) {
+        CFG.envio.aclaracion = d.envio.aclaracion; cambio = true;
+      }
+    }
+
+    /* Estos no los usa el carrito todavía, pero sí los textos de la
+       página, así que conviene que salgan de la misma fuente. */
+    var packs = d.packs && lista(d.packs.opciones);
+    if (packs) { CFG.packs.opciones = packs; cambio = true; }
+    if (d.planMensual && d.planMensual.precios) { CFG.planMensual = d.planMensual; cambio = true; }
+    var productos = lista(d.productos);
+    if (productos) { CFG.productos = productos; cambio = true; }
+
+    return cambio;
+  }
+
+  /* Este archivo se carga ANTES que app.js, así que cuando lleguen los
+     precios puede que la app todavía no haya arrancado. Esperamos a que
+     el DOM esté listo y el Store exista antes de repintar. */
+  function cuandoArranco(fn) {
+    if (document.readyState !== 'loading' && global.AUME && global.AUME.Store) {
+      setTimeout(fn, 0);
+      return;
+    }
+    setTimeout(function () { cuandoArranco(fn); }, 30);
+  }
+
+  /* Cuando llegan los precios, repintamos. avisar() hace que app.js
+     redibuje todo lo que depende del estado (tarjetas, barra, carrito y
+     el resumen del checkout) sin que haya que tocar app.js. */
+  function escucharPrecios() {
+    if (!promesaPrecios) return;
+    promesaPrecios.then(function (d) {
+      if (!aplicarPrecios(d)) return;
+      cuandoArranco(function () {
+        try {
+          pintarEstaticos();
+          global.AUME.Store.avisar();
+        } catch (e) { /* si falla el repintado, quedan los precios de config.js */ }
+      });
+    });
+  }
+
+  /* Arranca solo: no hace falta tocar app.js para engancharlo. */
+  escucharPrecios();
+
   global.AUME.UI = {
     el: el,
+    escucharPrecios: escucharPrecios,
     esc: esc,
     plural: plural,
     toast: toast,

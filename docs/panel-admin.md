@@ -28,8 +28,8 @@ porque no pasa por él.
 | Ruta                             | Método | Quién puede | Fase |
 |----------------------------------|--------|-------------|------|
 | `/api/salud`                     | GET    | panel       | 0 ✅ |
-| `/api/precios`                   | GET    | **público** | 1    |
-| `/api/precios`                   | PUT    | panel       | 1    |
+| `/api/precios`                   | GET    | **público** | 1 ✅ |
+| `/api/precios`                   | PUT    | panel       | 1 ✅ |
 | `/api/menus`                     | GET    | **público** (sólo publicados) | 2 |
 | `/api/menus/:fecha`              | GET    | panel       | 2    |
 | `/api/menus/:fecha`              | PUT    | panel       | 2    |
@@ -375,7 +375,7 @@ corren igual.
 | Fase | Qué incluye | Estado |
 |---|---|---|
 | 0 | Rama, esqueleto del worker, `schema.sql`, staging separado | ✅ hecha |
-| 1 | Módulo de precios + la landing lee precios de la API | pendiente |
+| 1 | Módulo de precios + la landing lee precios de la API | ✅ hecha |
 | 2 | Módulo de menú (borrador/publicar) + la landing lee el menú | pendiente |
 | 3 | Módulo de pedidos + doble camino del checkout | pendiente |
 | 4 | Módulo de estadísticas | pendiente |

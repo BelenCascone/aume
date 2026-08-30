@@ -58,7 +58,7 @@ export async function correr(t) {
   await responde('un método que no corresponde da 405',
     pedir('/api/precios', { method: 'DELETE' }), staging, 405, 'metodo_no_permitido');
 
-  for (const [ruta, fase] of [['/api/precios', 1], ['/api/menus', 2], ['/api/estadisticas', 4]]) {
+  for (const [ruta, fase] of [['/api/menus', 2], ['/api/estadisticas', 4]]) {
     await responde(ruta + ' está registrada (llega en la fase ' + fase + ')',
       pedir(ruta), staging, 501, 'no_implementado');
   }
@@ -84,9 +84,11 @@ export async function correr(t) {
   await responde('un PUT sin Origin ni Sec-Fetch-Site se rechaza',
     new Request('https://aume.test/api/precios', { method: 'PUT' }),
     staging, 401, 'no_autorizado');
-  await responde('un PUT del propio sitio pasa',
+  /* Llega hasta la validación: 422 significa que pasó el control de
+     origen y el de Access, que es lo que este caso quiere probar. */
+  await responde('un PUT del propio sitio pasa el control y llega a validarse',
     pedir('/api/precios', { method: 'PUT', headers: { 'Sec-Fetch-Site': '', Origin: 'https://aume.test' } }),
-    staging, 501, 'no_implementado');
+    staging, 422, 'datos_invalidos');
   await responde('una lectura de otro sitio no se frena (no escribe nada)',
     pedir('/api/estadisticas', { headers: { 'Sec-Fetch-Site': 'cross-site' } }),
     staging, 501, 'no_implementado');

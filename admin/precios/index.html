@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Precios · Panel AUMÉ</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/assets/img/favicon-64.png" sizes="64x64" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Caveat:wght@600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/assets/css/panel.css">
+</head>
+<body>
+<div class="entorno" id="entorno" hidden></div>
+<header class="cab">
+  <div class="cont cab__in">
+    <a class="cab__marca" href="/admin/">AUMÉ<span>panel</span></a>
+    <nav class="cab__nav">
+      <a class="cab__a" href="/admin/">Inicio</a>
+      <a class="cab__a" href="/admin/precios/">Precios</a>
+      <a class="cab__a" href="/">Ver la web</a>
+    </nav>
+  </div>
+</header>
+
+<main class="cont hoja">
+  <h1 class="titulo">Precios</h1>
+  <p class="bajada">
+    Lo que cambies acá se ve en la web apenas guardás. Esta es la única
+    fuente de verdad: ya no hay que editar <code>config.js</code>.
+  </p>
+
+  <div id="aviso"></div>
+  <p class="cargando" id="cargando">Cargando los precios…</p>
+
+  <form id="form" hidden novalidate>
+    <div class="caja">
+      <h2 class="caja__t">Vianda por tamaño</h2>
+      <p class="caja__d">El precio depende sólo del tamaño: una Clásica y una Proteica valen lo mismo.</p>
+      <div class="grilla" id="viandas"></div>
+    </div>
+
+    <div class="caja">
+      <h2 class="caja__t">Envío por zona</h2>
+      <p class="caja__d">Es por entrega. Las viandas sueltas siempre pagan envío.</p>
+      <div class="grilla" id="zonas"></div>
+      <div class="campo" style="margin-top:12px">
+        <label class="campo__l" for="envioAclaracion">Aclaración que ve la clienta</label>
+        <input class="campo__i" type="text" id="envioAclaracion" maxlength="200">
+      </div>
+    </div>
+
+    <div class="caja">
+      <h2 class="caja__t">Packs semanales</h2>
+      <p class="caja__d">
+        El precio en efectivo va tal cual se publica: no se calcula solo,
+        porque algunos están redondeados a mano. Los packs llevan el envío bonificado.
+      </p>
+      <div id="packs"></div>
+    </div>
+
+    <div class="caja">
+      <h2 class="caja__t">Plan mensual</h2>
+      <p class="caja__d">Cambia todos los meses porque cambia la cantidad de días hábiles.</p>
+      <div class="grilla">
+        <div class="campo">
+          <label class="campo__l" for="planMes">Mes</label>
+          <input class="campo__i" type="text" id="planMes" maxlength="40" placeholder="Septiembre">
+        </div>
+        <div class="campo">
+          <label class="campo__l" for="planAlmuerzos">Almuerzos del mes</label>
+          <input class="campo__i" type="text" inputmode="numeric" id="planAlmuerzos" maxlength="3">
+        </div>
+        <div class="campo">
+          <label class="campo__l" for="planDescuento">Descuento en efectivo</label>
+          <input class="campo__i" type="text" id="planDescuento" maxlength="10" placeholder="15%">
+        </div>
+      </div>
+      <div id="planPrecios" style="margin-top:14px"></div>
+      <label class="check" style="margin-top:12px">
+        <input type="checkbox" id="planEnvio">
+        El plan mensual lleva el envío bonificado
+      </label>
+      <p class="campo__ayuda" style="margin-top:6px">
+        Dejá un precio vacío si ese tamaño todavía no se publicó: la web no lo muestra.
+      </p>
+    </div>
+
+    <div class="guardar">
+      <div class="cont guardar__in" style="padding-inline:0">
+        <button type="submit" class="btn btn--pri" id="btnGuardar">Guardar cambios</button>
+        <button type="button" class="btn btn--fan" id="btnDeshacer">Deshacer</button>
+        <span class="guardar__n" id="nota"></span>
+      </div>
+    </div>
+  </form>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="/admin/assets/js/panel.js"></script>
+<script src="/admin/precios/precios.js"></script>
+</body>
+</html>
