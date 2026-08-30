@@ -171,6 +171,18 @@ Cada uno pregunta `Ok to proceed? (y/N)` → **`y`**.
 > **`--remote` es la base de verdad en Cloudflare.** `--local` sería una
 > copia en tu compu. Si te olvidás la bandera, wrangler te la reclama.
 
+Si la base **ya existía de antes de los feriados**, sumá el cambio 0002.
+Es el único que no viene incluido en `schema.sql`, porque `CREATE TABLE IF
+NOT EXISTS` no toca una tabla que ya está creada:
+
+```bash
+npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0002_feriados.sql
+```
+
+Si contesta `duplicate column name: feriado`, ya estaba aplicado: seguí de
+largo. Si la base la creaste después de la Fase 3, este paso te lo podés
+saltear.
+
 Los dos archivos se pueden correr **todas las veces que haga falta**:
 `schema.sql` usa `CREATE TABLE IF NOT EXISTS` y `semilla.sql` usa
 `INSERT OR IGNORE`, así que no pisan nada que ya hayas editado desde el
@@ -309,12 +321,44 @@ Dos cosas que conviene saber para leerlo bien:
 
 ---
 
-## 3. Publicar
+## 3. Publicar y abrir
+
+### Verlo en tu compu (lo más rápido)
 
 ```bash
-npx wrangler deploy --env staging   # a aume-staging.<tu-subdominio>.workers.dev
-npx wrangler deploy                 # a producción (el dominio real)
+npx wrangler dev --env staging
 ```
+
+Queda escuchando y te imprime `http://localhost:8787`. Ahí:
+
+- `http://localhost:8787/` — la landing
+- `http://localhost:8787/admin/` — el panel
+
+Se corta con `Ctrl + C`. Como en `wrangler.jsonc` la base de staging está
+marcada `"remote": true`, esto se conecta a la base de Cloudflare de
+verdad, no a una copia local: lo que cargues acá queda guardado.
+
+### Publicarlo a staging (para abrirlo desde el celu o mostrárselo a alguien)
+
+```bash
+npx wrangler deploy --env staging
+```
+
+Al terminar imprime la dirección, del estilo
+`https://aume-staging.<tu-subdominio>.workers.dev`. El panel está en
+`/admin/` de esa misma dirección.
+
+> En staging **no hace falta Cloudflare Access**: el panel te deja
+> entrar con una identidad simulada. Es a propósito, para poder probar.
+> En producción es al revés — sin Access configurado devuelve 503.
+
+### Publicarlo a producción
+
+```bash
+npx wrangler deploy
+```
+
+Va al dominio real. Antes de esto tiene que estar hecho el paso 4.
 
 ---
 
