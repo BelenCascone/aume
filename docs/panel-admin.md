@@ -202,7 +202,7 @@ esto para funcionar.
 | `A database with that name already exists` | Ya existe. Sacá el id con `npx wrangler d1 list` |
 | `Couldn't find wrangler.jsonc` | Estás fuera de la carpeta del proyecto |
 | `no such file: worker/db/schema.sql` | Falta el `git pull` de 2.1 |
-| `too many terms in compound SELECT` | Un `.sql` con una cadena larga de `UNION ALL`. D1 tolera menos términos que el SQLite de escritorio: hay que partirlo en varios `INSERT` |
+| `too many terms in compound SELECT` | Un `.sql` con un `INSERT` de muchas filas o una cadena de `UNION ALL`. **En SQLite un `VALUES (a),(b),(c)` es internamente un SELECT compuesto**, y D1 tolera muchos menos términos que el SQLite de escritorio — por eso un archivo puede andar en la prueba local y fallar contra la base de verdad. Solución: una fila por `INSERT` |
 | Error de JSON al publicar | Sobra o falta una coma en `wrangler.jsonc` |
 
 Nada de esto toca la web pública: aunque falle todo, la landing sigue
