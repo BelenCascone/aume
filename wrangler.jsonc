@@ -1,7 +1,94 @@
 {
+  // =====================================================================
+  // AUMÉ · configuración de Cloudflare
+  // ---------------------------------------------------------------------
+  // Lo de arriba (sin "env") es PRODUCCIÓN: es lo que ve la clienta.
+  // Abajo, en "env.staging", hay una copia entera del sitio con su propia
+  // base de datos, para probar sin tocar nada real.
+  //
+  //   Probar en tu compu:      npx wrangler dev --env staging
+  //   Publicar a staging:      npx wrangler deploy --env staging
+  //   Publicar a producción:   npx wrangler deploy
+  //
+  // Paso a paso completo (crear las bases, Cloudflare Access, etc.):
+  // docs/panel-admin.md
+  // =====================================================================
+
   "name": "aume",
   "compatibility_date": "2026-08-30",
+
+  // El worker atiende /api/*. Todo lo demás (index.html, assets/, admin/)
+  // lo sirven los archivos estáticos, que siguen teniendo prioridad.
+  "main": "worker/index.js",
+
   "assets": {
-    "directory": "./"
+    "directory": "./",
+    "binding": "ASSETS"
+  },
+
+  "observability": {
+    "enabled": true
+  },
+
+  "vars": {
+    "AUME_ENTORNO": "produccion",
+
+    // Cloudflare Access. Se completan una sola vez, a mano, cuando esté
+    // creada la aplicación en el dashboard (ver docs/panel-admin.md).
+    //
+    // ⚠️ En producción, mientras estén vacías, la API del panel responde
+    //    503 a propósito: preferimos que se rompa a la vista antes que
+    //    quedar abierta sin que nadie se entere.
+    "ACCESS_TEAM_DOMAIN": "",   // ej.: "aume.cloudflareaccess.com"
+    "ACCESS_AUD": ""            // el "Application Audience (AUD) Tag"
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "aume-produccion",
+      // ⚠️ Reemplazar por el id que devuelve:
+      //    npx wrangler d1 create aume-produccion
+      "database_id": "PENDIENTE-CREAR-BASE-DE-PRODUCCION"
+    }
+  ],
+
+  // -------------------------------------------------------------------
+  // STAGING: mismo código, worker aparte y base aparte.
+  // Queda en aume-staging.<tu-subdominio>.workers.dev
+  // -------------------------------------------------------------------
+  "env": {
+    "staging": {
+      "name": "aume-staging",
+      "main": "worker/index.js",
+
+      "assets": {
+        "directory": "./",
+        "binding": "ASSETS"
+      },
+
+      "observability": {
+        "enabled": true
+      },
+
+      "vars": {
+        // Con AUME_ENTORNO distinto de "produccion" y sin Access
+        // configurado, el worker deja pasar al panel con una identidad
+        // simulada. Es lo que permite trabajar en local con `wrangler dev`.
+        "AUME_ENTORNO": "staging",
+        "ACCESS_TEAM_DOMAIN": "",
+        "ACCESS_AUD": ""
+      },
+
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "aume-staging",
+          // ⚠️ Reemplazar por el id que devuelve:
+          //    npx wrangler d1 create aume-staging
+          "database_id": "PENDIENTE-CREAR-BASE-DE-STAGING"
+        }
+      ]
+    }
   }
 }
