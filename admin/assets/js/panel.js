@@ -94,16 +94,58 @@
     if (contenedor) contenedor.innerHTML = '';
   }
 
-  /* Marca en el menú la pantalla en la que estamos */
-  function marcarNav() {
-    var aqui = location.pathname.replace(/\/index\.html$/, '/');
-    document.querySelectorAll('.cab__a').forEach(function (a) {
-      var suya = a.getAttribute('href');
-      if (suya && aqui.indexOf(suya) === 0 && suya !== '/admin/') {
-        a.setAttribute('aria-current', 'page');
-      } else if (suya === '/admin/' && aqui === '/admin/') {
-        a.setAttribute('aria-current', 'page');
+  /* La barra lateral. En pantalla grande está siempre a la vista; en el
+     celular se corre fuera de la pantalla y la abre el botón de las tres
+     rayas. Qué opción está activa lo marca el HTML de cada página, no
+     esto: así se ve bien incluso antes de que cargue el JavaScript. */
+  function armarBarra() {
+    var barra = el('sidebar');
+    var fondo = el('sidebarBackdrop');
+    var boton = el('hamburgerBtn');
+    if (!barra || !fondo || !boton) return;
+
+    var primera = barra.querySelector('.nav-item');
+    var chico = window.matchMedia('(max-width: 900px)');
+
+    /* Mientras la barra tapa la pantalla, lo de atrás no tiene que ser
+       navegable con el teclado ni con el lector de pantalla. */
+    var atras = [document.querySelector('.main'), document.querySelector('.pagefoot')];
+    function bloquearAtras(si) {
+      atras.forEach(function (n) {
+        if (!n) return;
+        if (si) n.setAttribute('inert', ''); else n.removeAttribute('inert');
+      });
+    }
+
+    function cerrar(devolverFoco) {
+      barra.classList.remove('open');
+      boton.setAttribute('aria-expanded', 'false');
+      boton.setAttribute('aria-label', 'Abrir menú');
+      boton.setAttribute('data-tooltip', 'Abrir menú');
+      bloquearAtras(false);
+      if (devolverFoco) boton.focus();
+    }
+
+    function abrir() {
+      barra.classList.add('open');
+      boton.setAttribute('aria-expanded', 'true');
+      boton.setAttribute('aria-label', 'Cerrar menú');
+      boton.setAttribute('data-tooltip', 'Cerrar menú');
+      if (chico.matches) {
+        bloquearAtras(true);
+        if (primera) primera.focus();
       }
+    }
+
+    boton.addEventListener('click', function () {
+      if (barra.classList.contains('open')) cerrar(true); else abrir();
+    });
+    fondo.addEventListener('click', function () { cerrar(true); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && barra.classList.contains('open')) cerrar(true);
+    });
+    chico.addEventListener('change', function (e) {
+      if (!e.matches) bloquearAtras(false);
     });
   }
 
@@ -122,7 +164,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    marcarNav();
+    armarBarra();
     pintarEntorno();
   });
 

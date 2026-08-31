@@ -31,6 +31,12 @@ function restarDias(fechaISO, n) {
   return d.toISOString().slice(0, 10);
 }
 
+function diasEntre(desdeISO, hastaISO) {
+  const a = Date.parse(desdeISO + 'T12:00:00Z');
+  const b = Date.parse(hastaISO + 'T12:00:00Z');
+  return Math.round((b - a) / 86400000);
+}
+
 function filas(r) { return (r && r.results) || []; }
 
 /* Los pedidos cancelados no cuentan: no se cocinaron ni se cobraron.
@@ -59,7 +65,8 @@ async function tablero(ctx) {
 
   const [
     totalesRes, canalRes, tipoRes, tamanoRes, entregaRes,
-    diaPedidoRes, diaEntregaRes, semanaRes, pagoRes, zonaRes, clientasRes
+    diaPedidoRes, diaEntregaRes, semanaRes, pagoRes, zonaRes, clientasRes,
+    favoritaRes
   ] = await db.batch([
     db.prepare('SELECT COUNT(*) AS pedidos, COALESCE(SUM(cantidad),0) AS viandas, ' +
       'COALESCE(SUM(total),0) AS plata, COALESCE(SUM(envio),0) AS envios ' +
@@ -98,7 +105,14 @@ async function tablero(ctx) {
     db.prepare('SELECT telefono_norm AS tel, MAX(cliente_nombre) AS nombre, ' +
       'COUNT(*) AS pedidos, COALESCE(SUM(total),0) AS plata, MAX(fecha_local) AS ultimo ' +
       'FROM pedidos ' + wP + " AND telefono_norm != '' " +
-      'GROUP BY telefono_norm ORDER BY pedidos DESC, plata DESC, tel').bind(...p)
+      'GROUP BY telefono_norm ORDER BY pedidos DESC, plata DESC, tel').bind(...p),
+
+    /* Qué categoría pide más cada clienta. Viene ordenada de mayor a
+       menor, así que la primera fila de cada teléfono es la favorita. */
+    db.prepare('SELECT p.telefono_norm AS tel, i.categoria_id AS cat, ' +
+      'SUM(i.cantidad) AS viandas FROM pedido_items i ' + wI +
+      " AND p.telefono_norm != '' GROUP BY p.telefono_norm, i.categoria_id " +
+      'ORDER BY tel, viandas DESC, cat').bind(...p)
   ]);
 
   const t = filas(totalesRes)[0] || { pedidos: 0, viandas: 0, plata: 0, envios: 0 };
@@ -118,6 +132,27 @@ async function tablero(ctx) {
 
   const clientas = filas(clientasRes);
   const repiten = clientas.filter((c) => c.pedidos > 1);
+
+  /* La favorita de cada teléfono: como la consulta viene ordenada por
+     viandas de mayor a menor, alcanza con quedarse con la primera fila
+     que aparece de cada uno. */
+  const favorita = new Map();
+  for (const f of filas(favoritaRes)) {
+    if (!favorita.has(f.tel)) favorita.set(f.tel, f.cat);
+  }
+  const conFavorita = (c) => ({ ...c, categoria: favorita.get(c.tel) || null });
+
+  /* Para reconquistar no sirve cualquiera que pidió poco: alguien que
+     pidió por primera vez esta semana no es una clienta perdida, es una
+     clienta nueva, y escribirle una oferta sería molestarla. Por eso
+     miramos sólo a las que hace más de dos semanas que no vuelven. */
+  const dormidaDesde = restarDias(hasta, 14);
+  const dormidas = clientas
+    .filter((c) => c.ultimo <= dormidaDesde)
+    .sort((a, b) => a.pedidos - b.pedidos || a.ultimo.localeCompare(b.ultimo) ||
+                    a.tel.localeCompare(b.tel))
+    .slice(0, 10)
+    .map((c) => ({ ...conFavorita(c), diasSinPedir: diasEntre(c.ultimo, hasta) }));
 
   const semanas = filas(semanaRes);
 
@@ -171,7 +206,8 @@ async function tablero(ctx) {
       /* Sólo las que repiten, que son las que interesan para fidelizar.
          El teléfono va entero porque la secretaria lo necesita para
          llamarlas: es la misma información que ya ve en el listado. */
-      top: repiten.slice(0, 15)
+      top: repiten.slice(0, 10).map(conFavorita),
+      reconquistar: dormidas
     }
   });
 }

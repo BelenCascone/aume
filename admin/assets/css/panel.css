@@ -26,23 +26,10 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 input,select,textarea{font-family:inherit;font-size:15px;color:inherit}
 :focus-visible{outline:2px solid var(--c-clasico);outline-offset:2px;border-radius:4px}
 
-.cont{width:100%;max-width:880px;margin-inline:auto;padding-inline:20px}
-
-/* --------------------------------------------------------- Cabecera */
-.cab{background:var(--blanco);border-bottom:1px solid var(--linea);position:sticky;top:0;z-index:10}
-.cab__in{display:flex;align-items:center;gap:14px;padding-block:12px}
-.cab__marca{font-family:var(--f-display);font-size:1.2rem;font-weight:700;text-decoration:none;color:var(--tinta)}
-.cab__marca span{font-family:var(--f-script);font-size:1.1rem;color:var(--c-clasico);margin-left:5px}
-.cab__nav{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
-.cab__a{padding:7px 12px;border-radius:var(--r-sm);text-decoration:none;color:var(--tinta-60);font-size:.9rem;font-weight:500}
-.cab__a:hover{background:var(--crema-alt);color:var(--tinta)}
-.cab__a[aria-current="page"]{background:var(--c-clasico-suave);color:var(--c-clasico-dark);font-weight:600}
-
 /* Aviso de entorno: en staging tiene que ser imposible confundirse */
 .entorno{background:var(--c-proteico);color:#fff;text-align:center;
   padding:5px;font-size:.8rem;font-weight:600;letter-spacing:.02em}
 
-.hoja{padding-block:28px 60px}
 .titulo{font-size:1.5rem;margin-bottom:4px}
 .bajada{color:var(--tinta-60);font-size:.9rem;margin-bottom:22px}
 
@@ -172,7 +159,12 @@ input,select,textarea{font-family:inherit;font-size:15px;color:inherit}
 
 /* ------------------------------------------------------- Pedidos */
 .filtros{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
-.chip{padding:7px 14px;border-radius:999px;border:1px solid var(--linea);
+/* inline-flex + center: así el texto queda centrado aunque el chip
+   termine más ancho que su contenido (cuando estira en una grilla o en
+   el celular). Con el `display:inline` de fábrica se pegaba a la
+   izquierda y dejaba todo el aire del lado derecho. */
+.chip{display:inline-flex;align-items:center;justify-content:center;text-align:center;
+  padding:7px 14px;border-radius:999px;border:1px solid var(--linea);
   background:var(--blanco);font-size:.86rem;font-weight:600;color:var(--tinta-60)}
 .chip[aria-pressed="true"]{background:var(--c-clasico);border-color:var(--c-clasico);color:#fff}
 
@@ -237,49 +229,8 @@ input,select,textarea{font-family:inherit;font-size:15px;color:inherit}
   --g-cesar:       #B5446E;
   --g-uno:         #D97838;   /* series única */
   --g-neutro:      #6B6560;
-}
-
-.kpis{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:18px}
-.kpi{background:var(--blanco);border:1px solid var(--linea);border-radius:var(--r-md);
-  padding:16px;box-shadow:var(--sombra)}
-.kpi__n{font-family:var(--f-display);font-size:1.9rem;font-weight:700;line-height:1.05;
-  letter-spacing:-.02em}
-.kpi__l{font-size:.78rem;color:var(--tinta-60);text-transform:uppercase;
-  letter-spacing:.04em;margin-top:4px}
-.kpi__pie{font-size:.8rem;color:var(--tinta-60);margin-top:6px}
-.kpi__delta--sube{color:var(--exito);font-weight:700}
-.kpi__delta--baja{color:var(--alerta);font-weight:700}
-
-.paneles{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
-
-/* Barras horizontales. El fill arranca en la línea de base y se redondea
-   sólo del lado del dato; el 2px de separación evita que dos barras
-   vecinas se lean como una sola. */
-.gr{display:flex;flex-direction:column;gap:2px}
-.gr__f{display:grid;grid-template-columns:minmax(88px,auto) 1fr auto;gap:10px;
-  align-items:center;font-size:.87rem;padding:3px 0}
-.gr__e{color:var(--tinta);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.gr__p{height:10px;background:var(--crema-alt);border-radius:2px;overflow:hidden}
-.gr__b{height:100%;background:var(--g-uno);border-radius:0 4px 4px 0;min-width:2px;
-  transition:width .3s}
-.gr__v{font-weight:700;font-variant-numeric:tabular-nums;color:var(--tinta);min-width:34px;text-align:right}
-.gr__s{font-size:.78rem;color:var(--tinta-60);font-variant-numeric:tabular-nums}
-
-/* Columnas para la evolución semana a semana */
-.cols{display:flex;align-items:flex-end;gap:6px;height:130px;padding-top:18px;
-  border-bottom:1px solid var(--linea)}
-.col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;
-  height:100%;position:relative;min-width:24px}
-.col__b{width:100%;background:var(--g-uno);border-radius:4px 4px 0 0;min-height:2px;
-  transition:height .3s}
-.col__v{position:absolute;top:-16px;font-size:.75rem;font-weight:700;
-  font-variant-numeric:tabular-nums;color:var(--tinta)}
-.cols-pie{display:flex;gap:6px;margin-top:5px}
-.cols-pie span{flex:1;text-align:center;font-size:.72rem;color:var(--tinta-60);min-width:24px}
-
-.tabla{width:100%;border-collapse:collapse;font-size:.87rem}
+}.tabla{width:100%;border-collapse:collapse;font-size:.87rem}
 .tabla th{text-align:left;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;
   color:var(--tinta-60);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--linea)}
 .tabla td{padding:7px 8px;border-bottom:1px solid var(--linea)}
 .tabla td:last-child,.tabla th:last-child{text-align:right;font-variant-numeric:tabular-nums}
-.vacio-g{color:var(--tinta-60);font-size:.87rem;font-style:italic;padding:8px 0}

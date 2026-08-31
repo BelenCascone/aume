@@ -35,6 +35,9 @@
   function pintarResumen(d) {
     var r = d.resumen;
     el('resumen').hidden = false;
+    /* El gráfico por tipo de menú vive al final de la página: la lista de
+       pedidos es lo que se viene a buscar, y antes quedaba tapada. */
+    el('cajaBarras').hidden = false;
 
     el('tarjetas').innerHTML =
       '<div class="tarjeta"><p class="tarjeta__n">' + r.pedidos + '</p>' +

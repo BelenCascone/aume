@@ -308,6 +308,17 @@ Dos cosas que conviene saber para leerlo bien:
   pedido guarda el precio del momento, así que cambiar la lista de
   precios hoy no reescribe la historia.
 
+**Las clientas.** El tablero muestra dos listas de diez:
+
+- **Las más frecuentes**, para reconocerles algo. Cada una con su
+  categoría favorita, que sale de sumarle las viandas por categoría de
+  todos sus pedidos del período.
+- **Las que hay que reconquistar**: las que menos pidieron y hace más de
+  dos semanas que no vuelven. El corte de dos semanas está puesto a
+  propósito: alguien que compró por primera vez el martes pasado no es
+  una clienta perdida, es una clienta nueva, y mandarle una oferta de
+  "volvé" sería molestarla.
+
 > **Los colores de los gráficos no son los de la marca, y es a
 > propósito.** Los de `assets/css/styles.css` funcionan como acento de
 > una pestaña, donde cada uno viene con su nombre al lado; como colores
@@ -318,6 +329,37 @@ Dos cosas que conviene saber para leerlo bien:
 > daltonismo, y están definidos en `admin/assets/css/panel.css`.
 > Además ninguna barra depende sólo del color: todas llevan su nombre y
 > su número.
+
+---
+
+### El armazón visual
+
+Desde el rediseño hecho en Open Design, todas las pantallas del panel
+comparten la misma estructura: barra lateral fija con las cinco
+secciones, barra de arriba con el título y el logo (que lleva al inicio)
+y un pie. Eso vive en dos archivos:
+
+| Archivo | Qué tiene |
+|---|---|
+| `admin/assets/css/shell.css` | el armazón y los componentes del tablero (tarjetas de número, gráficos, tablas) |
+| `admin/assets/css/panel.css` | el estilo de las pantallas de trabajo: formularios, cajas, botones |
+
+Las dos hojas conviven a propósito. `shell.css` es el diseño nuevo y
+`panel.css` es lo que ya estaba; **ningún nombre de clase se pisa entre
+las dos**, así que se puede migrar el contenido de una pantalla por vez
+sin romper las otras. Hoy Estadísticas ya usa los componentes nuevos; el
+resto conserva su contenido dentro del armazón nuevo.
+
+El menú lateral se abre y se cierra desde `armarBarra()`, en
+`admin/assets/js/panel.js`. Qué sección está activa lo dice el HTML de
+cada página, no el JavaScript: así se ve bien incluso antes de que el
+navegador ejecute nada.
+
+> **Las animaciones van sólo en la portada** (`admin/assets/js/inicio.js`):
+> los números cuentan desde cero y las tarjetas entran escalonadas. En
+> las pantallas de trabajo no hay ninguna, porque ahí se entra a hacer
+> algo y una cosa que se mueve mientras querés tocarla estorba. Todo se
+> apaga solo si el sistema pide menos movimiento.
 
 ---
 

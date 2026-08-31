@@ -9,46 +9,103 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Caveat:wght@600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/admin/assets/css/panel.css">
+<link rel="stylesheet" href="/admin/assets/css/shell.css">
 <title>Estadísticas · Panel AUMÉ</title>
 </head>
 <body>
 <div class="entorno" id="entorno" hidden></div>
-<header class="cab">
-  <div class="cont cab__in">
-    <a class="cab__marca" href="/admin/">AUMÉ<span>panel</span></a>
-    <nav class="cab__nav">
-      <a class="cab__a" href="/admin/">Inicio</a>
-      <a class="cab__a" href="/admin/menus/">Menú</a>
-      <a class="cab__a" href="/admin/pedidos/">Pedidos</a>
-      <a class="cab__a" href="/admin/precios/">Precios</a>
-      <a class="cab__a" href="/admin/estadisticas/">Estadísticas</a>
-      <a class="cab__a" href="/">Ver la web</a>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <nav class="sidebar-nav" aria-label="Secciones del panel">
+      <a href="/admin/" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h2.5a1 1 0 0 0 1-1v-9"/></svg>
+        Inicio
+      </a>
+      <a href="/admin/menus/" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+        Menú
+      </a>
+      <a href="/admin/pedidos/" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+        Pedidos
+      </a>
+      <a href="/admin/precios/" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M12 6v12M15 9.2c-.4-1-1.6-1.7-3-1.7-1.7 0-3 .9-3 2.2 0 3 6 1.6 6 4.6 0 1.3-1.3 2.2-3 2.2-1.4 0-2.6-.7-3-1.7"/></svg>
+        Precios
+      </a>
+      <a href="/admin/estadisticas/" class="nav-item active" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M4 19V9m6.5 10V4m6.5 15v-7"/></svg>
+        Estadísticas
+      </a>
+      <div class="nav-divider"></div>
+      <a href="/" class="nav-item nav-external">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M14 4h6v6M20 4 10 14M19 13v6a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h6"/></svg>
+        Ver la web
+      </a>
     </nav>
+  </aside>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburgerBtn" aria-label="Abrir menú" data-tooltip="Abrir menú" aria-expanded="false" aria-controls="sidebar">
+          <svg class="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+        <div class="topbar-title">
+          <h1 class="page-title">Estadísticas</h1>
+        </div>
+      </div>
+      <a class="topbar-brand" href="/admin/" aria-label="Ir al inicio del panel">
+        <img src="/assets/img/logo.png" alt="AUMÉ" width="160" height="40">
+      </a>
+    </header>
+
+    <main class="content">
+      <section class="section-block">
+        <div class="range-header">
+          <p class="eyebrow" style="margin:0">Análisis</p>
+          <div class="range-tabs" role="group" aria-label="Rango de fechas">
+            <button type="button" class="range-tab" data-rango="7" aria-pressed="false">7 días</button>
+            <button type="button" class="range-tab active" data-rango="28" aria-pressed="true">28 días</button>
+            <button type="button" class="range-tab" data-rango="90" aria-pressed="false">3 meses</button>
+            <button type="button" class="range-tab" data-rango="custom" aria-pressed="false">Personalizado</button>
+          </div>
+          <p class="meta" id="rotulo"></p>
+        </div>
+        <div class="custom-range-row" id="filaCustom">
+          <div class="field">
+            <label for="fDesde">Desde</label>
+            <input type="date" id="fDesde">
+          </div>
+          <div class="field">
+            <label for="fHasta">Hasta</label>
+            <input type="date" id="fHasta">
+          </div>
+          <button type="button" class="btn-apply" id="btnAplicar">Aplicar</button>
+        </div>
+      </section>
+
+      <div id="aviso"></div>
+      <p class="cargando" id="cargando">Cargando el tablero…</p>
+
+      <div id="tablero" hidden>
+        <section class="section-block">
+          <div class="kpi-grid" id="kpis"></div>
+        </section>
+
+        <section class="section-block" id="secTendencia"></section>
+        <section class="section-block grid-split" id="desgloses"></section>
+        <section class="section-block grid-split" id="desgloses2"></section>
+        <section class="section-block" id="secFieles"></section>
+        <section class="section-block" id="secReconquistar"></section>
+      </div>
+    </main>
+    <footer class="pagefoot">
+      Panel interno de AUMÉ · Paraná, Entre Ríos
+    </footer>
   </div>
-</header>
-
-<main class="cont hoja">
-  <h1 class="titulo">Estadísticas</h1>
-  <p class="bajada">Para decidir cuánto cocinar, qué reforzar y dónde crecer.</p>
-
-  <div class="filtros">
-    <button type="button" class="chip" id="r7" aria-pressed="false">7 días</button>
-    <button type="button" class="chip" id="r28" aria-pressed="true">28 días</button>
-    <button type="button" class="chip" id="r90" aria-pressed="false">3 meses</button>
-    <label class="campo__l" for="fDesde">Desde</label>
-    <input class="mes__sel" type="date" id="fDesde">
-    <label class="campo__l" for="fHasta">Hasta</label>
-    <input class="mes__sel" type="date" id="fHasta">
-  </div>
-
-  <div id="aviso"></div>
-  <p class="cargando" id="cargando">Cargando el tablero…</p>
-
-  <div id="tablero" hidden>
-    <div class="kpis" id="kpis"></div>
-    <div class="paneles" id="paneles"></div>
-  </div>
-</main>
+</div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="/admin/assets/js/panel.js"></script>
