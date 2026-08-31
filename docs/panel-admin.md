@@ -41,7 +41,7 @@ porque no pasa por él.
 | `/api/pedidos`                   | GET    | panel       | 3 ✅ |
 | `/api/pedidos/manual`            | POST   | panel       | 3 ✅ |
 | `/api/pedidos/:id`               | PATCH  | panel       | 3 ✅ |
-| `/api/estadisticas`              | GET    | panel       | 4    |
+| `/api/estadisticas?desde=&hasta=` | GET   | panel       | 4 ✅ |
 
 Las rutas marcadas "panel" exigen una identidad válida de Cloudflare
 Access **y** que el pedido salga del propio sitio (defensa contra CSRF).
@@ -171,6 +171,18 @@ Cada uno pregunta `Ok to proceed? (y/N)` → **`y`**.
 > **`--remote` es la base de verdad en Cloudflare.** `--local` sería una
 > copia en tu compu. Si te olvidás la bandera, wrangler te la reclama.
 
+Si la base **ya existía de antes de los feriados**, sumá el cambio 0002.
+Es el único que no viene incluido en `schema.sql`, porque `CREATE TABLE IF
+NOT EXISTS` no toca una tabla que ya está creada:
+
+```bash
+npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0002_feriados.sql
+```
+
+Si contesta `duplicate column name: feriado`, ya estaba aplicado: seguí de
+largo. Si la base la creaste después de la Fase 3, este paso te lo podés
+saltear.
+
 Los dos archivos se pueden correr **todas las veces que haga falta**:
 `schema.sql` usa `CREATE TABLE IF NOT EXISTS` y `semilla.sql` usa
 `INSERT OR IGNORE`, así que no pisan nada que ya hayas editado desde el
@@ -277,12 +289,76 @@ No hay pasarela de pago online: eso sigue igual que siempre.
 
 ---
 
-## 3. Publicar
+### El tablero
+
+`/admin/estadisticas/` contesta preguntas que cambian decisiones, no
+sólo muestra números: qué menú conviene cocinar más, si la web sirve o
+todo sigue entrando por WhatsApp, si se está creciendo, cuánto deja cada
+pedido, si conviene reforzar el reparto o los puntos de retiro, qué día
+hay que cocinar más y si las clientas vuelven.
+
+Dos cosas que conviene saber para leerlo bien:
+
+- **Los pedidos cancelados no cuentan** en ninguna cifra. No se
+  cocinaron ni se cobraron; contarlos infla la recaudación.
+- **Una clienta es un teléfono.** Es lo único estable: el nombre lo
+  escribe distinto cada vez y no hay cuentas de usuario. Por eso "Ana
+  Pérez" y "ana perez" con el mismo número cuentan como una sola.
+- Los importes salen de lo que **efectivamente se cobró**: cada línea de
+  pedido guarda el precio del momento, así que cambiar la lista de
+  precios hoy no reescribe la historia.
+
+> **Los colores de los gráficos no son los de la marca, y es a
+> propósito.** Los de `assets/css/styles.css` funcionan como acento de
+> una pestaña, donde cada uno viene con su nombre al lado; como colores
+> de gráfico fallan: Proteico y Ensalada quedan a ΔE 12,5 en visión
+> normal (y 3,1 en deuteranopía), o sea que ni con visión normal se
+> distinguen bien dos barras vecinas. Los del tablero son los mismos
+> tonos corridos hasta pasar las verificaciones de contraste y de
+> daltonismo, y están definidos en `admin/assets/css/panel.css`.
+> Además ninguna barra depende sólo del color: todas llevan su nombre y
+> su número.
+
+---
+
+## 3. Publicar y abrir
+
+### Verlo en tu compu (lo más rápido)
 
 ```bash
-npx wrangler deploy --env staging   # a aume-staging.<tu-subdominio>.workers.dev
-npx wrangler deploy                 # a producción (el dominio real)
+npx wrangler dev --env staging
 ```
+
+Queda escuchando y te imprime `http://localhost:8787`. Ahí:
+
+- `http://localhost:8787/` — la landing
+- `http://localhost:8787/admin/` — el panel
+
+Se corta con `Ctrl + C`. Como en `wrangler.jsonc` la base de staging está
+marcada `"remote": true`, esto se conecta a la base de Cloudflare de
+verdad, no a una copia local: lo que cargues acá queda guardado.
+
+### Publicarlo a staging (para abrirlo desde el celu o mostrárselo a alguien)
+
+```bash
+npx wrangler deploy --env staging
+```
+
+Al terminar imprime la dirección, del estilo
+`https://aume-staging.<tu-subdominio>.workers.dev`. El panel está en
+`/admin/` de esa misma dirección.
+
+> En staging **no hace falta Cloudflare Access**: el panel te deja
+> entrar con una identidad simulada. Es a propósito, para poder probar.
+> En producción es al revés — sin Access configurado devuelve 503.
+
+### Publicarlo a producción
+
+```bash
+npx wrangler deploy
+```
+
+Va al dominio real. Antes de esto tiene que estar hecho el paso 4.
 
 ---
 
@@ -429,7 +505,7 @@ corren igual.
 | 1 | Módulo de precios + la landing lee precios de la API | ✅ hecha |
 | 2 | Módulo de menú (borrador/publicar) + la landing lee el menú | ✅ hecha |
 | 3 | Módulo de pedidos + doble camino del checkout | ✅ hecha |
-| 4 | Módulo de estadísticas | pendiente |
+| 4 | Módulo de estadísticas | ✅ hecha |
 
 En cada fase se corren los tests de Playwright (`npm test`) para
 confirmar que la landing pública sigue intacta.

@@ -23,7 +23,10 @@ export async function correr(t) {
   const { crearRouter } = await import('../lib/router.js');
 
   /* D1 simulado: alcanza con lo que usa /api/salud */
-  const DB = { prepare: () => ({ first: async () => ({ 1: 1 }) }) };
+  const DB = {
+    prepare: () => ({ bind: () => DB.prepare(), first: async () => ({ 1: 1 }), all: async () => ({ results: [] }) }),
+    batch: async (l) => l.map(() => ({ results: [] }))
+  };
   const ASSETS = { fetch: async () => new Response('landing', { status: 200 }) };
 
   const staging = { AUME_ENTORNO: 'staging', DB, ASSETS };
@@ -58,10 +61,8 @@ export async function correr(t) {
   await responde('un método que no corresponde da 405',
     pedir('/api/precios', { method: 'DELETE' }), staging, 405, 'metodo_no_permitido');
 
-  for (const [ruta, fase] of [['/api/estadisticas', 4]]) {
-    await responde(ruta + ' está registrada (llega en la fase ' + fase + ')',
-      pedir(ruta), staging, 501, 'no_implementado');
-  }
+  await responde('GET /api/estadisticas responde el tablero',
+    pedir('/api/estadisticas'), staging, 200, 'ok');
   /* 422 = llegó a validar el cuerpo vacío, que es lo que se quiere ver */
   await responde('POST /api/pedidos está viva y valida lo que recibe',
     pedir('/api/pedidos', { method: 'POST' }), staging, 422, 'datos_invalidos');
@@ -92,7 +93,7 @@ export async function correr(t) {
     staging, 422, 'datos_invalidos');
   await responde('una lectura de otro sitio no se frena (no escribe nada)',
     pedir('/api/estadisticas', { headers: { 'Sec-Fetch-Site': 'cross-site' } }),
-    staging, 501, 'no_implementado');
+    staging, 200, 'ok');
 
   /* --- Sin base de datos ------------------------------------------ */
   await responde('sin el binding DB lo dice claro',
