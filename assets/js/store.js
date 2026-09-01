@@ -14,7 +14,7 @@
      plan   | mensual  | tamaño       | preferencia → plan del mes
      extra  | producto | -            | -           → postre, yogur, etc.
 
-   "preferencia" es el tipo de menú que la clienta quiere que le armemos
+   "preferencia" es el tipo de menú que el cliente quiere que le armemos
    en un pack o en el plan mensual, donde no elige plato por plato.
    ===================================================================== */
 (function (global) {
