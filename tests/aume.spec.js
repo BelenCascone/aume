@@ -79,6 +79,36 @@ test.describe('Identidad de marca', () => {
   });
 });
 
+/* Las cuatro pestañas se pintan de su color aunque no estén elegidas:
+   si van todas grises no se distingue un menú del otro sin tocarlos. */
+test('cada menú se distingue por su color aunque no esté elegido', async ({ page }) => {
+  /* Con "Clásico" activo, miramos el color de las otras tres */
+  const colores = await page.evaluate(() => {
+    return [].map.call(document.querySelectorAll('.tab'), function (t) {
+      const cs = getComputedStyle(t);
+      return {
+        cat: t.dataset.cat,
+        elegida: t.getAttribute('aria-selected') === 'true',
+        texto: cs.color,
+        borde: cs.borderTopColor,
+        fondo: cs.backgroundColor
+      };
+    });
+  });
+
+  expect(colores).toHaveLength(4);
+
+  const sinElegir = colores.filter((c) => !c.elegida);
+  const bordes = sinElegir.map((c) => c.borde);
+  expect(new Set(bordes).size, 'las pestañas sin elegir comparten el mismo color')
+    .toBe(sinElegir.length);
+
+  /* Y ninguna se queda con el gris de las líneas (#E8E0D4) */
+  for (const c of sinElegir) {
+    expect(c.borde, c.cat + ' sigue gris').not.toBe('rgb(232, 224, 212)');
+  }
+});
+
 /* --------------------------------------------------------- Responsive */
 
 test.describe('Responsive', () => {

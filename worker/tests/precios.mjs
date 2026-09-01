@@ -25,6 +25,7 @@ function comoD1(db) {
     sql, args,
     bind: (...a) => stmt(sql, a),
     async first() { return db.prepare(sql).get(...args) ?? null; },
+    async all() { return { results: db.prepare(sql).all(...args) }; },
     async run() { db.prepare(sql).run(...args); return { success: true }; }
   });
   return {
@@ -113,4 +114,31 @@ export async function correr(t) {
     db.prepare("SELECT precio AS p FROM tamanos WHERE id='estandar'").get().p, 9500);
 
   db.close();
+
+  /* --------------------------- Una base a la que le falta la migración
+     Regresión: entre que se publica el worker y se corre el cambio 0004
+     hay un rato en el que "productos" todavía no tiene la columna
+     "grupo". Eso devolvía 500 en /api/precios, y con eso la landing se
+     quedaba sin los precios de la base y el panel no abría. */
+  const vieja = new DatabaseSync(':memory:');
+  vieja.exec(leer('schema.sql'));
+  vieja.exec(leer('semilla.sql'));
+  vieja.exec('ALTER TABLE productos DROP COLUMN grupo');
+
+  let respuesta = null;
+  try {
+    respuesta = await leerPrecios(comoD1(vieja));
+  } catch (e) {
+    respuesta = null;
+  }
+
+  t.ok('una base sin el cambio 0004 no tira abajo /api/precios', respuesta !== null,
+    respuesta === null ? 'leerPrecios() explotó en vez de contestar' : '');
+  if (respuesta) {
+    t.ok('y los productos siguen llegando', respuesta.productos.length > 0);
+    t.igual('sólo que sin grupo', respuesta.productos[0].grupo, '');
+    t.igual('el resto de los precios llega igual', respuesta.preciosVianda.estandar, 9000);
+  }
+
+  vieja.close();
 }

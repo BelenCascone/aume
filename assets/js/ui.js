@@ -163,7 +163,7 @@
         '<button type="button" role="tab" class="tab" data-cat="' + esc(c.id) + '"' +
         ' id="tab-' + esc(c.id) + '" aria-controls="dias"' +
         ' aria-selected="' + (c.id === activa) + '"' +
-        ' style="--c-tab:' + c.color + '">' +
+        ' style="--c-tab:' + c.color + ';--c-tab-suave:' + c.colorSuave + '">' +
           '<span class="tab__punto" aria-hidden="true"></span>' + esc(c.nombre) +
         '</button>';
     }).join('');
@@ -267,6 +267,7 @@
 
   function pintarDias() {
     var catId = Store.estado.categoria;
+    var nombreCategoria = Store.buscarCategoria(catId).nombre;
 
     el('dias').innerHTML = CFG.dias.map(function (d) {
       var p = Store.plato(d.id, catId);
@@ -278,10 +279,14 @@
         if (CFG.extraFijo) enDia += Store.cantidadDe(d.id, CFG.extraFijo.id, t.id);
       });
 
+      /* La cabecera dice el día Y de qué menú es, pintada del color de
+         esa categoría: mirando una tarjeta suelta se sabe si es la
+         Clásica o la Vegetariana, sin tener que volver a las pestañas. */
       var cabecera = '' +
         '<div class="dia__cab">' +
           '<h3 class="dia__nombre">' + esc(d.nombre) + '</h3>' +
-          (enDia ? '<span class="dia__n">' + enDia + ' en tu pedido</span>' : '') +
+          (enDia ? '<span class="dia__n">' + enDia + '</span>' : '') +
+          '<span class="dia__cat">' + esc(nombreCategoria) + '</span>' +
         '</div>';
 
       var estado = estadoDia(d.id);

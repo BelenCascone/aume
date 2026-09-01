@@ -204,11 +204,14 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
   display:grid; grid-template-columns:repeat(4,1fr); gap:5px;
   height:var(--h-tabs); align-items:center;
 }
+/* Cada menú se pinta de SU color, esté elegido o no: cuatro pastillas
+   grises iguales no dejaban distinguir un menú del otro hasta tocarlos.
+   Sin elegir van en su tono suave; el elegido va lleno. */
 .tab{
   display:flex; align-items:center; justify-content:center;
   min-height:44px; padding:6px 4px; border-radius:var(--r-full);
-  border:1.5px solid var(--linea); background:var(--blanco);
-  font-size:.7rem; font-weight:600; color:var(--tinta-60);
+  border:1.5px solid var(--c-tab); background:var(--c-tab-suave);
+  font-size:.7rem; font-weight:600; color:var(--c-tab);
   letter-spacing:-.01em; white-space:nowrap; transition:all .2s ease;
 }
 .tab[aria-selected="true"]{
@@ -252,19 +255,31 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
   transition:box-shadow .2s ease;
 }
 .dia:hover{ box-shadow:var(--sombra-md); }
+/* Banda del color del menú: es lo que hace que un Clásico y un
+   Vegetariano no se confundan al scrollear. */
 .dia__cab{
-  display:flex; align-items:baseline; justify-content:space-between;
-  gap:10px; padding:11px 16px 0;
+  display:flex; align-items:center; gap:8px;
+  padding:8px 16px; background:var(--c-activo-suave);
+  border-bottom:1px solid var(--blanco);
 }
 .dia__nombre{
   font-family:var(--f-script); font-size:1.5rem; line-height:1;
   color:var(--c-activo);
 }
+/* Cuántas hay de ese día en el pedido */
 .dia__n{
-  font-size:.66rem; letter-spacing:.1em; text-transform:uppercase;
-  color:var(--tinta-60); font-weight:600; white-space:nowrap;
+  display:grid; place-items:center; min-width:20px; height:20px;
+  padding-inline:6px; border-radius:var(--r-full);
+  background:var(--c-activo); color:var(--blanco);
+  font-size:.7rem; font-weight:700; line-height:1;
 }
-.dia__cuerpo{ padding:6px 16px 14px; }
+/* De qué menú es esta tarjeta */
+.dia__cat{
+  margin-left:auto;
+  font-size:.66rem; letter-spacing:.11em; text-transform:uppercase;
+  font-weight:700; color:var(--c-activo); white-space:nowrap;
+}
+.dia__cuerpo{ padding:12px 16px 14px; }
 .dia__plato{ font-family:var(--f-display); font-size:1.05rem; line-height:1.3; }
 .dia__desc{ font-size:.82rem; color:var(--tinta-60); margin-top:3px; }
 
