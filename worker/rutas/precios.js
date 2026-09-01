@@ -28,7 +28,7 @@ export async function leerPrecios(db) {
       db.prepare('SELECT tamano_id, lista, efectivo FROM plan_mensual_precios'),
       db.prepare('SELECT id, nombre, direccion, horarios FROM puntos_retiro WHERE activo = 1 ORDER BY orden'),
       db.prepare('SELECT id, nombre, efectivo FROM metodos_pago WHERE activo = 1 ORDER BY orden'),
-      db.prepare('SELECT id, nombre, detalle, precio FROM productos WHERE activo = 1 ORDER BY orden'),
+      db.prepare('SELECT id, grupo, nombre, detalle, precio FROM productos WHERE activo = 1 ORDER BY orden'),
       db.prepare('SELECT clave, valor FROM ajustes')
     ]);
 
@@ -87,7 +87,7 @@ export async function leerPrecios(db) {
       id: m.id, nombre: m.nombre, efectivo: m.efectivo === 1
     })),
     productos: filas(prods).map((p) => ({
-      id: p.id, nombre: p.nombre, detalle: p.detalle, precio: p.precio
+      id: p.id, grupo: p.grupo, nombre: p.nombre, detalle: p.detalle, precio: p.precio
     })),
     whatsapp: aj.whatsapp || ''
   };

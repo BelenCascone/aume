@@ -61,12 +61,18 @@ async function armarPedido(db, cuerpo, opciones) {
   const modalidad = cuerpo.modalidad === 'retiro' ? 'retiro' : 'envio';
 
   /* --- Catálogo, de la base --- */
-  const [tamRes, catRes, zonaRes, puntoRes, pagoRes] = await db.batch([
+  const [tamRes, catRes, zonaRes, puntoRes, pagoRes,
+         packRes, packPrRes, planRes, planPrRes, prodRes] = await db.batch([
     db.prepare('SELECT id, precio FROM tamanos WHERE activo = 1'),
-    db.prepare('SELECT id, es_fija FROM categorias WHERE activa = 1'),
+    db.prepare('SELECT id, nombre, es_fija FROM categorias WHERE activa = 1'),
     db.prepare('SELECT id, costo FROM zonas_envio WHERE activa = 1'),
     db.prepare('SELECT id FROM puntos_retiro WHERE activo = 1'),
-    db.prepare('SELECT id FROM metodos_pago WHERE activo = 1')
+    db.prepare('SELECT id FROM metodos_pago WHERE activo = 1'),
+    db.prepare('SELECT id, nombre, envio_bonificado FROM packs WHERE activo = 1'),
+    db.prepare('SELECT pack_id, tamano_id, lista FROM packs_precios'),
+    db.prepare('SELECT mes, envio_bonificado FROM plan_mensual WHERE id = 1'),
+    db.prepare('SELECT tamano_id, lista FROM plan_mensual_precios'),
+    db.prepare('SELECT id, nombre, precio FROM productos WHERE activo = 1')
   ]);
 
   const precios = {};
@@ -77,6 +83,40 @@ async function armarPedido(db, cuerpo, opciones) {
   for (const z of (zonaRes.results || [])) zonas[z.id] = z.costo;
   const puntos = (puntoRes.results || []).map((p) => p.id);
   const pagos = (pagoRes.results || []).map((p) => p.id);
+
+  /* Packs, plan mensual y productos. Igual que con las viandas: lo único
+     que se acepta del navegador es QUÉ se pidió; el precio sale de acá.
+     Un precio en NULL significa "todavía no publicado", y lo que no está
+     publicado no se puede pedir. */
+  const packs = {};
+  for (const p of (packRes.results || [])) {
+    packs[p.id] = { nombre: p.nombre, envioBonificado: p.envio_bonificado === 1, precios: {} };
+  }
+  for (const pr of (packPrRes.results || [])) {
+    if (packs[pr.pack_id] && typeof pr.lista === 'number') packs[pr.pack_id].precios[pr.tamano_id] = pr.lista;
+  }
+
+  const planFila = (planRes.results || [])[0] || null;
+  const plan = {
+    existe: !!planFila,
+    mes: planFila ? planFila.mes : '',
+    envioBonificado: !!planFila && planFila.envio_bonificado === 1,
+    precios: {}
+  };
+  for (const pr of (planPrRes.results || [])) {
+    if (typeof pr.lista === 'number') plan.precios[pr.tamano_id] = pr.lista;
+  }
+
+  const productos = {};
+  for (const pr of (prodRes.results || [])) productos[pr.id] = pr;
+
+  /* El tipo de menú que la clienta prefiere en un pack o en el plan
+     mensual, donde no elige plato por plato. 'combinado' = que se lo
+     armemos variando. */
+  const preferencias = { combinado: 'Combinado' };
+  for (const c of (catRes.results || [])) {
+    if (!c.es_fija) preferencias[c.id] = c.nombre;
+  }
 
   /* --- Entrega --- */
   let zonaId = null, direccion = '', puntoId = null;
@@ -113,14 +153,91 @@ async function armarPedido(db, cuerpo, opciones) {
 
   const items = [];
   let cantidad = 0, subtotal = 0;
+  /* Alguna línea del pedido puede traer el envío bonificado (hoy, las
+     promos semanales). Como el envío es por entrega y la entrega es una
+     sola, alcanza con que haya una para que no se cobre. */
+  let envioBonificado = false;
+
+  const TIPOS = ['vianda', 'pack', 'plan', 'extra'];
 
   for (const bruto of brutos.slice(0, MAX_ITEMS)) {
+    /* Sin tipo es una vianda: es lo que mandaba la web antes de que
+       existieran las promos, y lo que sigue mandando el panel. */
+    const tipo = TIPOS.indexOf(texto(bruto.tipo, 10)) >= 0 ? texto(bruto.tipo, 10) : 'vianda';
+    const cant = entero(bruto.cantidad, MAX_CANT);
+    if (!cant) { errs.push('Cantidad inválida en una línea del pedido.'); continue; }
+
+    /* ---------------------------------------------- Promo semanal */
+    if (tipo === 'pack') {
+      const packId = texto(bruto.pack, 30);
+      const tamPack = texto(bruto.tamano, 30);
+      const pref = texto(bruto.preferencia, 30) || 'combinado';
+
+      if (!packs[packId]) { errs.push('Promo desconocida: ' + packId + '.'); continue; }
+      if (!(tamPack in packs[packId].precios)) {
+        errs.push('Esa promo no tiene precio publicado en ' + tamPack + '.'); continue;
+      }
+      if (!(pref in preferencias)) { errs.push('Tipo de menú desconocido: ' + pref + '.'); continue; }
+
+      const precioPack = packs[packId].precios[tamPack];
+      items.push({
+        tipo, refId: packId, preferencia: pref,
+        fechaMenu: null, diaId: '', catId: '', tamId: tamPack, cantidad: cant,
+        precio: precioPack, subtotal: precioPack * cant,
+        plato: packs[packId].nombre
+      });
+      cantidad += cant;
+      subtotal += precioPack * cant;
+      if (packs[packId].envioBonificado) envioBonificado = true;
+      continue;
+    }
+
+    /* ----------------------------------------------- Plan mensual */
+    if (tipo === 'plan') {
+      const tamPlan = texto(bruto.tamano, 30);
+      const prefPlan = texto(bruto.preferencia, 30) || 'combinado';
+
+      if (!plan.existe) { errs.push('No hay un plan mensual publicado.'); continue; }
+      if (!(tamPlan in plan.precios)) {
+        errs.push('El plan mensual no tiene precio publicado en ' + tamPlan + '.'); continue;
+      }
+      if (!(prefPlan in preferencias)) { errs.push('Tipo de menú desconocido: ' + prefPlan + '.'); continue; }
+
+      const precioPlan = plan.precios[tamPlan];
+      items.push({
+        tipo, refId: 'mensual', preferencia: prefPlan,
+        fechaMenu: null, diaId: '', catId: '', tamId: tamPlan, cantidad: cant,
+        precio: precioPlan, subtotal: precioPlan * cant,
+        plato: 'Plan mensual' + (plan.mes ? ' · ' + plan.mes : '')
+      });
+      cantidad += cant;
+      subtotal += precioPlan * cant;
+      if (plan.envioBonificado) envioBonificado = true;
+      continue;
+    }
+
+    /* ---------------------------- Producto suelto (postre, yogur…) */
+    if (tipo === 'extra') {
+      const prodId = texto(bruto.producto, 30);
+      if (!productos[prodId]) { errs.push('Producto desconocido: ' + prodId + '.'); continue; }
+
+      const precioProd = productos[prodId].precio;
+      items.push({
+        tipo, refId: prodId, preferencia: '',
+        fechaMenu: null, diaId: '', catId: '', tamId: '', cantidad: cant,
+        precio: precioProd, subtotal: precioProd * cant,
+        plato: productos[prodId].nombre
+      });
+      cantidad += cant;
+      subtotal += precioProd * cant;
+      continue;
+    }
+
+    /* ------------------------------------------- Vianda de un día */
     const diaId = texto(bruto.dia, 20);
     const catId = texto(bruto.categoria, 30);
     const tamId = texto(bruto.tamano, 30);
-    const cant = entero(bruto.cantidad, MAX_CANT);
 
-    if (!cant) { errs.push('Cantidad inválida en ' + diaId + '.'); continue; }
     if (!(tamId in precios)) { errs.push('Tamaño desconocido: ' + tamId + '.'); continue; }
     if (!(catId in categorias)) { errs.push('Tipo de menú desconocido: ' + catId + '.'); continue; }
 
@@ -152,6 +269,7 @@ async function armarPedido(db, cuerpo, opciones) {
     /* El precio SIEMPRE sale de la base, nunca del navegador */
     const precio = precios[tamId];
     items.push({
+      tipo: 'vianda', refId: '', preferencia: '',
       fechaMenu, diaId, catId, tamId, cantidad: cant,
       precio, subtotal: precio * cant,
       plato: plato || ''
@@ -162,9 +280,9 @@ async function armarPedido(db, cuerpo, opciones) {
 
   if (errs.length) return { ok: false, errs };
 
-  /* Las viandas sueltas siempre pagan envío; el bonificado quedó sólo
-     para los packs semanales, que se piden aparte. */
-  const envio = modalidad === 'envio' ? (zonas[zonaId] || 0) : 0;
+  /* Las viandas sueltas siempre pagan envío; el bonificado lo traen las
+     promos semanales. Como el envío es por entrega, con una alcanza. */
+  const envio = (modalidad === 'envio' && !envioBonificado) ? (zonas[zonaId] || 0) : 0;
 
   return {
     ok: true,
@@ -198,9 +316,12 @@ async function insertar(db, p, canal, origen, claveIdem) {
 
   if (p.items.length) {
     await db.batch(p.items.map((it) => db.prepare(
-      'INSERT INTO pedido_items (pedido_id, fecha_menu, dia_id, categoria_id, tamano_id, ' +
-      'cantidad, precio_unitario, subtotal, plato_nombre) VALUES (?,?,?,?,?,?,?,?,?)'
-    ).bind(id, it.fechaMenu, it.diaId, it.catId, it.tamId, it.cantidad, it.precio, it.subtotal, it.plato)));
+      'INSERT INTO pedido_items (pedido_id, tipo, ref_id, preferencia, fecha_menu, dia_id, ' +
+      'categoria_id, tamano_id, cantidad, precio_unitario, subtotal, plato_nombre) ' +
+      'VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
+    ).bind(id, it.tipo || 'vianda', it.refId || '', it.preferencia || '',
+           it.fechaMenu, it.diaId, it.catId, it.tamId,
+           it.cantidad, it.precio, it.subtotal, it.plato)));
   }
 
   return id;
@@ -284,7 +405,9 @@ async function listar(ctx) {
     ctx.db.prepare(
       'SELECT i.categoria_id, SUM(i.cantidad) AS viandas FROM pedido_items i ' +
       'JOIN pedidos p ON p.id = i.pedido_id ' +
-      (donde ? donde.replace(/\b(fecha_local|semana_local|canal)\b/g, 'p.$1') : '') +
+      (donde
+        ? donde.replace(/\b(fecha_local|semana_local|canal)\b/g, 'p.$1') + " AND i.tipo = 'vianda'"
+        : "WHERE i.tipo = 'vianda'") +
       ' GROUP BY i.categoria_id ORDER BY viandas DESC'
     ).bind(...args)
   ]);
@@ -301,7 +424,8 @@ async function listar(ctx) {
   if (pedidos.length) {
     const marcas = pedidos.map(() => '?').join(',');
     const r = await ctx.db.prepare(
-      'SELECT pedido_id, dia_id, categoria_id, tamano_id, cantidad, plato_nombre, subtotal ' +
+      'SELECT pedido_id, tipo, ref_id, preferencia, dia_id, categoria_id, tamano_id, ' +
+      'cantidad, plato_nombre, subtotal ' +
       'FROM pedido_items WHERE pedido_id IN (' + marcas + ')'
     ).bind(...pedidos.map((p) => p.id)).all();
     items = r.results || [];

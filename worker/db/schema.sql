@@ -38,6 +38,9 @@ VALUES (1, 'Esquema inicial: catálogo, precios, menús y pedidos');
 INSERT OR IGNORE INTO esquema_version (version, descripcion)
 VALUES (2, 'Días feriados en el menú');
 
+INSERT OR IGNORE INTO esquema_version (version, descripcion)
+VALUES (3, 'Promos, plan mensual y productos como líneas del pedido');
+
 
 -- =====================================================================
 -- CATÁLOGO  (lo que hoy vive en assets/js/data/config.js)
@@ -104,9 +107,12 @@ CREATE TABLE IF NOT EXISTS metodos_pago (
   activo   INTEGER NOT NULL DEFAULT 1 CHECK (activo IN (0, 1))
 );
 
--- Otros productos sueltos (hamburguesas de legumbres, etc.).
+-- Productos sueltos que se suman al pedido por unidad: postres,
+-- yogures y congelados. "grupo" es cómo se ordenan en la pantalla
+-- "Para sumar" de la web.
 CREATE TABLE IF NOT EXISTS productos (
   id      TEXT    PRIMARY KEY,
+  grupo   TEXT    NOT NULL DEFAULT '',
   nombre  TEXT    NOT NULL,
   detalle TEXT    NOT NULL DEFAULT '',
   precio  INTEGER NOT NULL DEFAULT 0 CHECK (precio >= 0),
@@ -270,13 +276,25 @@ CREATE INDEX IF NOT EXISTS idx_pedidos_canal    ON pedidos (canal, fecha_local);
 CREATE INDEX IF NOT EXISTS idx_pedidos_telefono ON pedidos (telefono_norm);
 CREATE INDEX IF NOT EXISTS idx_pedidos_creado   ON pedidos (creado_en);
 
--- Una fila por (día + categoría + tamaño) del pedido, igual que las líneas
--- del carrito de la web. Guardamos el precio y el nombre del plato del
--- momento: si mañana cambia la lista de precios o el menú, las
--- estadísticas viejas siguen siendo fieles a lo que se cobró.
+-- Una fila por línea del carrito de la web. Guardamos el precio y el
+-- nombre del momento: si mañana cambia la lista de precios o el menú,
+-- las estadísticas viejas siguen siendo fieles a lo que se cobró.
+--
+-- tipo dice qué se pidió, y de eso depende qué columnas vienen llenas:
+--
+--   'vianda'  día + categoría + tamaño          (el menú de cada día)
+--   'pack'    ref_id = pack + tamaño + preferencia   (promo semanal)
+--   'plan'    tamaño + preferencia                  (plan mensual)
+--   'extra'   ref_id = producto                      (postre, yogur…)
+--
+-- preferencia es el tipo de menú que pidió la clienta en un pack o en el
+-- plan mensual, donde no elige plato por plato.
 CREATE TABLE IF NOT EXISTS pedido_items (
   id              INTEGER PRIMARY KEY AUTOINCREMENT,
   pedido_id       INTEGER NOT NULL REFERENCES pedidos(id) ON DELETE CASCADE,
+  tipo            TEXT    NOT NULL DEFAULT 'vianda',
+  ref_id          TEXT    NOT NULL DEFAULT '',
+  preferencia     TEXT    NOT NULL DEFAULT '',
   fecha_menu      TEXT,                                  -- 'YYYY-MM-DD' si se conoce
   dia_id          TEXT    NOT NULL DEFAULT '',
   categoria_id    TEXT    NOT NULL,

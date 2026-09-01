@@ -66,6 +66,28 @@
 
   /* ---------------------------------------------------------- Listado */
 
+  /* Una línea del pedido en palabras. No todas son viandas de un día:
+     desde que la web ofrece promos, plan mensual y productos, cada tipo
+     se lee distinto y con las mismas columnas no se entendía nada. */
+  function descripcionItem(it) {
+    var pref = it.preferencia
+      ? ' · ' + (it.preferencia === 'combinado'
+          ? 'Combinado'
+          : nombreDe(catalogo && catalogo.categorias, it.preferencia))
+      : '';
+
+    if (it.tipo === 'pack' || it.tipo === 'plan') {
+      return esc(it.plato_nombre || it.ref_id) + ' ' + esc(it.tamano_id) + esc(pref);
+    }
+    if (it.tipo === 'extra') {
+      return esc(it.plato_nombre || it.ref_id);
+    }
+    return esc(it.dia_id) +
+           ' · ' + esc(nombreDe(catalogo && catalogo.categorias, it.categoria_id)) +
+           ' ' + esc(it.tamano_id) +
+           (it.plato_nombre ? ' — ' + esc(it.plato_nombre) : '');
+  }
+
   function pintarLista(d) {
     var porPedido = {};
     (d.items || []).forEach(function (it) {
@@ -83,16 +105,13 @@
 
     el('lista').innerHTML = d.pedidos.map(function (p) {
       var items = (porPedido[p.id] || []).map(function (it) {
-        return '<span class="linea-item"><span>' + it.cantidad + '× ' + esc(it.dia_id) +
-               ' · ' + esc(nombreDe(catalogo && catalogo.categorias, it.categoria_id)) +
-               ' ' + esc(it.tamano_id) +
-               (it.plato_nombre ? ' — ' + esc(it.plato_nombre) : '') +
+        return '<span class="linea-item"><span>' + it.cantidad + '× ' + descripcionItem(it) +
                '</span><b>' + plata(it.subtotal) + '</b></span>';
       }).join('');
 
       var entrega = p.modalidad === 'retiro'
-        ? '🏠 Retira en ' + esc(nombreDe(catalogo && catalogo.puntosRetiro, p.punto_id))
-        : '🛵 ' + esc(p.direccion) + ' (' + esc(nombreDe(catalogo && catalogo.envio && catalogo.envio.zonas, p.zona_id)) + ')';
+        ? 'Retira en ' + esc(nombreDe(catalogo && catalogo.puntosRetiro, p.punto_id))
+        : 'Envío a ' + esc(p.direccion) + ' (' + esc(nombreDe(catalogo && catalogo.envio && catalogo.envio.zonas, p.zona_id)) + ')';
 
       var hora = String(p.creado_en || '').slice(11, 16);
 

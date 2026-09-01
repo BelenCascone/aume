@@ -65,9 +65,17 @@ Todo eso vive en **`assets/js/data/config.js`**.
 - **El plan mensual** (`planMensual`) cambia todos los meses porque cambia la
   cantidad de días hábiles. Hoy paga envío, igual que en el flyer de
   septiembre; para bonificarlo, poné `envioBonificado: true`.
+- **Los postres, los yogures y los congelados** están en `productos`. Cada
+  uno tiene `grupo` (`postres`, `yogures` o `congelados`), que es sólo el
+  orden en que se ven en la pantalla **Para sumar**.
 - **El número de WhatsApp** que recibe los pedidos ya está configurado. Si
   alguna vez cambia, va sin `+` ni espacios: `54` + `9` + característica sin el
   0 + número sin el 15.
+
+> ⚠️ **Los postres y los yogures están cargados de ejemplo.** Cambiá el
+> `nombre`, el `detalle` y el `precio` de cada uno (están marcados con
+> `CONFIRMAR` en `config.js`). Si alguno no va, borrá su bloque entero,
+> desde la llave `{` hasta la coma final.
 
 En el mismo archivo están los **3 puntos de retiro** con sus direcciones y
 horarios, los métodos de pago y los días de la semana.
@@ -157,13 +165,32 @@ manuscritos), **Montserrat** (textos).
 
 ## 7. Cómo funciona el pedido
 
-1. La clienta elige tipo de menú (Clásico / Vegetariano / Proteico / Ensalada).
-2. Suma viandas por día y por tamaño (350gr o XL 500gr). La Ensalada César
-   aparece en todos los días, mire el menú que mire.
-3. La barra inferior muestra el total.
-4. Completa nombre, teléfono, envío (con su zona) **o** punto de retiro, y
-   método de pago.
-5. **"Confirmar pedido por WhatsApp"** abre el chat con el mensaje ya escrito.
+La web abre directamente en el menú: no hay nada que scrollear antes de
+poder elegir. Arriba quedan siempre fijos el **logo**, las **cuatro formas
+de pedir** y los **cuatro tipos de menú**; abajo, también fijo, el
+**resumen del pedido**, que es por donde se entra al carrito.
+
+Las cuatro formas de pedir:
+
+| Pestaña | Qué es | Envío |
+|---|---|---|
+| **Por día** | Una vianda de un día, en 350gr o XL 500gr. La Ensalada César está en todos los días, mire el menú que mire. | Se cobra |
+| **Promos** | Los packs semanales x3, x4 y x5. Se elige el tamaño y qué tipo de menú preferís que te armemos. | Bonificado |
+| **Mensual** | El plan del mes. Sólo se ofrecen los tamaños que tienen precio publicado. | Se cobra |
+| **Para sumar** | Postres, yogures y congelados, por unidad. | Se cobra |
+
+Todo va al mismo carrito y a la misma entrega. Si el pedido tiene una
+promo adentro, **el envío del pedido entero queda bonificado**: la entrega
+es una sola.
+
+Los packs y el plan mensual tienen un **precio en efectivo** más bajo, que
+es el que está publicado. El carrito muestra los dos: el total normal y
+cuánto sería pagando en efectivo.
+
+Después la clienta completa nombre, teléfono, envío (con su zona) **o**
+punto de retiro, y método de pago. **"Confirmar pedido por WhatsApp"** abre
+el chat con el mensaje ya escrito, separado en VIANDAS, PROMOS SEMANALES,
+PLAN MENSUAL y PARA SUMAR.
 
 Si WhatsApp no se abre (navegador que bloquea la ventana, sin la app
 instalada), aparecen el botón **"Abrir WhatsApp"** y el recuadro **"Copiar
@@ -177,10 +204,8 @@ descartan solos para que nadie pida el menú de la semana pasada.
 
 ## 8. Todavía no incluye
 
-- Los **packs semanales** y el **plan mensual** están cargados en `config.js`
-  con sus precios, pero todavía no tienen pantalla propia para pedirlos.
-- Las **hamburguesas de legumbres** están en `config.js` (`productos`) y
-  tampoco se pueden agregar al pedido todavía.
+- Elegir **qué menú va cada día dentro de un pack**: hoy se elige un tipo de
+  menú para todo el pack (o "Combinado") y el resto se coordina por WhatsApp.
 - Carga del menú desde una **planilla de Google**, para que no haya que editar
   `menu.js` a mano.
 - Pasarela de pago online (esta primera fase apunta a ordenar el pedido y
@@ -267,7 +292,16 @@ en `wrangler.jsonc` (`ACCESS_AUD` y `ACCESS_TEAM_DOMAIN`).
 
 Los menús, los precios y los pedidos viven en una base **Cloudflare D1**. El
 esquema está en `worker/db/schema.sql` y los datos iniciales (copiados de
-`config.js` y `menu.js`) en `worker/db/semilla.sql`. Hay un entorno de
+`config.js` y `menu.js`) en `worker/db/semilla.sql`.
+
+> Si la base **ya existe**, hay que correrle el cambio que agrega las promos,
+> el plan mensual y los productos como líneas del pedido:
+>
+> ```bash
+> npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0003_lineas_pedido.sql
+> ```
+>
+> Las bases nuevas ya salen con eso desde `schema.sql`. Hay un entorno de
 **staging** con worker y base separados de producción, para probar sin
 arriesgar nada real.
 

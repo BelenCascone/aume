@@ -153,14 +153,72 @@ window.AUME_CONFIG = {
     }
   },
 
-  /* --- Otros productos ----------------------------------------------- */
+  /* --- PREFERENCIA DE MENÚ (packs y plan mensual) --------------------
+     Cuando alguien pide un pack o el plan mensual no elige plato por
+     plato: elige qué TIPO de menú quiere que le armemos. Estas opciones
+     salen de "categorias" (arriba) más la de combinar.                 */
+  preferenciaCombinada: {
+    id: 'combinado',
+    nombre: 'Combinado',
+    descripcion: 'Vamos variando entre los cuatro menús de la semana.'
+  },
+
+  /* --- OTROS PRODUCTOS ------------------------------------------------
+     Todo lo que se suma al pedido por unidad, sin día ni tamaño:
+     postres, yogures y congelados.
+
+     "grupo" es sólo para ordenar la pantalla "Para sumar"; los grupos
+     se definen abajo, en gruposProducto.
+
+     ⚠️ PRECIOS A CONFIRMAR: los postres y los yogures están cargados
+        con nombres y precios de EJEMPLO. Cambiá el nombre, el detalle y
+        el precio de cada uno y listo; si alguno no va, borrá la línea
+        entera (desde la llave { hasta la coma final).                  */
   productos: [
     {
+      id: 'postre-flan',
+      grupo: 'postres',
+      nombre: 'Flan casero',                    /* ⚠️ CONFIRMAR */
+      detalle: 'Porción individual',
+      precio: 3500                              /* ⚠️ CONFIRMAR */
+    },
+    {
+      id: 'postre-budin',
+      grupo: 'postres',
+      nombre: 'Budín de limón',                 /* ⚠️ CONFIRMAR */
+      detalle: 'Porción individual',
+      precio: 3500                              /* ⚠️ CONFIRMAR */
+    },
+    {
+      id: 'yogur-natural',
+      grupo: 'yogures',
+      nombre: 'Yogur natural',                  /* ⚠️ CONFIRMAR */
+      detalle: 'Pote individual',
+      precio: 2800                              /* ⚠️ CONFIRMAR */
+    },
+    {
+      id: 'yogur-granola',
+      grupo: 'yogures',
+      nombre: 'Yogur con granola',              /* ⚠️ CONFIRMAR */
+      detalle: 'Pote individual con granola casera',
+      precio: 3200                              /* ⚠️ CONFIRMAR */
+    },
+    {
       id: 'burger8',
+      grupo: 'congelados',
       nombre: 'Hamburguesas de legumbres',
       detalle: 'Congeladas · Pack x8 unidades',
       precio: 13000
     }
+  ],
+
+  /* Grupos de la pantalla "Para sumar". El orden de esta lista es el
+     orden en que se ven. Un producto sin grupo (o con un grupo que no
+     está acá) cae en el último. */
+  gruposProducto: [
+    { id: 'postres',    nombre: 'Postres',    descripcion: 'Para cerrar el almuerzo.' },
+    { id: 'yogures',    nombre: 'Yogures',    descripcion: 'Livianos, para la tarde.' },
+    { id: 'congelados', nombre: 'Congelados', descripcion: 'Para tener siempre en el freezer.' }
   ],
 
   /* --- Puntos de retiro (Take Away) ---------------------------------
