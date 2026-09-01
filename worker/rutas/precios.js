@@ -15,8 +15,31 @@ import { json, errores, leerJson } from '../lib/respuesta.js';
 
 /* ------------------------------------------------------------ Lectura */
 
+/* Los productos, aparte del resto.
+
+   `grupo` lo agrega el cambio 0004, y entre que se publica el worker y se
+   corre la migración hay un rato en el que la base todavía no lo tiene. Si
+   esta consulta va adentro del batch, ese "no such column: grupo" se lleva
+   puesta TODA la respuesta de /api/precios: la landing pierde los precios
+   de la base y el panel deja de abrir. Preferimos contestar sin el grupo,
+   que es lo único que se pierde, y dejar el aviso en el log. */
+async function leerProductos(db) {
+  const armar = (r) => (r && r.results) || [];
+  try {
+    return armar(await db.prepare(
+      'SELECT id, grupo, nombre, detalle, precio, activo FROM productos ORDER BY orden'
+    ).all());
+  } catch (e) {
+    console.warn('[aume-api] productos sin columna "grupo": falta correr ' +
+                 'worker/db/cambios/0004_lineas_pedido.sql');
+    return armar(await db.prepare(
+      'SELECT id, nombre, detalle, precio, activo FROM productos ORDER BY orden'
+    ).all()).map((p) => Object.assign({ grupo: '' }, p));
+  }
+}
+
 export async function leerPrecios(db) {
-  const [tam, cat, dias, zonas, packs, packsPr, plan, planPr, puntos, pagos, prods, ajustes] =
+  const [tam, cat, dias, zonas, packs, packsPr, plan, planPr, puntos, pagos, ajustes] =
     await db.batch([
       db.prepare('SELECT id, nombre, gramos, precio FROM tamanos WHERE activo = 1 ORDER BY orden'),
       db.prepare('SELECT id, nombre, descripcion, color, color_suave, es_fija FROM categorias WHERE activa = 1 ORDER BY orden'),
@@ -28,14 +51,10 @@ export async function leerPrecios(db) {
       db.prepare('SELECT tamano_id, lista, efectivo FROM plan_mensual_precios'),
       db.prepare('SELECT id, nombre, direccion, horarios FROM puntos_retiro WHERE activo = 1 ORDER BY orden'),
       db.prepare('SELECT id, nombre, efectivo FROM metodos_pago WHERE activo = 1 ORDER BY orden'),
-      /* Sin filtrar por activo: el panel necesita ver también los que
-         todavía no tienen precio (postres, yogures) para podérselo
-         poner. Quien no los muestra es la web, y para eso va la
-         bandera `activo` en la respuesta. `grupo` es cómo se ordenan en
-         la pantalla "Para sumar". */
-      db.prepare('SELECT id, grupo, nombre, detalle, precio, activo FROM productos ORDER BY orden'),
       db.prepare('SELECT clave, valor FROM ajustes')
     ]);
+
+  const prods = await leerProductos(db);
 
   const filas = (r) => (r && r.results) || [];
   const aj = {};
@@ -91,7 +110,7 @@ export async function leerPrecios(db) {
     metodosPago: filas(pagos).map((m) => ({
       id: m.id, nombre: m.nombre, efectivo: m.efectivo === 1
     })),
-    productos: filas(prods).map((p) => ({
+    productos: prods.map((p) => ({
       id: p.id, grupo: p.grupo, nombre: p.nombre, detalle: p.detalle, precio: p.precio,
       activo: p.activo === 1
     })),
