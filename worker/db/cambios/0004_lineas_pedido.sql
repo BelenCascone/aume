@@ -1,10 +1,10 @@
 -- =====================================================================
--- AUMÉ · Cambio 0003 · Promos, plan mensual y productos en el pedido
+-- AUMÉ · Cambio 0004 · Promos, plan mensual y productos en el pedido
 -- ---------------------------------------------------------------------
 -- Para bases QUE YA EXISTEN. Las nuevas ya salen con esto desde
 -- worker/db/schema.sql, así que este archivo no hace falta ahí.
 --
---   npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0003_lineas_pedido.sql
+--   npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0004_lineas_pedido.sql
 --
 -- Hasta acá una línea de pedido era siempre una vianda: día + tipo de
 -- menú + tamaño. Ahora la web también deja pedir promos semanales, el
@@ -30,17 +30,12 @@ ALTER TABLE pedido_items ADD COLUMN preferencia TEXT NOT NULL DEFAULT '';
 -- Los productos se agrupan en la pantalla "Para sumar" de la web.
 ALTER TABLE productos ADD COLUMN grupo TEXT NOT NULL DEFAULT '';
 
+-- Los productos que ya están se reparten en los grupos de la pantalla
+-- "Para sumar". Los postres y los yogures los creó el cambio 0003, con
+-- activo = 0: siguen sin mostrarse en la web hasta que tengan precio.
 UPDATE productos SET grupo = 'congelados' WHERE id = 'burger8' AND grupo = '';
-
--- Postres y yogures.
--- ⚠️ NOMBRES Y PRECIOS A CONFIRMAR: van cargados de ejemplo para que la
---    pantalla tenga algo que mostrar. Se corrigen desde el panel o con
---    un UPDATE, y tienen que coincidir con assets/js/data/config.js.
-INSERT OR IGNORE INTO productos (id, grupo, nombre, detalle, precio, orden) VALUES
-  ('postre-flan',   'postres', 'Flan casero',       'Porción individual',                  3500, 2),
-  ('postre-budin',  'postres', 'Budín de limón',    'Porción individual',                  3500, 3),
-  ('yogur-natural', 'yogures', 'Yogur natural',     'Pote individual',                     2800, 4),
-  ('yogur-granola', 'yogures', 'Yogur con granola', 'Pote individual con granola casera',  3200, 5);
+UPDATE productos SET grupo = 'postres'    WHERE id = 'postres'  AND grupo = '';
+UPDATE productos SET grupo = 'yogures'    WHERE id = 'yogures'  AND grupo = '';
 
 INSERT OR IGNORE INTO esquema_version (version, descripcion)
-VALUES (3, 'Promos, plan mensual y productos como líneas del pedido');
+VALUES (4, 'Promos, plan mensual y productos como líneas del pedido');

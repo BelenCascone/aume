@@ -39,7 +39,10 @@ INSERT OR IGNORE INTO esquema_version (version, descripcion)
 VALUES (2, 'Días feriados en el menú');
 
 INSERT OR IGNORE INTO esquema_version (version, descripcion)
-VALUES (3, 'Promos, plan mensual y productos como líneas del pedido');
+VALUES (3, 'Postres y yogures como productos sin precio');
+
+INSERT OR IGNORE INTO esquema_version (version, descripcion)
+VALUES (4, 'Promos, plan mensual y productos como líneas del pedido');
 
 
 -- =====================================================================
@@ -287,7 +290,7 @@ CREATE INDEX IF NOT EXISTS idx_pedidos_creado   ON pedidos (creado_en);
 --   'plan'    tamaño + preferencia                  (plan mensual)
 --   'extra'   ref_id = producto                      (postre, yogur…)
 --
--- preferencia es el tipo de menú que pidió la clienta en un pack o en el
+-- preferencia es el tipo de menú que pidió el cliente en un pack o en el
 -- plan mensual, donde no elige plato por plato.
 CREATE TABLE IF NOT EXISTS pedido_items (
   id              INTEGER PRIMARY KEY AUTOINCREMENT,

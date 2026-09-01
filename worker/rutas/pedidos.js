@@ -110,7 +110,7 @@ async function armarPedido(db, cuerpo, opciones) {
   const productos = {};
   for (const pr of (prodRes.results || [])) productos[pr.id] = pr;
 
-  /* El tipo de menú que la clienta prefiere en un pack o en el plan
+  /* El tipo de menú que el cliente prefiere en un pack o en el plan
      mensual, donde no elige plato por plato. 'combinado' = que se lo
      armemos variando. */
   const preferencias = { combinado: 'Combinado' };
@@ -295,6 +295,19 @@ async function armarPedido(db, cuerpo, opciones) {
   };
 }
 
+/* El INSERT de una línea del pedido, en un solo lugar: lo usan el alta y
+   la edición. Cuando aparece una columna nueva (tipo, ref_id…), tiene que
+   aparecer en los dos caminos o la edición borra lo que el alta guardó. */
+function sqlItem(db, pedidoId, it) {
+  return db.prepare(
+    'INSERT INTO pedido_items (pedido_id, tipo, ref_id, preferencia, fecha_menu, dia_id, ' +
+    'categoria_id, tamano_id, cantidad, precio_unitario, subtotal, plato_nombre) ' +
+    'VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
+  ).bind(pedidoId, it.tipo || 'vianda', it.refId || '', it.preferencia || '',
+         it.fechaMenu, it.diaId, it.catId, it.tamId,
+         it.cantidad, it.precio, it.subtotal, it.plato);
+}
+
 async function insertar(db, p, canal, origen, claveIdem) {
   const hoy = fechaLocal();
 
@@ -315,13 +328,7 @@ async function insertar(db, p, canal, origen, claveIdem) {
   const id = fila.id;
 
   if (p.items.length) {
-    await db.batch(p.items.map((it) => db.prepare(
-      'INSERT INTO pedido_items (pedido_id, tipo, ref_id, preferencia, fecha_menu, dia_id, ' +
-      'categoria_id, tamano_id, cantidad, precio_unitario, subtotal, plato_nombre) ' +
-      'VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
-    ).bind(id, it.tipo || 'vianda', it.refId || '', it.preferencia || '',
-           it.fechaMenu, it.diaId, it.catId, it.tamId,
-           it.cantidad, it.precio, it.subtotal, it.plato)));
+    await db.batch(p.items.map((it) => sqlItem(db, id, it)));
   }
 
   return id;
@@ -518,10 +525,7 @@ async function actualizar(ctx) {
   ];
 
   for (const it of p.items) {
-    ops.push(ctx.db.prepare(
-      'INSERT INTO pedido_items (pedido_id, fecha_menu, dia_id, categoria_id, tamano_id, ' +
-      'cantidad, precio_unitario, subtotal, plato_nombre) VALUES (?,?,?,?,?,?,?,?,?)'
-    ).bind(id, it.fechaMenu, it.diaId, it.catId, it.tamId, it.cantidad, it.precio, it.subtotal, it.plato));
+    ops.push(sqlItem(ctx.db, id, it));
   }
 
   /* En batch: si algo falla, no queda un pedido con los ítems borrados. */

@@ -141,7 +141,7 @@
     return { boton: b, delta: delta };
   }
 
-  /* Aviso corto de qué se agregó, con el nombre que ve la clienta */
+  /* Aviso corto de qué se agregó, con el nombre que ve el cliente */
   function avisarAgregado(clave) {
     var linea = Store.items().filter(function (it) { return it.clave === clave; })[0];
     if (!linea) return;

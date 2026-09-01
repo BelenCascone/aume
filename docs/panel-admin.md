@@ -202,6 +202,13 @@ aparezcan en el panel:
 npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0003_productos.sql
 ```
 
+Y el 0004, que deja al pedido guardar promos semanales, plan mensual y
+productos, además de viandas:
+
+```bash
+npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0004_lineas_pedido.sql
+```
+
 Los dos archivos se pueden correr **todas las veces que haga falta**:
 `schema.sql` usa `CREATE TABLE IF NOT EXISTS` y `semilla.sql` usa
 `INSERT OR IGNORE`, así que no pisan nada que ya hayas editado desde el
