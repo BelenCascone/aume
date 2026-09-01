@@ -52,11 +52,17 @@
       /* 401 casi siempre es la sesión de Access vencida: lo más útil que
          podemos decir es "recargá", que dispara el login de nuevo. */
       if (res.status === 401) {
-        throw { mensaje: 'Tu sesión venció. Recargá la página para volver a entrar.', detalles: [] };
+        throw {
+          mensaje: 'Tu sesión venció. Recargá la página para volver a entrar.',
+          detalles: [], entorno: err.entorno || null
+        };
       }
       throw {
         mensaje: err.mensaje || ('El servidor respondió ' + res.status + '.'),
-        detalles: err.detalles || []
+        detalles: err.detalles || [],
+        /* El worker lo manda en los 401/503: es la única forma de saber
+           en qué entorno estamos cuando la API está cerrada. */
+        entorno: err.entorno || null
       };
     }
     return cuerpo.datos;
@@ -77,6 +83,7 @@
   /* Muestra el error arriba del formulario, con la lista de campos que
      el worker rechazó si la mandó. */
   function mostrarError(contenedor, error) {
+    if (error && error.entorno) mostrarEntorno(error.entorno);
     if (!contenedor) return;
     var lista = (error.detalles || []).map(function (d) {
       return '<li>' + esc(d) + '</li>';
@@ -151,17 +158,38 @@
 
   /* Cartel de entorno: si estamos en staging tiene que ser imposible
      creer que estás tocando los datos reales. */
-  async function pintarEntorno() {
+  /* El cartel de entorno. Se pinta de dos fuentes: /api/salud cuando la
+     API contesta, y el propio error cuando no. Lo segundo importa más
+     que lo primero: publicar sin `--env staging` deja el worker en
+     producción, y ahí todo el panel responde 503 — justo cuando saber
+     dónde estás parada es lo único que te saca del problema. */
+  var entornoPintado = null;
+
+  function mostrarEntorno(entorno) {
     var caja = el('entorno');
-    if (!caja) return;
+    if (!caja || !entorno || entorno === entornoPintado) return;
+    entornoPintado = entorno;
+
+    if (entorno === 'produccion') {
+      caja.textContent = '⚠ Estás en PRODUCCIÓN · lo que toques acá lo ve la clienta';
+      caja.className = 'entorno entorno--prod';
+    } else {
+      caja.textContent = '⚠ Entorno de prueba (' + entorno + ') · los cambios no afectan a la web real';
+      caja.className = 'entorno';
+    }
+    caja.hidden = false;
+  }
+
+  async function pintarEntorno() {
     try {
       var salud = await pedir('/api/salud');
-      if (salud.entorno && salud.entorno !== 'produccion') {
-        caja.textContent = '⚠ Entorno de prueba (' + salud.entorno + ') · los cambios no afectan a la web real';
-        caja.hidden = false;
-      }
-    } catch (e) { /* si falla, no es momento de molestar con esto */ }
+      mostrarEntorno(salud.entorno);
+    } catch (e) {
+      /* Si la API está cerrada, el entorno viene en el propio error. */
+      mostrarEntorno(e && e.entorno);
+    }
   }
+
 
   document.addEventListener('DOMContentLoaded', function () {
     armarBarra();

@@ -49,11 +49,14 @@ export const errores = {
   datosInvalidos: (detalles) =>
     error(422, 'datos_invalidos', 'Hay datos que no podemos aceptar.', { detalles }),
 
-  noAutorizado: (mensaje = 'Necesitás iniciar sesión para entrar al panel.') =>
-    error(401, 'no_autorizado', mensaje),
+  noAutorizado: (mensaje = 'Necesitás iniciar sesión para entrar al panel.', extra = {}) =>
+    error(401, 'no_autorizado', mensaje, extra),
 
-  sinConfigurar: (mensaje) =>
-    error(503, 'sin_configurar', mensaje),
+  /* `extra` lleva el entorno: cuando la API está cerrada, el panel no
+     puede preguntar por /api/salud para saber dónde está parado, y
+     justo ahí es cuando más falta hace saberlo. */
+  sinConfigurar: (mensaje, extra = {}) =>
+    error(503, 'sin_configurar', mensaje, extra),
 
   interno: () =>
     error(500, 'error_interno', 'Algo falló de nuestro lado. Probá de nuevo en un momento.'),

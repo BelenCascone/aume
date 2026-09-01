@@ -36,9 +36,12 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 input,select,textarea{font-family:inherit;font-size:15px;color:inherit}
 :focus-visible{outline:2px solid var(--c-clasico);outline-offset:2px;border-radius:4px}
 
-/* Aviso de entorno: en staging tiene que ser imposible confundirse */
+/* Aviso de entorno: tiene que ser imposible confundirse en cualquiera de
+   los dos sentidos — ni creer que tocás datos reales cuando estás en
+   staging, ni creer que estás en staging cuando tocás los de verdad. */
 .entorno{background:var(--c-proteico);color:#fff;text-align:center;
   padding:5px;font-size:.8rem;font-weight:600;letter-spacing:.02em}
+.entorno--prod{background:var(--alerta)}
 
 /* --------------------------------------------------------- Avisos */
 .aviso{padding:12px 14px;border-radius:var(--r-sm);font-size:.88rem;margin-bottom:16px}

@@ -135,8 +135,17 @@ export async function identificar(request, env) {
       return {
         ok: false,
         estado: 503,
-        motivo: 'El panel todavía no tiene configurado Cloudflare Access ' +
-                '(faltan ACCESS_TEAM_DOMAIN y ACCESS_AUD). Ver docs/panel-admin.md.'
+        entorno,
+        /* Nombrar el entorno no es un detalle: el 90% de las veces que
+           sale este error es porque se publicó con `wrangler deploy` a
+           secas en vez de `--env staging`, y entonces corre producción
+           sin Access. Sin esta línea, el cartel parece decir que falta
+           configurar algo cuando en realidad se publicó al lugar
+           equivocado. */
+        motivo: 'El worker está corriendo el entorno "' + entorno + '" y ahí ' +
+                'Cloudflare Access es obligatorio, pero faltan ACCESS_TEAM_DOMAIN ' +
+                'y ACCESS_AUD. Si querías probar sin Access, publicá con ' +
+                '"npx wrangler deploy --env staging". Ver docs/panel-admin.md.'
       };
     }
     /* En local y en staging se puede trabajar sin Access montado. */
