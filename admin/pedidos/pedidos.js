@@ -104,15 +104,35 @@
         iconoEditar + '</button></span>';
   }
 
+  /* Un pedido ya no es sólo viandas: puede traer promos semanales, el
+     plan mensual y productos sueltos. Contarlos a todos como viandas, y
+     buscarles un tipo de menú que no tienen, dejaba filas que decían
+     "3 viandas · —". */
+  function esVianda(i) { return !i.tipo || i.tipo === 'vianda'; }
+
   function resumenItems(p) {
     var items = (datos.items || []).filter(function (i) { return i.pedido_id === p.id; });
     if (!items.length) return num(p.cantidad) + (p.cantidad === 1 ? ' vianda' : ' viandas');
+
+    var cuenta = { vianda: 0, pack: 0, plan: 0, extra: 0 };
     var cats = [];
     items.forEach(function (i) {
+      cuenta[esVianda(i) ? 'vianda' : i.tipo] += i.cantidad;
+      if (!esVianda(i)) return;
       var n = nombreDe(catalogo && catalogo.categorias, i.categoria_id);
       if (cats.indexOf(n) < 0) cats.push(n);
     });
-    return num(p.cantidad) + (p.cantidad === 1 ? ' vianda · ' : ' viandas · ') + esc(cats.join(', '));
+
+    var partes = [];
+    if (cuenta.vianda) {
+      partes.push(num(cuenta.vianda) + (cuenta.vianda === 1 ? ' vianda' : ' viandas') +
+        (cats.length ? ' · ' + esc(cats.join(', ')) : ''));
+    }
+    if (cuenta.pack)  partes.push(num(cuenta.pack) + (cuenta.pack === 1 ? ' promo' : ' promos'));
+    if (cuenta.plan)  partes.push(num(cuenta.plan) + (cuenta.plan === 1 ? ' plan mensual' : ' planes mensuales'));
+    if (cuenta.extra) partes.push(num(cuenta.extra) + (cuenta.extra === 1 ? ' producto' : ' productos'));
+
+    return partes.join(' · ');
   }
 
   function pintarTabla() {
@@ -208,6 +228,10 @@
 
   /* ------------------------------------------------- Formulario */
 
+  /* Líneas del pedido que el formulario muestra pero no edita (promos,
+     plan mensual, productos). Se conservan entre abrir y guardar. */
+  var otrasLineas = [];
+
   function opciones(lista, sel) {
     return (lista || []).map(function (x) {
       return '<option value="' + esc(x.id) + '"' + (x.id === sel ? ' selected' : '') + '>' +
@@ -232,14 +256,28 @@
   }
 
   function itemsDelFormulario() {
-    return Array.prototype.map.call(el('iItems').querySelectorAll('.item-fila'), function (f) {
+    var viandas = Array.prototype.map.call(el('iItems').querySelectorAll('.item-fila'), function (f) {
       return {
+        tipo: 'vianda',
         dia: f.querySelector('.it-dia').value,
         categoria: f.querySelector('.it-cat').value,
         tamano: f.querySelector('.it-tam').value,
         cantidad: Number(f.querySelector('.it-cant').value) || 0
       };
     }).filter(function (i) { return i.cantidad > 0; });
+
+    /* Las líneas que el formulario no edita vuelven con la misma forma
+       que espera armarPedido() en worker/rutas/pedidos.js. */
+    return viandas.concat(otrasLineas.map(function (i) {
+      return {
+        tipo: i.tipo,
+        pack: i.tipo === 'pack' ? i.ref_id : '',
+        producto: i.tipo === 'extra' ? i.ref_id : '',
+        tamano: i.tamano_id || '',
+        preferencia: i.preferencia || '',
+        cantidad: i.cantidad
+      };
+    }));
   }
 
   function sincronizarEntrega() {
@@ -271,7 +309,20 @@
     el('iNotas').value = pedido ? (pedido.notas || '') : '';
 
     var items = pedido ? (datos.items || []).filter(function (i) { return i.pedido_id === pedido.id; }) : [];
-    el('iItems').innerHTML = (items.length ? items : [null]).map(filaItem).join('');
+    var viandas = items.filter(esVianda);
+    /* Las promos, el plan mensual y los productos no se editan acá, pero
+       tienen que sobrevivir al guardado: se guardan aparte y se vuelven a
+       mandar tal cual. */
+    otrasLineas = items.filter(function (i) { return !esVianda(i); });
+
+    el('iItems').innerHTML = (viandas.length ? viandas : [null]).map(filaItem).join('');
+    el('iOtras').innerHTML = otrasLineas.length
+      ? '<p class="hint">Este pedido también tiene: ' +
+        otrasLineas.map(function (i) {
+          return esc(i.cantidad + '\u00d7 ' + (i.plato_nombre || i.ref_id));
+        }).join(' · ') +
+        '. Eso se edita desde la web o por WhatsApp; acá se guarda como está.</p>'
+      : '';
 
     sincronizarEntrega();
     ['fCliente', 'fTelefono', 'fDireccion'].forEach(function (id) {
@@ -309,7 +360,7 @@
     marcar('fTelefono', c.cliente.telefono.replace(/\D/g, '').length >= 6);
     marcar('fDireccion', c.modalidad !== 'envio' || c.direccion.trim().length > 3);
     if (!c.items.length) {
-      Panel.mostrarError(el('dlgAviso'), { mensaje: 'Agregá al menos una vianda.', detalles: [] });
+      Panel.mostrarError(el('dlgAviso'), { mensaje: 'El pedido no puede quedar vacío.', detalles: [] });
       bien = false;
     }
     return bien;

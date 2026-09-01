@@ -136,39 +136,67 @@ test.describe('Cabeceras de seguridad', () => {
 
     /* Dibujar el carrito usa atributos style: es lo que más riesgo tiene */
     await sumar(page, 'lunes', 'estandar', 1);
-    await page.locator('#btnCarrito').click();
+    await page.locator('#btnVerPedido').click();
     await expect(page.locator('#carritoContenido .item')).toHaveCount(1);
 
     expect(violaciones, violaciones.join(' | ')).toHaveLength(0);
   });
 });
 
-/* -------------------------------------------------- Botones del inicio */
+/* ------------------------------------------- Pantalla de pedido rápida
+   La pantalla arranca en el menú: no hay hero ni pasos que scrollear
+   antes de poder elegir. Y lo que sirve para elegir — el logo, los
+   modos de pedido y los 4 tipos de menú — no se va nunca de pantalla. */
 
-test.describe('Botones del inicio', () => {
+test.describe('Acceso rápido al menú', () => {
 
-  async function saltarA(page, ancla) {
-    await page.locator('a[href="#' + ancla + '"]').first().click();
-    await page.waitForTimeout(900);
-    return {
-      y: await page.locator('#' + ancla).evaluate((n) => n.getBoundingClientRect().top),
-      barra: await page.locator('.topbar').evaluate((n) => n.offsetHeight),
-      scrolleado: await page.evaluate(() => window.pageYOffset)
-    };
-  }
+  test('el menú se ve sin scrollear', async ({ page }) => {
+    const alto = page.viewportSize().height;
 
-  test('"Ver el menú" baja hasta el menú, despejado de la barra fija', async ({ page }) => {
-    const r = await saltarA(page, 'menu');
-    expect(r.scrolleado, 'no se movió').toBeGreaterThan(100);
-    expect(r.y, 'el menú quedó tapado por la barra').toBeGreaterThanOrEqual(r.barra - 1);
-    expect(r.y, 'quedó demasiado abajo').toBeLessThan(r.barra + 40);
+    /* La primera tarjeta de día tiene que entrar en la primera pantalla */
+    const caja = await page.locator('#dias .dia').first().boundingBox();
+    expect(caja, 'no hay tarjetas de día').not.toBeNull();
+    expect(caja.y, 'hay que scrollear para ver el primer día').toBeLessThan(alto);
+
+    /* Y con él, al menos un botón para agregarlo al pedido */
+    const boton = await page.locator('#dias .tamano, #dias .stepper').first().boundingBox();
+    expect(boton.y, 'para agregar hay que scrollear').toBeLessThan(alto);
   });
 
-  test('"Envíos y puntos de retiro" baja hasta la sección', async ({ page }) => {
-    const r = await saltarA(page, 'retiro');
-    expect(r.scrolleado, 'no se movió').toBeGreaterThan(100);
-    expect(r.y).toBeGreaterThanOrEqual(r.barra - 1);
-    expect(r.y).toBeLessThan(r.barra + 40);
+  test('el logo, los modos y los tipos de menú quedan fijos al scrollear', async ({ page }) => {
+    await page.evaluate(() => window.scrollTo(0, 1200));
+    await page.waitForTimeout(400);
+
+    for (const sel of ['.marca__img', '#modos', '#tabs']) {
+      const caja = await page.locator(sel).boundingBox();
+      expect(caja, sel + ' desapareció').not.toBeNull();
+      expect(caja.y, sel + ' se fue de pantalla al scrollear').toBeLessThan(200);
+      expect(caja.y + caja.height, sel + ' quedó arriba del borde').toBeGreaterThan(0);
+    }
+  });
+
+  test('la barra del pedido queda fija abajo, con pedido o sin él', async ({ page }) => {
+    const alto = page.viewportSize().height;
+
+    for (const scroll of [0, 1500]) {
+      await page.evaluate((y) => window.scrollTo(0, y), scroll);
+      await page.waitForTimeout(350);
+      const caja = await page.locator('#barra').boundingBox();
+      expect(caja, 'la barra no está').not.toBeNull();
+      expect(caja.y + caja.height, 'la barra no está pegada abajo')
+        .toBeGreaterThan(alto - 2);
+    }
+  });
+
+  test('el logo vuelve al principio del menú', async ({ page }) => {
+    await page.evaluate(() => window.scrollTo(0, 1500));
+    await page.waitForTimeout(300);
+
+    await page.locator('a.marca').click();
+    await page.waitForTimeout(900);
+
+    expect(await page.evaluate(() => window.pageYOffset),
+      'el logo no llevó de vuelta arriba').toBeLessThan(10);
   });
 });
 
@@ -248,10 +276,10 @@ test.describe('Carrito', () => {
 
   test('sumar y restar actualiza el contador', async ({ page }) => {
     await sumar(page, 'martes', 'xl', 2);
-    await expect(page.locator('#badgeCarrito')).toHaveText('2');
+    await expect(page.locator('#barraN')).toContainText('2 viandas');
 
     await (await botonDia(page, 'menos', 'martes', 'xl')).click();
-    await expect(page.locator('#badgeCarrito')).toHaveText('1');
+    await expect(page.locator('#barraN')).toContainText('1 vianda');
   });
 
   /* La Ensalada César está disponible todos los días, se mire la categoría
@@ -269,12 +297,12 @@ test.describe('Carrito', () => {
     const items = await page.evaluate(() =>
       window.AUME.Store.items().map((i) => i.catId + '|' + i.cantidad));
     expect(items.sort()).toEqual(['cesar|1', 'proteico|1']);
-    await expect(page.locator('#badgeCarrito')).toHaveText('2');
+    await expect(page.locator('#barraN')).toContainText('2 viandas');
   });
 
   test('"Vaciar pedido" pide confirmación y recién ahí vacía', async ({ page }) => {
     await sumar(page, 'lunes', 'estandar', 3);
-    await page.locator('#btnCarrito').click();
+    await page.locator('#btnVerPedido').click();
 
     const btn = page.locator('#btnVaciar');
     await expect(btn).toBeVisible();
@@ -288,7 +316,10 @@ test.describe('Carrito', () => {
     /* Segundo toque: ahora sí */
     await page.locator('#btnVaciar').click();
     expect((await totales(page)).cantidad).toBe(0);
-    await expect(page.locator('#barra')).toBeHidden();
+
+    /* La barra no se va: queda fija abajo diciendo que está vacío */
+    await expect(page.locator('#barra')).toBeVisible();
+    await expect(page.locator('#barraN')).toContainText('vacío');
   });
 
   test('el pedido sobrevive al recargar la página', async ({ page }) => {
@@ -425,4 +456,208 @@ test.describe('Checkout', () => {
     await expect(link).toBeVisible();
     await expect(link).toHaveAttribute('href', /^https:\/\/wa\.me\//);
   });
+});
+
+
+/* ------------------------------------------- Promos, mensual y extras
+   Las tres formas de pedir que no son "una vianda de un día". Comparten
+   el mismo carrito, la misma barra y el mismo mensaje de WhatsApp. */
+
+/** Cambia de modo desde la barra fija de arriba. */
+async function irAModo(page, modo) {
+  await page.locator('.modo[data-modo="' + modo + '"]').click();
+  await expect(page.locator('.modo[data-modo="' + modo + '"]'))
+    .toHaveAttribute('aria-pressed', 'true');
+}
+
+test.describe('Promos semanales', () => {
+
+  test('los 3 packs se ofrecen con su precio de lista y el de efectivo', async ({ page }) => {
+    await irAModo(page, 'promo');
+
+    await expect(page.locator('#vistaDia')).toBeHidden();
+    await expect(page.locator('#packs .oferta')).toHaveCount(3);
+
+    for (const pack of ['x5', 'x4', 'x3']) {
+      const botones = page.locator('#packs [data-clave^="pack|' + pack + '|"]');
+      expect(await botones.count(), 'falta el pack ' + pack).toBeGreaterThan(0);
+    }
+
+    /* El precio publicado y el de efectivo, los dos a la vista */
+    const x5 = page.locator('#packs [data-clave="pack|x5|estandar|combinado"]');
+    await expect(x5).toContainText('45.000');
+    await expect(x5).toContainText('40.500');
+  });
+
+  test('un pack entra al pedido con el envío bonificado', async ({ page }) => {
+    await irAModo(page, 'promo');
+    await page.locator('#packs [data-clave="pack|x5|estandar|combinado"]').click();
+
+    const t = await totales(page);
+    expect(t.cantidad).toBe(1);
+    expect(t.subtotal).toBe(45000);
+    expect(t.envio, 'la promo tiene que llevar el envío bonificado').toBe(0);
+    expect(t.envioBonificado).toBe(true);
+    expect(t.total).toBe(45000);
+    /* 10% pagando en efectivo, con el precio publicado tal cual */
+    expect(t.totalEfectivo).toBe(40500);
+    expect(t.ahorroEfectivo).toBe(4500);
+  });
+
+  test('el tipo de menú elegido viaja con la promo', async ({ page }) => {
+    await irAModo(page, 'promo');
+
+    await page.locator('#packs select[data-pref="x3"]').selectOption('vegetariano');
+    await page.locator('#packs [data-clave="pack|x3|xl|vegetariano"]').click();
+
+    const items = await page.evaluate(() => window.AUME.Store.items());
+    expect(items).toHaveLength(1);
+    expect(items[0].tipo).toBe('pack');
+    expect(items[0].prefId).toBe('vegetariano');
+    expect(items[0].detalle).toContain('Vegetariano');
+  });
+
+  /* Las viandas sueltas siguen pagando envío: eso no lo cambia la promo */
+  test('una vianda suelta sigue pagando envío', async ({ page }) => {
+    await sumar(page, 'lunes', 'estandar', 3);
+    const t = await totales(page);
+    expect(t.envio).toBeGreaterThan(0);
+    expect(t.envioBonificado).toBe(false);
+  });
+});
+
+test.describe('Plan mensual', () => {
+
+  test('se puede pedir el plan del mes publicado', async ({ page }) => {
+    await irAModo(page, 'mensual');
+    await expect(page.locator('#planMensual .oferta')).toHaveCount(1);
+
+    await page.locator('#planMensual [data-clave="plan|mensual|estandar|combinado"]').click();
+
+    const t = await totales(page);
+    expect(t.subtotal).toBe(198000);
+    expect(t.subtotalEfectivo).toBe(168300);
+    /* Hoy el plan mensual SÍ paga envío, igual que en el flyer */
+    expect(t.envio).toBeGreaterThan(0);
+  });
+
+  test('el tamaño sin precio publicado no se ofrece', async ({ page }) => {
+    await irAModo(page, 'mensual');
+
+    /* El XL mensual todavía no tiene precio: no puede haber botón */
+    await expect(page.locator('#planMensual [data-clave*="|xl|"]')).toHaveCount(0);
+    await expect(page.locator('#planMensual [data-clave*="|estandar|"]')).toHaveCount(1);
+  });
+});
+
+test.describe('Postres, yogures y congelados', () => {
+
+  test('cada grupo cargado se ve con sus productos', async ({ page }) => {
+    await irAModo(page, 'extras');
+
+    const grupos = await page.evaluate(() => {
+      const cfg = window.AUME_CONFIG;
+      return (cfg.gruposProducto || [])
+        .filter((g) => cfg.productos.some((p) => p.grupo === g.id))
+        .map((g) => g.nombre);
+    });
+
+    expect(grupos.length, 'no hay ningún grupo de productos cargado').toBeGreaterThan(0);
+    for (const nombre of grupos) {
+      await expect(page.locator('#extras .grupo__t', { hasText: nombre })).toHaveCount(1);
+    }
+
+    const cuantos = await page.evaluate(() => window.AUME_CONFIG.productos.length);
+    await expect(page.locator('#extras .producto')).toHaveCount(cuantos);
+  });
+
+  test('un producto se suma al pedido por su precio', async ({ page }) => {
+    await irAModo(page, 'extras');
+
+    const prod = await page.evaluate(() => window.AUME_CONFIG.productos[0]);
+    const clave = 'extra|' + prod.id + '|-|-';
+
+    await page.locator('#extras [data-clave="' + clave + '"]').click();
+    /* Ya con una unidad, el botón se convirtió en el contador − 1 + */
+    await page.locator('#extras [data-accion="mas"][data-clave="' + clave + '"]').click();
+
+    const t = await totales(page);
+    expect(t.cantidad).toBe(2);
+    expect(t.subtotal).toBe(prod.precio * 2);
+    expect(t.porTipo.extra).toBe(2);
+  });
+});
+
+test.describe('Pedido mixto', () => {
+
+  test('el mensaje de WhatsApp separa viandas, promos y extras', async ({ page }) => {
+    await sumar(page, 'lunes', 'estandar', 1);
+
+    await irAModo(page, 'promo');
+    await page.locator('#packs [data-clave="pack|x4|estandar|combinado"]').click();
+
+    await irAModo(page, 'extras');
+    const prod = await page.evaluate(() => window.AUME_CONFIG.productos[0]);
+    await page.locator('#extras [data-clave="extra|' + prod.id + '|-|-"]').click();
+
+    await page.locator('#btnVerPedido').click();
+    await page.locator('#btnIrCheckout').click();
+    await page.locator('#fNombre').fill('Ana Pérez');
+    await page.locator('#fTel').fill('3434000111');
+    await page.locator('#fDireccion').fill('San Martín 499');
+    await page.locator('#fPago').selectOption({ index: 1 });
+
+    const texto = await page.evaluate(() => window.AUME.Checkout.armarMensaje());
+
+    expect(texto).toContain('*VIANDAS (1)*');
+    expect(texto).toContain('*PROMOS SEMANALES (1)*');
+    expect(texto).toContain('*PARA SUMAR (1)*');
+    expect(texto).toContain('Pack x4');
+    expect(texto).toContain(prod.nombre);
+    /* Con una promo adentro, el envío del pedido entero queda bonificado */
+    expect(texto).toContain('*Envío:* Bonificado por la promo');
+    /* Y sigue habiendo un solo TOTAL */
+    expect(texto.split('\n').filter((l) => l.startsWith('*TOTAL:*'))).toHaveLength(1);
+  });
+
+  test('la barra de abajo resume lo que hay, sea del tipo que sea', async ({ page }) => {
+    await expect(page.locator('#barraN')).toContainText('vacío');
+
+    await sumar(page, 'lunes', 'estandar', 2);
+    await irAModo(page, 'promo');
+    await page.locator('#packs [data-clave="pack|x3|estandar|combinado"]').click();
+
+    await expect(page.locator('#barraN')).toContainText('2 viandas');
+    await expect(page.locator('#barraN')).toContainText('1 promo');
+    await expect(page.locator('#barraT')).toContainText('45.000');
+  });
+});
+
+/* ------------------------------------------------------------ Diseño */
+
+test('no quedan emojis en la pantalla', async ({ page }) => {
+  const buscar = () => page.evaluate(() => {
+    const re = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2B00}-\u{2BFF}]/u;
+    const malas = [];
+    document.querySelectorAll('body *').forEach((n) => {
+      if (n.children.length) return;
+      const t = (n.textContent || '').trim();
+      if (re.test(t)) malas.push(n.className + ': ' + t.slice(0, 40));
+    });
+    return malas;
+  });
+
+  for (const modo of ['dia', 'promo', 'mensual', 'extras']) {
+    await page.locator('.modo[data-modo="' + modo + '"]').click();
+    expect(await buscar(), 'modo ' + modo).toHaveLength(0);
+  }
+
+  /* Y también adentro del pedido y del checkout */
+  await page.locator('.modo[data-modo="dia"]').click();
+  await sumar(page, 'lunes', 'estandar', 1);
+  await page.locator('#btnVerPedido').click();
+  expect(await buscar(), 'panel del pedido').toHaveLength(0);
+
+  await page.locator('#btnIrCheckout').click();
+  expect(await buscar(), 'checkout').toHaveLength(0);
 });

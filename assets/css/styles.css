@@ -1,6 +1,13 @@
 /* =====================================================================
    AUMÉ · Hoja de estilos principal
    Mobile-first. Toda la identidad visual vive en las variables de :root
+
+   LA PANTALLA DE PEDIDOS
+   ---------------------------------------------------------------------
+   Arriba, fijo y siempre a la vista: el logo, el selector de qué se
+   quiere pedir y los cuatro tipos de menú. Abajo, también fijo, el
+   resumen del pedido. En el medio, lo único que scrollea: los platos.
+   La idea es que elegir no obligue a subir y bajar.
    ===================================================================== */
 
 /* ---------------------------------------------------------------- 1. TOKENS */
@@ -48,7 +55,14 @@
   --sombra-lg: 0 -8px 32px rgba(44,44,44,.16);
 
   --ancho: 620px;           /* contenedor mobile-first */
-  --barra-h: 76px;          /* alto de la barra inferior del carrito */
+  --barra-h: 76px;          /* alto de la barra inferior del pedido */
+
+  /* Alturas de lo que queda fijo arriba. Si cambia alguna, cambia sola
+     la posición de lo que viene abajo: nada se pisa. */
+  --h-marca: 52px;          /* fila del logo */
+  --h-modos: 44px;          /* fila de "Por día / Promos / …" */
+  --h-fijo:  calc(var(--h-marca) + var(--h-modos));
+  --h-tabs:  54px;          /* fila de los 4 tipos de menú */
 }
 
 /* Color activo de la categoría seleccionada (lo actualiza el JS) */
@@ -60,8 +74,8 @@
 html{
   -webkit-text-size-adjust:100%;
   scroll-behavior:smooth;
-  /* Deja aire bajo la barra fija al saltar a una sección con # */
-  scroll-padding-top:74px;
+  /* Deja aire bajo lo que está fijo arriba al saltar a una sección con # */
+  scroll-padding-top:calc(var(--h-fijo) + 12px);
   overflow-x:hidden;
 }
 
@@ -82,8 +96,7 @@ body{
   body{ overflow-x:hidden; }
 }
 
-/* La barra fija no debe tapar el título de la sección */
-#menu,#retiro,#inicio{ scroll-margin-top:74px; }
+#retiro,#inicio{ scroll-margin-top:calc(var(--h-fijo) + 8px); }
 body.sin-scroll{ overflow:hidden; }
 
 h1,h2,h3,h4{ margin:0; font-family:var(--f-display); font-weight:600; line-height:1.2; letter-spacing:-.01em; }
@@ -101,88 +114,54 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
 
 .contenedor{ width:100%; max-width:var(--ancho); margin-inline:auto; padding-inline:20px; }
 
-.seccion{ padding-block:52px; }
-.seccion__titulo{ font-size:1.75rem; }
-.seccion__kicker{
-  font-family:var(--f-script); font-size:1.5rem; line-height:1;
-  color:var(--c-clasico); margin-bottom:2px;
-}
-.seccion__bajada{ color:var(--tinta-60); font-size:.92rem; margin-top:8px; }
+.seccion{ padding-block:36px; }
+.seccion__titulo{ font-size:1.45rem; }
+.seccion__bajada{ color:var(--tinta-60); font-size:.88rem; margin-top:6px; }
 
-/* --------------------------------------------------------- 3. TOPBAR */
+/* --------------------------------------------------------- 3. TOPBAR
+   El logo es lo primero de la página y no se va nunca de la pantalla.
+   Debajo, pegado, el selector de qué se quiere pedir. */
 .topbar{
   position:sticky; top:0; z-index:40;
-  background:rgba(249,246,240,.92);
+  background:rgba(249,246,240,.94);
   backdrop-filter:saturate(180%) blur(10px);
   border-bottom:1px solid var(--linea);
 }
 .topbar__in{
   display:flex; align-items:center; justify-content:space-between;
-  gap:12px; height:60px;
+  gap:12px; height:var(--h-marca);
 }
 .marca{ display:flex; align-items:center; gap:9px; text-decoration:none; color:inherit; }
-.marca__img{ height:44px; width:auto; }
+.marca__img{ height:38px; width:auto; }
 .marca__tag{
-  font-family:var(--f-script); font-size:1.05rem; color:var(--tinta-60);
-  line-height:1; margin-top:8px;
+  font-family:var(--f-script); font-size:1rem; color:var(--tinta-60);
+  line-height:1; margin-top:7px;
 }
-@media (max-width:360px){
-  .marca__img{ height:37px; }
-  .marca__tag{ display:none; }
+.topbar__semana{
+  flex:0 1 auto; min-width:0; text-align:right;
+  font-size:.68rem; font-weight:600; letter-spacing:.02em;
+  color:var(--tinta-60); line-height:1.25;
 }
 
-.btn-carrito{
-  position:relative; display:flex; align-items:center; gap:8px;
-  padding:9px 16px; border-radius:var(--r-full);
-  background:var(--c-clasico); color:var(--blanco);
-  font-size:.85rem; font-weight:600;
-  box-shadow:var(--sombra-sm);
-  transition:transform .15s ease, background .2s ease;
+/* ------------------------------------------------- 4. MODOS DE PEDIDO
+   Control segmentado: cuatro formas de pedir. Se mantiene neutro a
+   propósito, para no competir con el color de cada tipo de menú. */
+.modos{ border-top:1px solid rgba(232,224,212,.7); }
+.modos__in{
+  display:grid; grid-template-columns:repeat(4,1fr); gap:4px;
+  height:var(--h-modos); align-items:center;
 }
-.btn-carrito:hover{ background:var(--c-clasico-dark); }
-.btn-carrito:active{ transform:scale(.96); }
-.btn-carrito__n{
-  min-width:20px; height:20px; padding-inline:5px;
-  display:grid; place-items:center;
+.modo{
+  height:34px; padding:0 4px; border-radius:var(--r-full);
+  font-size:.74rem; font-weight:600; color:var(--tinta-60);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  transition:background .18s ease, color .18s ease;
+}
+.modo:hover{ color:var(--tinta); }
+.modo[aria-pressed="true"]{
   background:var(--blanco); color:var(--c-clasico-dark);
-  border-radius:var(--r-full); font-size:.72rem; font-weight:700;
+  box-shadow:var(--sombra-sm);
 }
-
-/* ----------------------------------------------------------- 4. HERO */
-.hero{
-  position:relative; overflow:hidden;
-  background:linear-gradient(165deg,#FCF8F2 0%, var(--crema-alt) 100%);
-  padding-block:56px 60px; text-align:center;
-}
-.hero::before,.hero::after{
-  content:""; position:absolute; border-radius:50%; pointer-events:none;
-}
-.hero::before{
-  width:280px; height:280px; top:-120px; right:-110px;
-  background:radial-gradient(circle,rgba(217,120,56,.14),transparent 70%);
-}
-.hero::after{
-  width:260px; height:260px; bottom:-130px; left:-100px;
-  background:radial-gradient(circle,rgba(62,122,94,.13),transparent 70%);
-}
-.hero__in{ position:relative; z-index:1; }
-.hero__sello{
-  display:inline-block; padding:5px 14px; margin-bottom:18px;
-  border:1px solid var(--c-clasico); border-radius:var(--r-full);
-  font-size:.68rem; letter-spacing:.16em; text-transform:uppercase;
-  font-weight:600; color:var(--c-clasico-dark); background:rgba(255,255,255,.6);
-}
-.hero__titulo{ font-size:2.15rem; }
-.hero__titulo em{
-  display:block; font-family:var(--f-script); font-style:normal;
-  font-size:2.9rem; line-height:1; color:var(--c-clasico); margin-top:4px;
-}
-.hero__texto{ margin-top:16px; color:var(--tinta-60); font-size:.98rem; }
-.hero__origen{
-  margin-top:22px; padding-top:18px; border-top:1px solid var(--linea);
-  font-size:.78rem; color:var(--tinta-60); font-style:italic;
-}
-.hero__cta{ display:flex; flex-direction:column; gap:10px; margin-top:28px; }
 
 /* ------------------------------------------------------- 5. BOTONES */
 .btn{
@@ -208,75 +187,64 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
 }
 .btn--peligro:hover{ background:var(--alerta); color:var(--blanco); }
 
-/* -------------------------------------------------------- 6. PASOS */
-.pasos{ display:grid; gap:12px; margin-top:24px; }
-.paso{
-  display:flex; gap:14px; align-items:flex-start;
-  background:var(--blanco); border:1px solid var(--linea);
-  border-radius:var(--r-md); padding:16px;
-}
-.paso__n{
-  flex:0 0 32px; height:32px; display:grid; place-items:center;
-  border-radius:50%; background:var(--c-clasico-suave);
-  color:var(--c-clasico-dark); font-weight:700; font-size:.85rem;
-}
-.paso__t{ font-family:var(--f-body); font-size:.95rem; font-weight:700; }
-.paso__d{ font-size:.85rem; color:var(--tinta-60); margin-top:2px; }
+/* --------------------------------------------------------- 6. VISTAS */
+.vista{ background:var(--blanco); border-bottom:1px solid var(--linea); }
+.vista__cuerpo{ padding-block:16px 32px; }
+.vista__t{ font-size:1.45rem; }
+.vista__d{ font-size:.88rem; color:var(--tinta-60); margin-top:6px; }
 
-/* --------------------------------------------------------- 7. MENÚ */
-.menu{ background:var(--blanco); border-block:1px solid var(--linea); }
-.semana-wrap{ text-align:center; }
-.semana{
-  display:inline-block; padding:6px 16px; margin:0 auto 10px;
-  border-radius:var(--r-full);
-  background:var(--crema-alt); font-size:.8rem; font-weight:600;
-  letter-spacing:.04em; color:var(--tinta-60);
+/* Las 4 categorías, fijas debajo del logo */
+.tabs-wrap{
+  position:sticky; top:var(--h-fijo); z-index:30;
+  background:rgba(255,255,255,.96);
+  backdrop-filter:saturate(180%) blur(10px);
+  border-bottom:1px solid var(--linea);
 }
-.menu__nota{ font-size:.78rem; color:var(--tinta-60); text-align:center; margin-bottom:18px; }
-
-/* Tabs de categoría — grilla 2x2 en celular: las 4 opciones siempre visibles,
-   sin scroll horizontal. Pasa a una sola fila cuando hay lugar. */
 .tabs{
-  display:grid; grid-template-columns:repeat(2,1fr);
-  gap:8px; padding:4px 0 14px;
+  display:grid; grid-template-columns:repeat(4,1fr); gap:5px;
+  height:var(--h-tabs); align-items:center;
 }
 .tab{
   display:flex; align-items:center; justify-content:center;
-  min-height:44px; padding:9px 10px; border-radius:var(--r-full);
+  min-height:44px; padding:6px 4px; border-radius:var(--r-full);
   border:1.5px solid var(--linea); background:var(--blanco);
-  font-size:.85rem; font-weight:600; color:var(--tinta-60);
-  white-space:nowrap; transition:all .2s ease;
+  font-size:.7rem; font-weight:600; color:var(--tinta-60);
+  letter-spacing:-.01em; white-space:nowrap; transition:all .2s ease;
 }
 .tab[aria-selected="true"]{
   background:var(--c-tab); border-color:var(--c-tab); color:var(--blanco);
   box-shadow:var(--sombra-sm);
 }
-.tab__punto{
-  display:inline-block; flex:0 0 8px; width:8px; height:8px; border-radius:50%;
-  background:var(--c-tab); margin-right:7px;
-}
-.tab[aria-selected="true"] .tab__punto{ background:var(--blanco); }
+/* El puntito de color sólo cabe cuando hay lugar: en celular la pastilla
+   entera ya se pinta del color de la categoría. */
+.tab__punto{ display:none; }
 
-/* Con más ancho entran las cuatro en una sola fila */
-@media (min-width:520px){
-  .tabs{ grid-template-columns:repeat(4,1fr); }
-  .tab{ font-size:.87rem; padding:10px 12px; }
+@media (min-width:480px){
+  .tab{ font-size:.82rem; padding:8px 10px; }
+  .tab__punto{
+    display:inline-block; flex:0 0 8px; width:8px; height:8px; border-radius:50%;
+    background:var(--c-tab); margin-right:7px;
+  }
+  .tab[aria-selected="true"] .tab__punto{ background:var(--blanco); }
 }
 
-/* Pantallas muy angostas (iPhone SE y similares) */
 @media (max-width:360px){
-  .contenedor{ padding-inline:16px; }
-  .tab{ font-size:.79rem; padding:9px 6px; }
-  .tab__punto{ margin-right:5px; }
+  .contenedor{ padding-inline:14px; }
+  .tab{ font-size:.66rem; padding:6px 2px; }
+  .modo{ font-size:.68rem; }
+  .marca__tag{ display:none; }
 }
 
 .tab-desc{
-  font-size:.85rem; color:var(--tinta-60); text-align:center;
-  padding:0 4px 20px; font-style:italic;
+  font-size:.82rem; color:var(--tinta-60); text-align:center;
+  padding:2px 4px 14px; font-style:italic;
 }
+.menu__nota{ font-size:.76rem; color:var(--tinta-60); text-align:center; margin-top:16px; }
 
-/* Tarjeta de día */
-.dias{ display:grid; gap:14px; }
+/* ----------------------------------------------------- 7. DÍA / PLATO
+   Tarjeta compacta: día, plato, etiquetas y los dos tamaños en una sola
+   línea. Cuanto más corta la tarjeta, más días entran sin scrollear. */
+.dias{ display:grid; gap:12px; }
 .dia{
   border:1px solid var(--linea); border-radius:var(--r-lg);
   background:var(--blanco); overflow:hidden;
@@ -286,69 +254,146 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
 .dia:hover{ box-shadow:var(--sombra-md); }
 .dia__cab{
   display:flex; align-items:baseline; justify-content:space-between;
-  gap:10px; padding:14px 18px 0;
+  gap:10px; padding:11px 16px 0;
 }
 .dia__nombre{
-  font-family:var(--f-script); font-size:1.6rem; line-height:1;
+  font-family:var(--f-script); font-size:1.5rem; line-height:1;
   color:var(--c-activo);
 }
-.dia__n{ font-size:.68rem; letter-spacing:.12em; text-transform:uppercase; color:var(--tinta-60); font-weight:600; }
-.dia__cuerpo{ padding:10px 18px 18px; }
-.dia__plato{ font-family:var(--f-display); font-size:1.12rem; line-height:1.28; }
-.dia__desc{ font-size:.86rem; color:var(--tinta-60); margin-top:5px; }
+.dia__n{
+  font-size:.66rem; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--tinta-60); font-weight:600; white-space:nowrap;
+}
+.dia__cuerpo{ padding:6px 16px 14px; }
+.dia__plato{ font-family:var(--f-display); font-size:1.05rem; line-height:1.3; }
+.dia__desc{ font-size:.82rem; color:var(--tinta-60); margin-top:3px; }
 
-.etiquetas{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+.etiquetas{ display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
 .etiqueta{
-  font-size:.68rem; font-weight:600; letter-spacing:.03em;
-  padding:3px 10px; border-radius:var(--r-full);
+  font-size:.66rem; font-weight:600; letter-spacing:.03em;
+  padding:2px 9px; border-radius:var(--r-full);
   background:var(--c-activo-suave); color:var(--c-activo);
 }
 
-.dia--vacio{ opacity:.6; border-left-color:var(--linea); }
-.dia__vacio{ font-size:.87rem; color:var(--tinta-60); font-style:italic; padding:2px 0 4px; }
+.dia__vacio{ font-size:.85rem; color:var(--tinta-60); font-style:italic; padding:2px 0 4px; }
 
-/* Selector de tamaño / cantidad */
-.tamanos{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
+/* Día que no se puede pedir: feriado, o un día de esta semana que ya
+   pasó. Se muestra igual que los demás para que la semana se lea
+   completa, pero apagado y sin botones. */
+.dia--cerrado{ opacity:.62; }
+.dia--cerrado .dia__plato{ color:var(--tinta-60); }
+
+/* ------------------------------------------- 8. AGREGAR AL PEDIDO
+   Los mismos controles en todos lados: menú del día, promos, plan
+   mensual y productos. Sin unidades se ve el precio; con unidades, − 1 +. */
+.tamanos{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+/* Cuando hay una sola opción (el plan mensual sin XL publicado, un
+   producto suelto) ocupa la fila entera en vez de dejar un hueco. */
+.tamanos--sola{ grid-template-columns:1fr; }
 .tamano{
-  display:flex; flex-direction:column; align-items:center; gap:2px;
-  padding:11px 8px; border-radius:var(--r-md);
+  display:flex; align-items:center; justify-content:center;
+  flex-wrap:wrap; gap:8px; row-gap:1px;
+  padding:8px 10px; border-radius:var(--r-md); min-height:46px;
   border:1.5px solid var(--linea); background:var(--crema);
-  transition:all .18s ease; min-height:64px; justify-content:center;
+  transition:all .18s ease;
 }
 .tamano:hover{ border-color:var(--c-activo); }
-.tamano__t{ font-size:.85rem; font-weight:700; }
-.tamano__g{ font-size:.7rem; color:var(--tinta-60); }
-.tamano__p{ font-size:.82rem; font-weight:600; color:var(--c-activo); margin-top:3px; }
+.tamano__g{ font-size:.8rem; font-weight:700; }
+.tamano__p{ font-size:.8rem; font-weight:600; color:var(--c-activo); }
+/* El precio en efectivo (promos y plan mensual) va en su propia línea */
+.tamano__ef{
+  flex-basis:100%; text-align:center;
+  font-size:.66rem; font-weight:600; color:var(--c-vegetariano);
+}
 
-/* Stepper (aparece cuando ya hay unidades) */
 .stepper{
   display:flex; align-items:center; justify-content:space-between;
-  padding:6px; border-radius:var(--r-md);
+  padding:5px; border-radius:var(--r-md); min-height:46px;
   border:1.5px solid var(--c-activo); background:var(--c-activo-suave);
-  min-height:64px;
 }
 .stepper__b{
-  width:36px; height:36px; border-radius:50%; display:grid; place-items:center;
-  background:var(--blanco); color:var(--c-activo); font-size:1.15rem;
+  width:34px; height:34px; flex:0 0 34px;
+  border-radius:50%; display:grid; place-items:center;
+  background:var(--blanco); color:var(--c-activo); font-size:1.1rem;
   font-weight:700; line-height:1; box-shadow:var(--sombra-sm);
   transition:transform .12s ease;
 }
 .stepper__b:active{ transform:scale(.9); }
-.stepper__c{ text-align:center; line-height:1.15; }
-.stepper__n{ font-size:1.05rem; font-weight:700; color:var(--c-activo); }
-.stepper__l{ font-size:.66rem; color:var(--tinta-60); font-weight:600; }
+.stepper__c{ text-align:center; line-height:1.1; min-width:0; padding-inline:2px; }
+.stepper__n{ display:block; font-size:1rem; font-weight:700; color:var(--c-activo); }
+.stepper__l{
+  display:block; font-size:.62rem; color:var(--tinta-60); font-weight:600;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
 
-/* --------------------------------------------------- 8. RETIRO/ENVÍO */
+/* La opción fija (Ensalada César): una línea más dentro del día, con su
+   propio color, no un bloque entero repetido cinco veces. */
+.fijo{
+  margin-top:12px; padding-top:10px;
+  border-top:1px dashed var(--linea);
+}
+.fijo__t{ font-size:.92rem; font-weight:700; }
+.fijo__cab{
+  font-family:var(--f-script); font-weight:500; font-size:1.05rem;
+  color:var(--c-fijo, var(--c-ensalada)); margin-left:7px;
+}
+.fijo .tamanos{ margin-top:8px; }
+.fijo .tamano:hover{ border-color:var(--c-fijo); }
+.fijo .tamano__p{ color:var(--c-fijo); }
+.fijo .stepper{ border-color:var(--c-fijo); background:var(--blanco); }
+.fijo .stepper__b,.fijo .stepper__n{ color:var(--c-fijo); }
+.fijo .stepper__b{ background:var(--crema); }
+
+/* ------------------------------------------ 9. PROMOS Y PLAN MENSUAL */
+.ofertas{ display:grid; gap:12px; margin-top:18px; }
+.oferta{
+  background:var(--blanco); border:1px solid var(--linea);
+  border-left:4px solid var(--c-clasico);
+  border-radius:var(--r-lg); padding:15px 16px 16px;
+}
+.oferta__cab{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.oferta__t{ font-size:1.15rem; }
+.oferta__badge{
+  padding:3px 11px; border-radius:var(--r-full);
+  background:var(--c-vegetariano-suave); color:var(--c-vegetariano);
+  font-size:.68rem; font-weight:700; white-space:nowrap;
+}
+.oferta__d{ font-size:.84rem; color:var(--tinta-60); margin-top:5px; }
+
+.pref{ display:block; margin-top:12px; }
+.pref__l{ display:block; font-size:.74rem; font-weight:700; margin-bottom:5px; }
+.pref__s{ min-height:44px; padding-block:10px; }
+
+/* ----------------------------------------------- 10. POSTRES Y DEMÁS */
+.grupo{ margin-top:22px; }
+.grupo__t{ font-size:1.1rem; }
+.grupo__d{ font-size:.82rem; color:var(--tinta-60); margin-top:2px; }
+.productos{ display:grid; gap:9px; margin-top:10px; }
+.producto{
+  display:flex; align-items:center; gap:12px;
+  background:var(--blanco); border:1px solid var(--linea);
+  border-left:4px solid var(--c-ensalada);
+  border-radius:var(--r-md); padding:11px 13px;
+}
+.producto__info{ flex:1; min-width:0; }
+.producto__t{ font-size:.92rem; font-weight:700; }
+.producto__d{ font-size:.78rem; color:var(--tinta-60); margin-top:2px; }
+.producto__ctrl{ flex:0 0 138px; }
+.producto__ctrl .tamanos{ grid-template-columns:1fr; margin-top:0; }
+.producto .tamano__p{ color:var(--c-ensalada); }
+.producto .stepper{ border-color:var(--c-ensalada); background:var(--blanco); }
+.producto .stepper__b,.producto .stepper__n{ color:var(--c-ensalada); }
+.producto .stepper__b{ background:var(--crema); }
+
+/* -------------------------------------------------- 11. RETIRO/ENVÍO */
 .logistica{ background:var(--c-vegetariano-suave); }
-.logistica .seccion__kicker{ color:var(--c-vegetariano); }
+.logistica__sub{ font-size:1.1rem; margin-top:26px; }
 
 .envio-card{
-  background:var(--blanco); border-radius:var(--r-lg); padding:18px;
-  border:1px solid rgba(62,122,94,.18); margin-top:20px;
-  display:flex; gap:14px; align-items:flex-start;
+  background:var(--blanco); border-radius:var(--r-lg); padding:16px 18px;
+  border:1px solid rgba(62,122,94,.18); margin-top:14px;
 }
-.envio-card__ico{ font-size:1.5rem; line-height:1; }
-.envio-card__t{ font-family:var(--f-body); font-size:.95rem; font-weight:700; }
+.envio-card__t{ font-size:.95rem; font-weight:700; }
 .envio-card__d{ font-size:.85rem; color:var(--tinta-60); margin-top:3px; }
 .envio-card__promo{
   display:inline-block; margin-top:8px; padding:4px 12px;
@@ -356,43 +401,42 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
   border-radius:var(--r-full); font-size:.74rem; font-weight:700;
 }
 
-.puntos{ display:grid; gap:12px; margin-top:14px; }
+.puntos{ display:grid; gap:10px; margin-top:12px; }
 .punto{
-  background:var(--blanco); border-radius:var(--r-md); padding:16px 18px;
+  background:var(--blanco); border-radius:var(--r-md); padding:14px 16px;
   border:1px solid rgba(62,122,94,.18); border-left:4px solid var(--c-vegetariano);
 }
-.punto__n{ font-family:var(--f-body); font-size:.95rem; font-weight:700; color:var(--c-vegetariano); }
+.punto__n{ font-size:.95rem; font-weight:700; color:var(--c-vegetariano); }
 .punto__d{ font-size:.87rem; margin-top:3px; }
 .punto__h{ font-size:.78rem; color:var(--tinta-60); margin-top:8px; display:flex; flex-wrap:wrap; gap:6px; }
 .punto__h span{ background:var(--c-vegetariano-suave); padding:2px 9px; border-radius:var(--r-full); font-weight:600; }
 
-/* -------------------------------------------------- 9. BARRA CARRITO */
+/* ------------------------------------------------- 12. BARRA DEL PEDIDO
+   Fija abajo SIEMPRE, con pedido o sin él: desde que el botón "Mi pedido"
+   salió de la barra de arriba, ésta es la única puerta al resumen. */
 .barra{
   position:fixed; left:0; right:0; bottom:0; z-index:45;
   padding:10px 20px calc(10px + env(safe-area-inset-bottom));
-  background:rgba(255,255,255,.96);
+  background:rgba(255,255,255,.97);
   backdrop-filter:saturate(180%) blur(12px);
   border-top:1px solid var(--linea);
-  transform:translateY(120%); transition:transform .28s cubic-bezier(.2,.8,.3,1);
 }
-.barra--visible{ transform:translateY(0); }
 .barra__in{ max-width:var(--ancho); margin-inline:auto; display:flex; align-items:center; gap:12px; }
 .barra__info{ flex:1; min-width:0; }
-.barra__n{ font-size:.75rem; color:var(--tinta-60); font-weight:600; }
+.barra__n{ font-size:.74rem; color:var(--tinta-60); font-weight:600; }
 .barra__t{ font-size:1.1rem; font-weight:700; font-family:var(--f-display); }
-.barra__b{ flex:0 0 auto; padding-inline:22px; }
+.barra__b{ flex:0 0 auto; padding-inline:22px; min-height:46px; }
 
-/* Progreso envío gratis */
-.progreso{ max-width:var(--ancho); margin:0 auto 8px; }
-.progreso__txt{ font-size:.74rem; font-weight:600; color:var(--c-vegetariano); margin-bottom:5px; }
-.progreso__barra{ height:5px; border-radius:var(--r-full); background:var(--linea); overflow:hidden; }
-.progreso__fill{
-  height:100%; width:0; border-radius:var(--r-full);
-  background:linear-gradient(90deg,var(--c-vegetariano),var(--c-vegetariano-claro));
-  transition:width .35s ease;
+/* Sin nada elegido: el total no tiene sentido, así que se explica */
+.barra--vacia .barra__t{
+  font-family:var(--f-body); font-size:.88rem; font-weight:600; color:var(--tinta-60);
 }
+.barra--vacia .barra__b{ background:var(--crema-alt); color:var(--tinta-60); box-shadow:none; }
 
-/* ------------------------------------------------------- 10. PANELES */
+/* Espacio para que la barra fija no tape el final de la página */
+.espaciador{ height:var(--barra-h); }
+
+/* ------------------------------------------------------- 13. PANELES */
 .velo{
   position:fixed; inset:0; z-index:50; background:rgba(44,44,44,.5);
   opacity:0; visibility:hidden; transition:opacity .25s ease, visibility .25s;
@@ -421,7 +465,7 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
 .panel__t{ font-size:1.2rem; }
 .panel__x{
   width:36px; height:36px; border-radius:50%; display:grid; place-items:center;
-  background:var(--crema-alt); font-size:1.1rem; line-height:1; color:var(--tinta-60);
+  background:var(--crema-alt); font-size:1.2rem; line-height:1; color:var(--tinta-60);
 }
 .panel__cuerpo{ overflow-y:auto; -webkit-overflow-scrolling:touch; padding:18px 20px; flex:1; }
 .panel__pie{
@@ -432,36 +476,42 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
 /* Ítems del carrito */
 .items{ display:grid; gap:10px; }
 .item{
-  display:flex; gap:12px; align-items:center;
+  display:grid; grid-template-columns:1fr auto; gap:8px 10px; align-items:center;
   background:var(--blanco); border:1px solid var(--linea);
   border-radius:var(--r-md); padding:12px 14px;
   border-left:4px solid var(--c-it);
 }
-.item__info{ flex:1; min-width:0; }
-.item__d{ font-family:var(--f-script); font-size:1.15rem; line-height:1; color:var(--c-it); }
+.item__info{ grid-column:1 / -1; min-width:0; }
+.item__d{ font-family:var(--f-script); font-size:1.15rem; line-height:1.1; color:var(--c-it); }
+/* Promos, plan mensual y productos no tienen día: el nombre es el título,
+   y la letra manuscrita es del día de la semana, no de ellos. */
+.item--otro .item__d{
+  font-family:var(--f-body); font-size:.92rem; font-weight:700; line-height:1.3;
+}
 .item__p{ font-size:.86rem; font-weight:600; margin-top:2px; }
+.item--otro .item__p{ font-weight:500; color:var(--tinta-60); }
 .item__m{ font-size:.74rem; color:var(--tinta-60); margin-top:2px; }
-.item__ctrl{ display:flex; align-items:center; gap:8px; flex:0 0 auto; }
+.item__ctrl{ grid-column:1; justify-self:start; display:flex; align-items:center; gap:10px; }
 .item__b{
-  width:30px; height:30px; border-radius:50%; display:grid; place-items:center;
+  width:34px; height:34px; border-radius:50%; display:grid; place-items:center;
   background:var(--crema-alt); font-weight:700; line-height:1;
 }
 .item__n{ min-width:18px; text-align:center; font-weight:700; font-size:.95rem; }
-.item__sub{ font-size:.8rem; font-weight:700; min-width:70px; text-align:right; }
+.item__sub{ grid-column:2; font-size:.9rem; font-weight:700; text-align:right; white-space:nowrap; }
 
 .vacio{ text-align:center; padding:44px 12px; color:var(--tinta-60); }
-.vacio__ico{ font-size:2.4rem; }
-.vacio__t{ font-family:var(--f-display); font-size:1.15rem; color:var(--tinta); margin-top:10px; }
-.vacio__d{ font-size:.87rem; margin-top:4px; }
+.vacio__t{ font-family:var(--f-display); font-size:1.15rem; color:var(--tinta); }
+.vacio__d{ font-size:.87rem; margin-top:6px; }
 
 /* Totales */
 .totales{ margin-top:18px; padding-top:14px; border-top:1px dashed var(--linea); display:grid; gap:7px; }
 .total-fila{ display:flex; justify-content:space-between; gap:12px; font-size:.88rem; color:var(--tinta-60); }
 .total-fila--big{ font-size:1.15rem; font-weight:700; color:var(--tinta); font-family:var(--f-display); padding-top:7px; border-top:1px solid var(--linea); }
 .total-fila__gratis{ color:var(--c-vegetariano); font-weight:700; }
+.total-fila__ef{ color:var(--c-vegetariano); font-weight:700; }
 .tachado{ text-decoration:line-through; opacity:.55; margin-right:6px; font-weight:400; }
 
-/* --------------------------------------------------- 11. FORMULARIO */
+/* --------------------------------------------------- 14. FORMULARIO */
 .campo{ margin-bottom:16px; }
 .campo__l{ display:block; font-size:.82rem; font-weight:700; margin-bottom:6px; }
 .campo__l span{ color:var(--tinta-60); font-weight:500; }
@@ -520,20 +570,6 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
 .planb{ margin-top:14px; padding-top:14px; border-top:1px dashed var(--linea); }
 .planb__t{ font-size:.85rem; font-weight:700; margin-bottom:6px; }
 .planb__d{ font-size:.78rem; color:var(--tinta-60); margin-bottom:10px; }
-/* Opción fija dentro de cada tarjeta de día (Ensalada César) */
-.fijo{
-  margin-top:16px; padding-top:16px;
-  border-top:1px dashed var(--linea);
-}
-.fijo__cab{
-  font-family:var(--f-script); font-size:1.02rem;
-  color:var(--c-fijo, var(--c-ensalada));
-  line-height:1; margin-bottom:6px;
-}
-.fijo__t{ font-weight:600; font-size:.98rem; }
-.fijo__d{ font-size:.85rem; color:var(--tinta-60); margin-top:2px; }
-.fijo .tamanos{ margin-top:10px; }
-
 .planb__wa{ margin-block:12px; text-decoration:none; }
 .planb__pre{
   font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.72rem;
@@ -543,57 +579,11 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
   margin-bottom:10px; color:var(--tinta-60);
 }
 
-/* ------------------------------------------------------- 12. TOAST */
-.toast{
-  position:fixed; left:50%; bottom:calc(var(--barra-h) + 16px); z-index:80;
-  transform:translate(-50%,20px); opacity:0; pointer-events:none;
-  background:var(--tinta); color:var(--blanco);
-  padding:11px 20px; border-radius:var(--r-full);
-  font-size:.83rem; font-weight:600; box-shadow:var(--sombra-md);
-  transition:opacity .25s ease, transform .25s ease;
-  max-width:calc(100vw - 40px); text-align:center;
-}
-.toast--on{ opacity:1; transform:translate(-50%,0); }
-
-/* ------------------------------------------------------- 13. FOOTER */
-.pie{ background:var(--tinta); color:#EDE7DE; padding-block:38px; text-align:center; }
-.pie__logo{ height:78px; width:auto; margin:0 auto; }
-.pie__l{ font-family:var(--f-script); font-size:1.25rem; color:#EDE7DE; margin-top:2px; }
-.pie__d{ font-size:.8rem; opacity:.65; margin-top:14px; line-height:1.8; }
-.pie__a{ color:var(--c-clasico); text-decoration:none; font-weight:600; }
-.pie__a:hover{ text-decoration:underline; }
-
-/* Espacio para que la barra fija no tape el final */
-.espaciador{ height:var(--barra-h); }
-
-/* ---------------------------------------------------- 14. DESKTOP+ */
-@media (min-width:640px){
-  .seccion{ padding-block:64px; }
-  .hero__titulo{ font-size:2.6rem; }
-  .hero__titulo em{ font-size:3.4rem; }
-  .hero__cta{ flex-direction:row; justify-content:center; }
-  .hero__cta .btn{ min-width:210px; }
-  .seccion__titulo{ font-size:2rem; }
-  .dias{ grid-template-columns:1fr; }
-}
-
-@media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
-  html{ scroll-behavior:auto; }
-}
-
-/* Día que no se puede pedir: feriado, o un día de esta semana que ya
-   pasó. Se muestra igual que los demás para que la semana se lea
-   completa, pero apagado y sin botones. */
-.dia--cerrado{ opacity:.62; }
-.dia--cerrado .dia__plato{ color:var(--tinta-60); }
-
 /* Segundo camino del checkout: el pedido queda confirmado sin pasar por
    WhatsApp. AUMÉ se comunica después para coordinar entrega y pago. */
 .pie-nota{ margin-top:8px; text-align:center; font-size:.8rem; color:var(--tinta-60); }
 
 .listo{ text-align:center; padding:12px 0 4px; }
-.listo__ico{ font-size:2.6rem; line-height:1; margin-bottom:10px; }
 .listo__t{ font-size:1.5rem; margin-bottom:6px; }
 .listo__d{ color:var(--tinta-60); font-size:.95rem; margin-bottom:18px; }
 .listo__caja{
@@ -605,4 +595,40 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
 .listo__aviso{
   background:var(--c-vegetariano-suave); border-radius:var(--r-md);
   padding:14px 16px; margin-bottom:18px; font-size:.9rem; line-height:1.5; text-align:left;
+}
+
+/* ------------------------------------------------------- 15. TOAST */
+.toast{
+  position:fixed; left:50%; bottom:calc(var(--barra-h) + 16px); z-index:80;
+  transform:translate(-50%,20px); opacity:0; pointer-events:none;
+  background:var(--tinta); color:var(--blanco);
+  padding:11px 20px; border-radius:var(--r-full);
+  font-size:.83rem; font-weight:600; box-shadow:var(--sombra-md);
+  transition:opacity .25s ease, transform .25s ease;
+  max-width:calc(100vw - 40px); text-align:center;
+}
+.toast--on{ opacity:1; transform:translate(-50%,0); }
+
+/* ------------------------------------------------------ 16. FOOTER */
+.pie{ background:var(--tinta); color:#EDE7DE; padding-block:32px; text-align:center; }
+.pie__logo{ height:66px; width:auto; margin:0 auto; }
+.pie__l{ font-family:var(--f-script); font-size:1.2rem; color:#EDE7DE; margin-top:2px; }
+.pie__d{ font-size:.8rem; opacity:.65; margin-top:12px; line-height:1.8; }
+.pie__a{ color:var(--c-clasico); text-decoration:none; font-weight:600; }
+.pie__a:hover{ text-decoration:underline; }
+
+/* ---------------------------------------------------- 17. DESKTOP+ */
+@media (min-width:640px){
+  :root{ --h-marca:60px; --h-modos:48px; --h-tabs:56px; }
+  .marca__img{ height:44px; }
+  .topbar__semana{ font-size:.75rem; }
+  .modo{ font-size:.82rem; height:36px; }
+  .seccion{ padding-block:44px; }
+  .seccion__titulo,.vista__t{ font-size:1.7rem; }
+  .dias{ gap:14px; }
+}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
+  html{ scroll-behavior:auto; }
 }

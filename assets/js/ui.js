@@ -1,6 +1,11 @@
 /* =====================================================================
    AUMÉ · ui.js
-   Todo lo que dibuja en pantalla: menú, carrito, paneles y avisos.
+   Todo lo que dibuja en pantalla: menú, promos, plan mensual, productos,
+   carrito, paneles y avisos.
+
+   La pantalla de pedidos tiene cuatro vistas ("modos") que se cambian
+   desde la barra fija de arriba: por día, promo semanal, plan mensual y
+   para sumar. Sólo se dibuja la que está activa.
    ===================================================================== */
 (function (global) {
   'use strict';
@@ -74,19 +79,30 @@
   /* ------------------------------------------------- Bloques estáticos */
 
   function pintarEstaticos() {
-    el('heroOrigen').textContent = CFG.marca.origen;
-
     el('semanaLabel').textContent = MENU.semana || '';
+
     var nota = el('semanaNota');
-    if (MENU.nota) { nota.textContent = MENU.nota; } else { nota.hidden = true; }
+    if (MENU.nota) { nota.textContent = MENU.nota; nota.hidden = false; }
+    else { nota.hidden = true; }
 
     el('envioDesc').textContent =
       CFG.envio.zonas.map(function (z) {
         return z.nombre + ': ' + Store.plata(z.costo);
       }).join(' · ') + '. ' + CFG.envio.aclaracion;
 
-    el('envioPromo').textContent =
-      '🎉 Los packs semanales llevan el envío bonificado';
+    el('envioPromo').textContent = 'Las promos semanales llevan el envío bonificado';
+
+    el('promoDesc').textContent =
+      'Elegí cuántos días de la semana querés y te armamos las viandas. ' +
+      'Llevan el envío bonificado' +
+      (CFG.packs.descuentoEfectivo
+        ? ' y ' + CFG.packs.descuentoEfectivo + ' de descuento pagando en efectivo.'
+        : '.');
+
+    var pm = CFG.planMensual || {};
+    el('mensualDesc').textContent =
+      (pm.almuerzos ? pm.almuerzos + ' almuerzos para todo el mes' : 'Todo el mes resuelto') +
+      (pm.descuentoEfectivo ? ', con ' + pm.descuentoEfectivo + ' de descuento pagando en efectivo.' : '.');
 
     el('puntos').innerHTML = CFG.puntosRetiro.map(function (p) {
       return '' +
@@ -114,6 +130,29 @@
     document.body.style.setProperty('--c-activo-suave', cat.colorSuave);
   }
 
+  /* ------------------------------------------------- Modos de pedido */
+
+  var MODOS = [
+    { id: 'dia',     nombre: 'Por día',    vista: 'vistaDia' },
+    { id: 'promo',   nombre: 'Promos',     vista: 'vistaPromo' },
+    { id: 'mensual', nombre: 'Mensual',    vista: 'vistaMensual' },
+    { id: 'extras',  nombre: 'Para sumar', vista: 'vistaExtras' }
+  ];
+
+  function pintarModos() {
+    var activo = Store.estado.modo;
+
+    el('modos').innerHTML = MODOS.map(function (m) {
+      return '' +
+        '<button type="button" class="modo" data-modo="' + esc(m.id) + '"' +
+        ' aria-pressed="' + (m.id === activo) + '">' + esc(m.nombre) + '</button>';
+    }).join('');
+
+    MODOS.forEach(function (m) {
+      el(m.vista).hidden = m.id !== activo;
+    });
+  }
+
   /* ---------------------------------------------------------- Tabs */
 
   function pintarTabs() {
@@ -134,37 +173,55 @@
     el('dias').setAttribute('aria-labelledby', 'tab-' + activa);
   }
 
+  /* ------------------------------------------------------- Controles
+     Un mismo par de controles para todo lo que se agrega al pedido: si
+     todavía no hay unidades se ve el botón con el precio; en cuanto hay
+     una, se convierte en − 1 +. Todos llevan data-clave, que es lo que
+     el store necesita para sumar o restar. */
+
+  function botonAgregar(clave, etiqueta, precioTxt, extraTxt, aria, datos) {
+    return '' +
+      '<button type="button" class="tamano" data-accion="mas" data-clave="' + esc(clave) + '"' +
+      (datos || '') + ' aria-label="' + esc(aria) + '">' +
+        '<span class="tamano__g">' + esc(etiqueta) + '</span>' +
+        '<span class="tamano__p">' + esc(precioTxt) + '</span>' +
+        (extraTxt ? '<span class="tamano__ef">' + esc(extraTxt) + '</span>' : '') +
+      '</button>';
+  }
+
+  function stepper(clave, n, etiqueta, aria, datos) {
+    return '' +
+      '<div class="stepper">' +
+        '<button type="button" class="stepper__b" data-accion="menos" data-clave="' + esc(clave) + '"' +
+        (datos || '') + ' aria-label="Quitar una unidad de ' + esc(aria) + '">&#8722;</button>' +
+        '<span class="stepper__c">' +
+          '<span class="stepper__n">' + n + '</span>' +
+          '<span class="stepper__l">' + esc(etiqueta) + '</span>' +
+        '</span>' +
+        '<button type="button" class="stepper__b" data-accion="mas" data-clave="' + esc(clave) + '"' +
+        (datos || '') + ' aria-label="Agregar una unidad de ' + esc(aria) + '">+</button>' +
+      '</div>';
+  }
+
+  function control(clave, etiqueta, precioTxt, extraTxt, aria, datos, etiquetaStepper) {
+    var n = Store.cantidadDeClave(clave);
+    if (n === 0) return botonAgregar(clave, etiqueta, precioTxt, extraTxt, 'Agregar ' + aria, datos);
+    return stepper(clave, n, etiquetaStepper || etiqueta, aria, datos);
+  }
+
   /* ------------------------------------------------------ Días / menú */
 
-  /* Botones de tamaño (o stepper si ya hay unidades) para un día+categoría */
+  /* Los botones de vianda llevan además día, menú y tamaño sueltos: son
+     los que usa app.js para devolver el foco después de repintar. */
   function controlesTamano(d, catId) {
     return CFG.tamanos.map(function (t) {
-      var n = Store.cantidadDe(d.id, catId, t.id);
-      var precio = Store.plata(Store.precio(t.id));
+      var clave = Store.claveVianda(d.id, catId, t.id);
       var datos = ' data-dia="' + esc(d.id) + '" data-cat="' + esc(catId) + '"' +
                   ' data-tam="' + esc(t.id) + '"';
-
-      if (n === 0) {
-        return '' +
-          '<button type="button" class="tamano" data-accion="mas"' + datos +
-          ' aria-label="Agregar ' + esc(d.nombre) + ' ' + esc(t.nombre) + ' ' + esc(t.gramos) + '">' +
-            '<span class="tamano__t">' + esc(t.nombre) + '</span>' +
-            '<span class="tamano__g">' + esc(t.gramos) + '</span>' +
-            '<span class="tamano__p">' + precio + '</span>' +
-          '</button>';
-      }
-
-      return '' +
-        '<div class="stepper">' +
-          '<button type="button" class="stepper__b" data-accion="menos"' + datos +
-          ' aria-label="Quitar una unidad de ' + esc(d.nombre) + ' ' + esc(t.nombre) + '">−</button>' +
-          '<span class="stepper__c">' +
-            '<span class="stepper__n">' + n + '</span><br>' +
-            '<span class="stepper__l">' + esc(t.nombre) + ' · ' + esc(t.gramos) + '</span>' +
-          '</span>' +
-          '<button type="button" class="stepper__b" data-accion="mas"' + datos +
-          ' aria-label="Agregar una unidad de ' + esc(d.nombre) + ' ' + esc(t.nombre) + '">+</button>' +
-        '</div>';
+      return control(
+        clave, t.gramos, Store.plata(Store.precio(t.id)), '',
+        d.nombre + ' ' + t.nombre + ' ' + t.gramos, datos
+      );
     }).join('');
   }
 
@@ -175,9 +232,8 @@
 
     return '' +
       '<div class="fijo" style="--c-fijo:' + esc(f.color) + '">' +
-        '<p class="fijo__cab">Además, todos los días</p>' +
-        '<p class="fijo__t">' + esc(f.nombre) + '</p>' +
-        (f.descripcion ? '<p class="fijo__d">' + esc(f.descripcion) + '</p>' : '') +
+        '<p class="fijo__t">' + esc(f.nombre) +
+          '<span class="fijo__cab">todos los días</span></p>' +
         '<div class="tamanos">' + controlesTamano(d, f.id) + '</div>' +
       '</div>';
   }
@@ -199,7 +255,7 @@
 
   /* Tarjeta de un día que no se puede pedir. Sin botones: la única forma
      de que no se sume algo que no se puede entregar es no ofrecerlo. */
-  function diaCerrado(d, cabecera, motivo, detalle) {
+  function diaCerrado(cabecera, motivo, detalle) {
     return '' +
       '<article class="dia dia--cerrado">' + cabecera +
         '<div class="dia__cuerpo">' +
@@ -230,11 +286,11 @@
 
       var estado = estadoDia(d.id);
       if (estado === 'feriado') {
-        return diaCerrado(d, cabecera, 'Feriado',
+        return diaCerrado(cabecera, 'Feriado',
           'Este día no cocinamos. Volvemos al día siguiente.');
       }
       if (estado === 'pasado') {
-        return diaCerrado(d, cabecera, 'Ya pasó',
+        return diaCerrado(cabecera, 'Ya pasó',
           'Este día ya no se puede pedir. Elegí uno de los que vienen.');
       }
 
@@ -268,34 +324,198 @@
     }).join('');
   }
 
-  /* ------------------------------------------------- Barra inferior */
+  /* --------------------------------------------- Promos y plan mensual
+     En los packs y en el plan mensual no se elige plato por plato: se
+     elige el tamaño y qué tipo de menú preferís que te armemos. Esa
+     preferencia se guarda acá hasta que se agrega al pedido. */
 
-  function pintarBarra() {
-    var t = Store.totales();
-    var barra = el('barra');
+  var prefElegida = {};
 
-    el('badgeCarrito').textContent = t.cantidad;
+  function prefDe(id) {
+    return prefElegida[id] || Store.prefPorDefecto();
+  }
 
-    if (t.cantidad === 0) {
-      barra.classList.remove('barra--visible');
-      el('espaciador').hidden = true;
-      setTimeout(function () {
-        if (Store.totales().cantidad === 0) barra.hidden = true;
-      }, 300);
+  function setPref(id, valor) {
+    if (Store.buscarPreferencia(valor)) prefElegida[id] = valor;
+  }
+
+  function selectorPref(id) {
+    var actual = prefDe(id);
+    return '' +
+      '<label class="pref">' +
+        '<span class="pref__l">¿Qué menú preferís?</span>' +
+        '<select class="campo__s pref__s" data-pref="' + esc(id) + '">' +
+          Store.preferencias().map(function (p) {
+            return '<option value="' + esc(p.id) + '"' +
+              (p.id === actual ? ' selected' : '') + '>' + esc(p.nombre) + '</option>';
+          }).join('') +
+        '</select>' +
+      '</label>';
+  }
+
+  function lineaEfectivo(pr) {
+    if (!pr || pr.efectivo >= pr.lista) return '';
+    return 'Efectivo ' + Store.plata(pr.efectivo);
+  }
+
+  function pintarPacks() {
+    var pref = null;
+
+    el('packs').innerHTML = (CFG.packs.opciones || []).map(function (pk) {
+      pref = prefDe(pk.id);
+
+      var botones = CFG.tamanos.filter(function (t) {
+        return !!Store.precioPack(pk.id, t.id);
+      }).map(function (t) {
+        var pr = Store.precioPack(pk.id, t.id);
+        return control(
+          Store.clavePack(pk.id, t.id, pref),
+          t.gramos, Store.plata(pr.lista), lineaEfectivo(pr),
+          pk.nombre + ' ' + t.gramos
+        );
+      });
+
+      return '' +
+        '<article class="oferta">' +
+          '<div class="oferta__cab">' +
+            '<h3 class="oferta__t">' + esc(pk.nombre) + '</h3>' +
+            (CFG.packs.envioBonificado
+              ? '<span class="oferta__badge">Envío bonificado</span>' : '') +
+          '</div>' +
+          '<p class="oferta__d">' + pk.dias + ' viandas para la semana, una por día.</p>' +
+          selectorPref(pk.id) +
+          '<div class="tamanos">' + botones + '</div>' +
+        '</article>';
+    }).join('');
+  }
+
+  /* Un solo control no necesita media fila vacía al lado */
+  function grillaTamanos(controles) {
+    return '<div class="tamanos' + (controles.length === 1 ? ' tamanos--sola' : '') +
+           '">' + controles.join('') + '</div>';
+  }
+
+  function pintarPlan() {
+    var pm = CFG.planMensual;
+    var cont = el('planMensual');
+
+    if (!pm) { cont.innerHTML = ''; return; }
+
+    var pref = prefDe('plan');
+    var botones = CFG.tamanos.filter(function (t) {
+      return !!Store.precioPlan(t.id);
+    }).map(function (t) {
+      var pr = Store.precioPlan(t.id);
+      return control(
+        Store.clavePlan(t.id, pref),
+        t.gramos, Store.plata(pr.lista), lineaEfectivo(pr),
+        'Plan mensual ' + t.gramos
+      );
+    });
+
+    /* Si todavía no hay ningún tamaño con precio publicado, lo decimos en
+       vez de mostrar una tarjeta sin forma de pedir. */
+    if (!botones.length) {
+      cont.innerHTML =
+        '<article class="oferta"><p class="oferta__d">' +
+        'El plan de este mes todavía no está publicado. Escribinos por WhatsApp y te lo pasamos.' +
+        '</p></article>';
       return;
     }
 
-    barra.hidden = false;
-    el('espaciador').hidden = false;
-    void barra.offsetWidth;
-    barra.classList.add('barra--visible');
+    cont.innerHTML = '' +
+      '<article class="oferta">' +
+        '<div class="oferta__cab">' +
+          '<h3 class="oferta__t">Plan ' + esc(pm.mes || 'mensual') + '</h3>' +
+          (pm.envioBonificado ? '<span class="oferta__badge">Envío bonificado</span>' : '') +
+        '</div>' +
+        '<p class="oferta__d">' +
+          (pm.almuerzos ? pm.almuerzos + ' almuerzos, de lunes a viernes todo el mes. ' : '') +
+          (pm.envioBonificado ? '' : 'El envío se cobra por entrega.') +
+        '</p>' +
+        selectorPref('plan') +
+        grillaTamanos(botones) +
+      '</article>';
+  }
 
-    el('barraN').textContent = t.cantidad + ' ' + plural(t.cantidad, 'vianda', 'viandas');
-    el('barraT').textContent = Store.plata(t.total);
+  /* ------------------------------------------------------ Para sumar */
 
-    /* Ya no hay envío bonificado por cantidad de viandas sueltas: sólo lo
-       llevan los packs semanales, que se piden aparte. */
-    el('progreso').hidden = true;
+  function grupos() {
+    var def = CFG.gruposProducto || [];
+    var usados = {};
+    var salida = [];
+
+    def.forEach(function (g) {
+      var prods = (CFG.productos || []).filter(function (p) { return p.grupo === g.id; });
+      prods.forEach(function (p) { usados[p.id] = true; });
+      if (prods.length) salida.push({ grupo: g, productos: prods });
+    });
+
+    /* Lo que no cayó en ningún grupo conocido (por ejemplo, algo cargado
+       desde el panel) igual se muestra: mejor eso que esconderlo. */
+    var sueltos = (CFG.productos || []).filter(function (p) { return !usados[p.id]; });
+    if (sueltos.length) {
+      salida.push({ grupo: { id: 'otros', nombre: 'Otros', descripcion: '' }, productos: sueltos });
+    }
+    return salida;
+  }
+
+  function pintarExtras() {
+    var bloques = grupos();
+    var cont = el('extras');
+
+    if (!bloques.length) {
+      cont.innerHTML = '<p class="vista__d">Por ahora no hay productos cargados.</p>';
+      return;
+    }
+
+    cont.innerHTML = bloques.map(function (b) {
+      return '' +
+        '<section class="grupo">' +
+          '<h3 class="grupo__t">' + esc(b.grupo.nombre) + '</h3>' +
+          (b.grupo.descripcion ? '<p class="grupo__d">' + esc(b.grupo.descripcion) + '</p>' : '') +
+          '<div class="productos">' + b.productos.map(function (p) {
+            var clave = Store.claveExtra(p.id);
+            return '' +
+              '<div class="producto">' +
+                '<div class="producto__info">' +
+                  '<p class="producto__t">' + esc(p.nombre) + '</p>' +
+                  (p.detalle ? '<p class="producto__d">' + esc(p.detalle) + '</p>' : '') +
+                '</div>' +
+                '<div class="producto__ctrl">' +
+                  control(clave, 'Agregar', Store.plata(p.precio), '', p.nombre,
+                          '', p.nombre.length > 14 ? 'unidades' : p.nombre) +
+                '</div>' +
+              '</div>';
+          }).join('') + '</div>' +
+        '</section>';
+    }).join('');
+  }
+
+  /* ------------------------------------------------- Barra inferior */
+
+  /* Texto corto de lo que hay en el pedido: "3 viandas · 1 promo" */
+  function resumenCorto(t) {
+    var p = t.porTipo;
+    var partes = [];
+    if (p.vianda) partes.push(p.vianda + ' ' + plural(p.vianda, 'vianda', 'viandas'));
+    if (p.pack)   partes.push(p.pack + ' ' + plural(p.pack, 'promo', 'promos'));
+    if (p.plan)   partes.push(p.plan + ' ' + plural(p.plan, 'plan mensual', 'planes mensuales'));
+    if (p.extra)  partes.push(p.extra + ' ' + plural(p.extra, 'producto', 'productos'));
+    return partes.join(' · ');
+  }
+
+  /* La barra está siempre: es el único acceso al pedido desde que el
+     botón salió de la barra de arriba. Con el pedido vacío lo dice y el
+     botón lleva igual al panel, que explica cómo empezar. */
+  function pintarBarra() {
+    var t = Store.totales();
+    var barra = el('barra');
+    var vacio = t.cantidad === 0;
+
+    barra.classList.toggle('barra--vacia', vacio);
+    el('barraN').textContent = vacio ? 'Tu pedido está vacío' : resumenCorto(t);
+    el('barraT').textContent = vacio ? 'Elegí lo que quieras sumar' : Store.plata(t.total);
   }
 
   /* ------------------------------------------------- Panel carrito */
@@ -305,17 +525,25 @@
 
     if (t.esRetiro) {
       envio = '<span class="total-fila__gratis">Retiro en punto</span>';
+    } else if (t.envioBonificado) {
+      envio = '<span class="total-fila__gratis">Bonificado</span>';
     } else {
       if (t.zona) etiquetaEnvio = 'Envío · ' + t.zona.nombre;
       envio = '<span>' + Store.plata(t.envio) + '</span>';
     }
 
+    var efectivo = t.ahorroEfectivo > 0
+      ? '<div class="total-fila total-fila__ef"><span>Pagando en efectivo</span><span>' +
+        Store.plata(t.totalEfectivo) + '</span></div>'
+      : '';
+
     return '' +
       '<div class="totales">' +
-        '<div class="total-fila"><span>Subtotal (' + t.cantidad + ' ' +
-          plural(t.cantidad, 'vianda', 'viandas') + ')</span><span>' + Store.plata(t.subtotal) + '</span></div>' +
+        '<div class="total-fila"><span>Subtotal</span><span>' + Store.plata(t.subtotal) + '</span></div>' +
         '<div class="total-fila"><span>' + esc(etiquetaEnvio) + '</span>' + envio + '</div>' +
-        '<div class="total-fila total-fila--big"><span>Total</span><span>' + Store.plata(t.total) + '</span></div>' +
+        '<div class="total-fila total-fila--big"><span>Total</span><span>' +
+          Store.plata(t.total) + '</span></div>' +
+        efectivo +
       '</div>';
   }
 
@@ -327,39 +555,50 @@
     if (!lista.length) {
       cont.innerHTML = '' +
         '<div class="vacio">' +
-          '<div class="vacio__ico" aria-hidden="true">🥗</div>' +
           '<p class="vacio__t">Tu pedido está vacío</p>' +
-          '<p class="vacio__d">Elegí tus viandas del menú semanal y aparecerán acá.</p>' +
+          '<p class="vacio__d">Elegí tus viandas del menú semanal, una promo, ' +
+          'el plan mensual o algo para sumar, y aparecen acá.</p>' +
         '</div>';
       el('carritoPie').hidden = true;
       return;
     }
 
-    var aviso = '';
-
     cont.innerHTML =
       '<div class="items">' + lista.map(function (it) {
+        var segunda, tercera;
+
+        if (it.tipo === 'vianda') {
+          segunda = esc(it.plato ? it.plato.nombre : it.categoria.nombre);
+          /* La Ensalada César se llama igual que su categoría: repetirla
+             en las dos líneas queda a la vista y no aporta nada. */
+          var meta = it.plato && it.plato.nombre === it.categoria.nombre
+            ? it.tamano.gramos
+            : it.detalle;
+          tercera = esc(meta) + ' · ' + Store.plata(it.precio) + ' c/u';
+        } else {
+          segunda = esc(it.detalle);
+          tercera = Store.plata(it.precio) + ' c/u';
+        }
+
         return '' +
-          '<div class="item" style="--c-it:' + esc(it.categoria.color) + '">' +
+          '<div class="item' + (it.tipo === 'vianda' ? '' : ' item--otro') +
+            '" style="--c-it:' + esc(it.color) + '">' +
             '<div class="item__info">' +
-              '<p class="item__d">' + esc(it.dia.nombre) + '</p>' +
-              '<p class="item__p">' + esc(it.plato ? it.plato.nombre : it.categoria.nombre) + '</p>' +
-              '<p class="item__m">' + esc(it.categoria.nombre) + ' · ' + esc(it.tamano.nombre) +
-                ' ' + esc(it.tamano.gramos) + ' · ' + Store.plata(it.precio) + ' c/u</p>' +
+              '<p class="item__d">' + esc(it.titulo) + '</p>' +
+              '<p class="item__p">' + segunda + '</p>' +
+              '<p class="item__m">' + tercera + '</p>' +
             '</div>' +
             '<div class="item__ctrl">' +
               '<button type="button" class="item__b" data-accion="menos"' +
-                ' data-dia="' + esc(it.diaId) + '" data-cat="' + esc(it.catId) + '"' +
-                ' data-tam="' + esc(it.tamanoId) + '" aria-label="Quitar una unidad">−</button>' +
+                ' data-clave="' + esc(it.clave) + '" aria-label="Quitar una unidad">&#8722;</button>' +
               '<span class="item__n">' + it.cantidad + '</span>' +
               '<button type="button" class="item__b" data-accion="mas"' +
-                ' data-dia="' + esc(it.diaId) + '" data-cat="' + esc(it.catId) + '"' +
-                ' data-tam="' + esc(it.tamanoId) + '" aria-label="Agregar una unidad">+</button>' +
+                ' data-clave="' + esc(it.clave) + '" aria-label="Agregar una unidad">+</button>' +
             '</div>' +
             '<span class="item__sub">' + Store.plata(it.subtotal) + '</span>' +
           '</div>';
       }).join('') + '</div>' +
-      filaTotales(t) + aviso +
+      filaTotales(t) +
       '<button type="button" class="btn btn--fantasma btn--bloque btn--vaciar" ' +
       'id="btnVaciar" data-armado="0">Vaciar pedido</button>';
 
@@ -432,10 +671,13 @@
       }
     }
 
-    /* Estos no los usa el carrito todavía, pero sí los textos de la
-       página, así que conviene que salgan de la misma fuente. */
     var packs = d.packs && lista(d.packs.opciones);
-    if (packs) { CFG.packs.opciones = packs; cambio = true; }
+    if (packs) {
+      CFG.packs.opciones = packs;
+      if (typeof d.packs.envioBonificado === 'boolean') CFG.packs.envioBonificado = d.packs.envioBonificado;
+      if (d.packs.descuentoEfectivo) CFG.packs.descuentoEfectivo = d.packs.descuentoEfectivo;
+      cambio = true;
+    }
     if (d.planMensual && d.planMensual.precios) { CFG.planMensual = d.planMensual; cambio = true; }
     /* La API devuelve también los productos sin precio definido, porque
        el panel los necesita para podérselo poner. Acá se filtran: en la
@@ -487,15 +729,15 @@
      restaurar, pero para entonces todavía teníamos el menú del archivo.
      Las sacamos ahora, usando el mismo camino que el botón "−". */
   function limpiarCarritoViejo() {
-    var Store = global.AUME.Store;
     /* Se van tanto las viandas de platos que ya no existen como las de
        días cerrados: alguien pudo dejar el carrito armado el domingo y
-       volver el miércoles. */
+       volver el miércoles. Lo que no es vianda (promos, plan mensual,
+       productos) no depende del menú de la semana y se queda. */
     var sobrantes = Store.items().filter(function (it) {
-      return !it.plato || estadoDia(it.diaId) !== 'abierto';
+      return it.tipo === 'vianda' && (!it.plato || estadoDia(it.diaId) !== 'abierto');
     });
     sobrantes.forEach(function (it) {
-      Store.sumar(it.diaId, it.catId, it.tamanoId, -it.cantidad);
+      Store.sumarClave(it.clave, -it.cantidad);
     });
     return sobrantes.length;
   }
@@ -543,11 +785,18 @@
     panelActivo: function () { return panelAbierto; },
     pintarEstaticos: pintarEstaticos,
     aplicarTema: aplicarTema,
+    pintarModos: pintarModos,
     pintarTabs: pintarTabs,
     pintarDias: pintarDias,
+    pintarPacks: pintarPacks,
+    pintarPlan: pintarPlan,
+    pintarExtras: pintarExtras,
     pintarBarra: pintarBarra,
     pintarCarrito: pintarCarrito,
-    filaTotales: filaTotales
+    filaTotales: filaTotales,
+    resumenCorto: resumenCorto,
+    setPref: setPref,
+    prefDe: prefDe
   };
 
 })(window);

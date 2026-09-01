@@ -88,6 +88,12 @@ export async function correr(t) {
     items: [{ dia: dia1, categoria: 'clasico', tamano: 'estandar', cantidad: 2 }]
   }, extra || {});
 
+  /* Atajo para los casos que TIENEN que ser rechazados */
+  const rechaza = async (etiqueta, cuerpo) => {
+    const res = await llamar('/api/pedidos', 'POST', cuerpo);
+    t.ok('rechaza ' + etiqueta, res.estado === 422, res.estado === 422 ? '' : 'devolvió ' + res.estado);
+  };
+
   /* ------------------------------------------- Alta desde la landing */
   let r = await llamar('/api/pedidos', 'POST', base());
   t.igual('un pedido válido entra', r.estado, 201);
@@ -127,11 +133,6 @@ export async function correr(t) {
     db.prepare('SELECT origen AS o FROM pedidos WHERE id = ?').get(r.cuerpo.datos.id).o, 'checkout-confirmado');
 
   /* ------------------------------------------------------ Rechazos */
-  const rechaza = async (etiqueta, cuerpo) => {
-    const res = await llamar('/api/pedidos', 'POST', cuerpo);
-    t.ok('rechaza ' + etiqueta, res.estado === 422, res.estado === 422 ? '' : 'devolvió ' + res.estado);
-  };
-
   await rechaza('un pedido sin viandas', base({ items: [] }));
   await rechaza('un nombre vacío', base({ cliente: { nombre: '', telefono: '3434123456' } }));
   await rechaza('un teléfono que no es teléfono', base({ cliente: { nombre: 'Ana', telefono: 'no' } }));
@@ -159,6 +160,78 @@ export async function correr(t) {
     base({ items: [{ dia: dia1, categoria: 'cesar', tamano: 'xl', cantidad: 1 }] }));
   t.igual('la Ensalada César se puede pedir cualquier día', r.estado, 201);
   t.igual('al precio del tamaño XL', r.cuerpo.datos.total, 12800);
+
+  /* ------------------------- Promos, plan mensual y productos
+     Estas líneas no son viandas de un día: el precio no sale de
+     "tamanos" sino de la tabla del pack, del plan o del producto. Lo
+     que no cambia es de dónde sale: de la base, nunca del navegador. */
+
+  r = await llamar('/api/pedidos', 'POST', base({
+    items: [{ tipo: 'pack', pack: 'x5', tamano: 'estandar', preferencia: 'vegetariano', cantidad: 1 }]
+  }));
+  t.igual('una promo semanal entra al pedido', r.estado, 201);
+  t.igual('al precio de lista publicado del pack', r.cuerpo.datos.total, 45000);
+
+  const lineaPack = db.prepare(
+    'SELECT tipo, ref_id, preferencia, plato_nombre FROM pedido_items WHERE pedido_id = ?'
+  ).get(r.cuerpo.datos.id);
+  t.igual('guardada como línea de tipo pack', lineaPack.tipo, 'pack');
+  t.igual('con el pack que se pidió', lineaPack.ref_id, 'x5');
+  t.igual('y el tipo de menú que eligió la clienta', lineaPack.preferencia, 'vegetariano');
+
+  /* El envío bonificado del pack también se decide en el servidor */
+  r = await llamar('/api/pedidos', 'POST', base({
+    modalidad: 'envio', zonaId: 'fuera', direccion: 'Urquiza 1234', puntoId: undefined,
+    items: [{ tipo: 'pack', pack: 'x3', tamano: 'estandar', cantidad: 1 }]
+  }));
+  t.igual('con una promo adentro el envío no se cobra', r.cuerpo.datos.envio, 0);
+
+  /* Y una vianda suelta al lado de la promo no lo vuelve a cobrar:
+     la entrega es una sola. */
+  r = await llamar('/api/pedidos', 'POST', base({
+    modalidad: 'envio', zonaId: 'fuera', direccion: 'Urquiza 1234', puntoId: undefined,
+    items: [
+      { tipo: 'pack', pack: 'x3', tamano: 'estandar', cantidad: 1 },
+      { tipo: 'vianda', dia: dia1, categoria: 'clasico', tamano: 'estandar', cantidad: 1 }
+    ]
+  }));
+  t.igual('un pedido mixto paga la promo más la vianda', r.cuerpo.datos.subtotal, 27000 + 9000);
+  t.igual('y sigue sin pagar envío', r.cuerpo.datos.envio, 0);
+
+  r = await llamar('/api/pedidos', 'POST', base({
+    modalidad: 'envio', zonaId: 'dentro', direccion: 'Urquiza 1234', puntoId: undefined,
+    items: [{ tipo: 'plan', tamano: 'estandar', preferencia: 'combinado', cantidad: 1 }]
+  }));
+  t.igual('el plan mensual entra al pedido', r.estado, 201);
+  t.igual('al precio publicado del mes', r.cuerpo.datos.subtotal, 198000);
+  t.igual('y sí paga envío, como en el flyer', r.cuerpo.datos.envio, 2000);
+
+  r = await llamar('/api/pedidos', 'POST', base({
+    items: [{ tipo: 'extra', producto: 'burger8', cantidad: 2 }]
+  }));
+  t.igual('un producto suelto entra al pedido', r.estado, 201);
+  t.igual('al precio de la base', r.cuerpo.datos.total, 26000);
+
+  await rechaza('una promo inventada',
+    base({ items: [{ tipo: 'pack', pack: 'x99', tamano: 'estandar', cantidad: 1 }] }));
+  await rechaza('una promo en un tamaño sin precio publicado',
+    base({ items: [{ tipo: 'pack', pack: 'x5', tamano: 'gigante', cantidad: 1 }] }));
+  await rechaza('un tipo de menú inventado en una promo',
+    base({ items: [{ tipo: 'pack', pack: 'x5', tamano: 'estandar', preferencia: 'gourmet', cantidad: 1 }] }));
+  await rechaza('un producto inventado',
+    base({ items: [{ tipo: 'extra', producto: 'torta-inexistente', cantidad: 1 }] }));
+
+  /* El XL mensual todavía no tiene precio publicado: no se puede pedir
+     aunque se lo mande a mano. */
+  await rechaza('el plan mensual en un tamaño sin precio publicado',
+    base({ items: [{ tipo: 'plan', tamano: 'xl', cantidad: 1 }] }));
+
+  /* Mandar el precio del pack tampoco sirve */
+  r = await llamar('/api/pedidos', 'POST', base({
+    items: [{ tipo: 'pack', pack: 'x5', tamano: 'estandar', cantidad: 1, precio: 1 }]
+  }));
+  t.igual('el precio de la promo tampoco lo pone el navegador',
+    r.cuerpo.datos.total, 45000);
 
   /* --------------------------------------- Alta desde el panel */
   r = await llamar('/api/pedidos/manual', 'POST', base({

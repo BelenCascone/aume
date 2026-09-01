@@ -25,125 +25,87 @@
 
 <body class="tema">
 
-<!-- ============================================================ TOPBAR -->
+<!-- ============================================================ TOPBAR
+     El logo es lo primero y queda fijo arriba de todo. Debajo, pegado a
+     él, el selector de qué se quiere pedir: entre los dos ocupan poco y
+     dejan el menú a la vista sin scrollear.                          -->
 <header class="topbar">
   <div class="contenedor topbar__in">
-    <a class="marca" href="#inicio" aria-label="AUMÉ, inicio">
+    <a class="marca" href="#inicio" aria-label="AUMÉ, volver arriba">
       <img class="marca__img" src="assets/img/logo.png" alt="AUMÉ" width="487" height="320">
       <span class="marca__tag">viandas</span>
     </a>
-
-    <button type="button" class="btn-carrito" id="btnCarrito" aria-label="Ver mi pedido">
-      <span aria-hidden="true">🛒</span>
-      <span>Mi pedido</span>
-      <span class="btn-carrito__n" id="badgeCarrito">0</span>
-    </button>
+    <p class="topbar__semana" id="semanaLabel"></p>
   </div>
+
+  <nav class="modos" aria-label="Qué querés pedir">
+    <div class="contenedor modos__in" id="modos"></div>
+  </nav>
 </header>
 
 <main id="inicio">
 
-  <!-- ============================================================ HERO -->
-  <section class="hero">
-    <div class="contenedor hero__in">
-      <span class="hero__sello">Paraná · Entre Ríos</span>
+  <!-- ==================================================== MODO: POR DÍA -->
+  <section class="vista" id="vistaDia" aria-label="Menú de la semana">
 
-      <h1 class="hero__titulo">
-        Comé rico,
-        <em>sentite bien</em>
-      </h1>
-
-      <p class="hero__texto">
-        Viandas caseras, frescas y balanceadas, listas para tu semana.
-        Elegí tus días, tu menú y tu porción. Nosotros nos ocupamos del resto.
-      </p>
-
-      <div class="hero__cta">
-        <a class="btn btn--primario" href="#menu">Ver el menú de la semana</a>
-        <a class="btn btn--fantasma" href="#retiro">Envíos y puntos de retiro</a>
-      </div>
-
-      <p class="hero__origen" id="heroOrigen"></p>
-    </div>
-  </section>
-
-  <!-- ==================================================== CÓMO FUNCIONA -->
-  <section class="seccion">
-    <div class="contenedor">
-      <p class="seccion__kicker">Simple como…</p>
-      <h2 class="seccion__titulo">Cómo pedir</h2>
-
-      <div class="pasos">
-        <div class="paso">
-          <div class="paso__n">1</div>
-          <div>
-            <p class="paso__t">Elegí tu tipo de menú</p>
-            <p class="paso__d">Clásico, Vegetariano, Proteico o Ensalada.</p>
-          </div>
-        </div>
-        <div class="paso">
-          <div class="paso__n">2</div>
-          <div>
-            <p class="paso__t">Sumá los días que quieras</p>
-            <p class="paso__d">De lunes a viernes, en porción estándar (350gr) o XL (500gr).</p>
-          </div>
-        </div>
-        <div class="paso">
-          <div class="paso__n">3</div>
-          <div>
-            <p class="paso__t">Confirmá por WhatsApp</p>
-            <p class="paso__d">Te llega el pedido armado y listo. Sin ida y vuelta.</p>
-          </div>
-        </div>
+    <!-- Las 4 categorías quedan fijas debajo del logo: cambiar de menú
+         nunca obliga a volver a subir. -->
+    <div class="tabs-wrap">
+      <div class="contenedor">
+        <div class="tabs" role="tablist" aria-label="Tipo de menú" id="tabs"></div>
       </div>
     </div>
-  </section>
 
-  <!-- ============================================================ MENÚ -->
-  <section class="seccion menu" id="menu">
-    <div class="contenedor">
-
-      <div class="semana-wrap">
-        <p class="seccion__kicker">Nuestro</p>
-        <h2 class="seccion__titulo">Menú semanal</h2>
-        <p class="semana" id="semanaLabel"></p>
-      </div>
-      <p class="menu__nota" id="semanaNota"></p>
-
-      <!-- Pestañas de categoría -->
-      <div class="tabs" role="tablist" aria-label="Tipo de menú" id="tabs"></div>
+    <div class="contenedor vista__cuerpo">
       <p class="tab-desc" id="tabDesc"></p>
-
-      <!-- Tarjetas por día -->
       <div class="dias" id="dias" role="tabpanel" aria-live="polite"></div>
+      <p class="menu__nota" id="semanaNota"></p>
+    </div>
+  </section>
 
+  <!-- =============================================== MODO: PROMO SEMANAL -->
+  <section class="vista" id="vistaPromo" aria-label="Promos semanales" hidden>
+    <div class="contenedor vista__cuerpo">
+      <h2 class="vista__t">Promos semanales</h2>
+      <p class="vista__d" id="promoDesc"></p>
+      <div class="ofertas" id="packs"></div>
+    </div>
+  </section>
+
+  <!-- ================================================ MODO: PLAN MENSUAL -->
+  <section class="vista" id="vistaMensual" aria-label="Plan mensual" hidden>
+    <div class="contenedor vista__cuerpo">
+      <h2 class="vista__t">Plan mensual</h2>
+      <p class="vista__d" id="mensualDesc"></p>
+      <div class="ofertas" id="planMensual"></div>
+    </div>
+  </section>
+
+  <!-- =================================================== MODO: PARA SUMAR -->
+  <section class="vista" id="vistaExtras" aria-label="Postres, yogures y congelados" hidden>
+    <div class="contenedor vista__cuerpo">
+      <h2 class="vista__t">Para sumar</h2>
+      <p class="vista__d">Postres, yogures y congelados. Se agregan a la misma entrega.</p>
+      <div id="extras"></div>
     </div>
   </section>
 
   <!-- ================================================== ENVÍOS / RETIRO -->
   <section class="seccion logistica" id="retiro">
     <div class="contenedor">
-      <p class="seccion__kicker">Te lo llevamos o</p>
-      <h2 class="seccion__titulo">Lo pasás a buscar</h2>
+      <h2 class="seccion__titulo">Envíos y puntos de retiro</h2>
 
-      <!-- Envío a domicilio -->
       <div class="envio-card">
-        <div class="envio-card__ico" aria-hidden="true">🛵</div>
-        <div>
-          <p class="envio-card__t">Envío a domicilio</p>
-          <p class="envio-card__d" id="envioDesc"></p>
-          <span class="envio-card__promo" id="envioPromo"></span>
-        </div>
+        <p class="envio-card__t">Envío a domicilio</p>
+        <p class="envio-card__d" id="envioDesc"></p>
+        <span class="envio-card__promo" id="envioPromo"></span>
       </div>
 
-      <!-- Puntos de retiro -->
-      <h3 class="seccion__titulo" style="font-size:1.15rem;margin-top:32px;">Puntos de retiro</h3>
+      <h3 class="logistica__sub">Puntos de retiro</h3>
       <p class="seccion__bajada">Sin costo adicional. Retirás en el horario que más te sirva.</p>
       <div class="puntos" id="puntos"></div>
     </div>
   </section>
-
-  <div class="espaciador" id="espaciador" hidden></div>
 </main>
 
 <!-- ============================================================ FOOTER -->
@@ -155,12 +117,12 @@
   </div>
 </footer>
 
-<!-- ================================================ BARRA FIJA CARRITO -->
-<div class="barra" id="barra" hidden>
-  <div class="progreso" id="progreso" hidden>
-    <p class="progreso__txt" id="progresoTxt"></p>
-    <div class="progreso__barra"><div class="progreso__fill" id="progresoFill"></div></div>
-  </div>
+<div class="espaciador"></div>
+
+<!-- ================================================ BARRA FIJA CARRITO
+     Queda fija abajo SIEMPRE, con pedido o sin él: es el único acceso al
+     resumen desde que el botón "Mi pedido" salió de la barra superior. -->
+<div class="barra" id="barra">
   <div class="barra__in">
     <div class="barra__info">
       <p class="barra__n" id="barraN"></p>
@@ -177,7 +139,7 @@
 <section class="panel" id="panelCarrito" role="dialog" aria-modal="true" aria-labelledby="tCarrito" hidden>
   <header class="panel__cab">
     <h2 class="panel__t" id="tCarrito">Mi pedido</h2>
-    <button type="button" class="panel__x" data-cerrar aria-label="Cerrar">✕</button>
+    <button type="button" class="panel__x" data-cerrar aria-label="Cerrar">&#215;</button>
   </header>
 
   <div class="panel__cuerpo">
@@ -195,7 +157,7 @@
 <section class="panel" id="panelCheckout" role="dialog" aria-modal="true" aria-labelledby="tCheckout" hidden>
   <header class="panel__cab">
     <h2 class="panel__t" id="tCheckout">Tus datos</h2>
-    <button type="button" class="panel__x" data-cerrar aria-label="Cerrar">✕</button>
+    <button type="button" class="panel__x" data-cerrar aria-label="Cerrar">&#215;</button>
   </header>
 
   <div class="panel__cuerpo">
@@ -275,7 +237,7 @@
 
   <footer class="panel__pie">
     <button type="button" class="btn btn--verde btn--bloque" id="btnWhatsapp">
-      <span aria-hidden="true">💬</span> Confirmar pedido por WhatsApp
+      Confirmar pedido por WhatsApp
     </button>
   </footer>
 </section>

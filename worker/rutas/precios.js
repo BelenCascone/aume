@@ -31,8 +31,9 @@ export async function leerPrecios(db) {
       /* Sin filtrar por activo: el panel necesita ver también los que
          todavía no tienen precio (postres, yogures) para podérselo
          poner. Quien no los muestra es la web, y para eso va la
-         bandera `activo` en la respuesta. */
-      db.prepare('SELECT id, nombre, detalle, precio, activo FROM productos ORDER BY orden'),
+         bandera `activo` en la respuesta. `grupo` es cómo se ordenan en
+         la pantalla "Para sumar". */
+      db.prepare('SELECT id, grupo, nombre, detalle, precio, activo FROM productos ORDER BY orden'),
       db.prepare('SELECT clave, valor FROM ajustes')
     ]);
 
@@ -91,7 +92,7 @@ export async function leerPrecios(db) {
       id: m.id, nombre: m.nombre, efectivo: m.efectivo === 1
     })),
     productos: filas(prods).map((p) => ({
-      id: p.id, nombre: p.nombre, detalle: p.detalle, precio: p.precio,
+      id: p.id, grupo: p.grupo, nombre: p.nombre, detalle: p.detalle, precio: p.precio,
       activo: p.activo === 1
     })),
     whatsapp: aj.whatsapp || ''

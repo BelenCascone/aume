@@ -4,7 +4,7 @@
    se ve el menú actualizado; si no hay, la web igual abre.
    Al publicar cambios grandes, subí el número de VERSION.
    ===================================================================== */
-var VERSION = 'aume-v3';
+var VERSION = 'aume-v4';
 
 var BASICOS = [
   './',

@@ -14,10 +14,27 @@
 
   /* ------------------------------------------------------- Re-dibujado */
 
+  /* Sólo se dibuja la vista activa: las otras tres se repintan cuando se
+     entra en ellas. Con el pedido en la mano, repintar todo en cada toque
+     de "+" se nota en un celular modesto. */
+  function pintarVista() {
+    var modo = Store.estado.modo;
+    if (modo === 'dia') {
+      UI.pintarTabs();
+      UI.pintarDias();
+    } else if (modo === 'promo') {
+      UI.pintarPacks();
+    } else if (modo === 'mensual') {
+      UI.pintarPlan();
+    } else {
+      UI.pintarExtras();
+    }
+  }
+
   function pintarTodo() {
     UI.aplicarTema();
-    UI.pintarTabs();
-    UI.pintarDias();
+    UI.pintarModos();
+    pintarVista();
     UI.pintarBarra();
     UI.pintarCarrito();
 
@@ -30,9 +47,7 @@
   function recuperarFoco(contenedor, btn) {
     if (!btn || document.activeElement !== btn) return null;
     var sel = '[data-accion="' + btn.dataset.accion + '"]' +
-              '[data-dia="' + btn.dataset.dia + '"]' +
-              '[data-tam="' + btn.dataset.tam + '"]';
-    if (btn.dataset.cat) sel += '[data-cat="' + btn.dataset.cat + '"]';
+              '[data-clave="' + btn.dataset.clave + '"]';
     return function () {
       var nuevo = contenedor.querySelector(sel);
       if (nuevo) nuevo.focus({ preventScroll: true });
@@ -108,9 +123,43 @@
     irAPanel('panelCheckout');
   }
 
+  /* --------------------------------------------------- Sumar / restar
+     Todos los botones que agregan algo al pedido llevan data-clave y
+     data-accion, se dibujen donde se dibujen. Un solo camino para las
+     viandas, las promos, el plan mensual y los productos. */
+
+  function tocarBoton(contenedor, e) {
+    var b = e.target.closest('[data-accion][data-clave]');
+    if (!b) return null;
+
+    var delta = b.dataset.accion === 'mas' ? 1 : -1;
+    var restaurar = recuperarFoco(contenedor, b);
+
+    Store.sumarClave(b.dataset.clave, delta);
+    if (restaurar) restaurar();
+
+    return { boton: b, delta: delta };
+  }
+
+  /* Aviso corto de qué se agregó, con el nombre que ve la clienta */
+  function avisarAgregado(clave) {
+    var linea = Store.items().filter(function (it) { return it.clave === clave; })[0];
+    if (!linea) return;
+    UI.toast(linea.titulo + (linea.detalle ? ' · ' + linea.detalle : '') + ' agregado');
+  }
+
   /* ----------------------------------------------------------- Eventos */
 
   function conectarEventos() {
+
+    /* --- Modos: por día / promos / mensual / para sumar --- */
+    el('modos').addEventListener('click', function (e) {
+      var b = e.target.closest('.modo');
+      if (!b) return;
+      Store.setModo(b.dataset.modo);
+      var nuevo = el('modos').querySelector('[data-modo="' + b.dataset.modo + '"]');
+      if (nuevo) nuevo.focus({ preventScroll: true });
+    });
 
     /* --- Pestañas de categoría --- */
     el('tabs').addEventListener('click', function (e) {
@@ -136,44 +185,41 @@
 
     /* --- Sumar / restar desde las tarjetas de día --- */
     el('dias').addEventListener('click', function (e) {
-      var b = e.target.closest('[data-accion]');
-      if (!b) return;
+      var r = tocarBoton(el('dias'), e);
+      if (r && r.delta > 0) avisarAgregado(r.boton.dataset.clave);
+    });
 
-      var delta = b.dataset.accion === 'mas' ? 1 : -1;
-      var restaurar = recuperarFoco(el('dias'), b);
+    /* --- Promos semanales y plan mensual --- */
+    ['packs', 'planMensual'].forEach(function (id) {
+      el(id).addEventListener('click', function (e) {
+        var r = tocarBoton(el(id), e);
+        if (r && r.delta > 0) avisarAgregado(r.boton.dataset.clave);
+      });
 
-      /* data-cat viene en el botón: la tarjeta del día muestra la categoría
-         activa y además la opción fija, que es de otra categoría. */
-      var catId = b.dataset.cat || Store.estado.categoria;
+      /* El tipo de menú preferido se elige antes de agregar: cambiarlo
+         redibuja los botones porque cambia la línea del carrito. */
+      el(id).addEventListener('change', function (e) {
+        var s = e.target.closest('[data-pref]');
+        if (!s) return;
+        UI.setPref(s.dataset.pref, s.value);
+        pintarVista();
+      });
+    });
 
-      Store.sumar(b.dataset.dia, catId, b.dataset.tam, delta);
-      if (restaurar) restaurar();
-
-      if (delta > 0) {
-        var dia = Store.buscarDia(b.dataset.dia);
-        var cat = Store.buscarCategoria(catId);
-        var tam = Store.buscarTamano(b.dataset.tam);
-        UI.toast(dia.nombre + ' · ' + cat.nombre + ' ' + tam.gramos + ' agregado 🛒');
-      }
+    /* --- Postres, yogures y congelados --- */
+    el('extras').addEventListener('click', function (e) {
+      var r = tocarBoton(el('extras'), e);
+      if (r && r.delta > 0) avisarAgregado(r.boton.dataset.clave);
     });
 
     /* --- Controles dentro del carrito --- */
     el('carritoContenido').addEventListener('click', function (e) {
       var vaciar = e.target.closest('#btnVaciar');
       if (vaciar) { pedirVaciar(vaciar); return; }
-
-      var b = e.target.closest('[data-accion]');
-      if (!b) return;
-
-      var delta = b.dataset.accion === 'mas' ? 1 : -1;
-      var restaurar = recuperarFoco(el('carritoContenido'), b);
-
-      Store.sumar(b.dataset.dia, b.dataset.cat, b.dataset.tam, delta);
-      if (restaurar) restaurar();
+      tocarBoton(el('carritoContenido'), e);
     });
 
     /* --- Abrir / cerrar paneles --- */
-    el('btnCarrito').addEventListener('click', function () { UI.abrirPanel('panelCarrito'); });
     el('btnVerPedido').addEventListener('click', function () { UI.abrirPanel('panelCarrito'); });
     el('btnIrCheckout').addEventListener('click', abrirCheckout);
 
@@ -187,7 +233,7 @@
       if (e.key === 'Escape' && UI.panelActivo()) UI.cerrarPanel();
     });
 
-    /* Enlaces internos ("Ver el menú", "Envíos y puntos de retiro", el logo) */
+    /* Enlaces internos (el logo, "Envíos y puntos de retiro") */
     document.querySelectorAll('a[href^="#"]').forEach(function (a) {
       a.addEventListener('click', function (e) {
         var id = a.getAttribute('href').slice(1);

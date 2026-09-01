@@ -25,7 +25,7 @@
         '<input type="radio" name="modalidad" value="envio"' + (m === 'envio' ? ' checked' : '') + '>' +
         '<span class="op__dot" aria-hidden="true"></span>' +
         '<span class="op__txt">' +
-          '<span class="op__t">🛵 Envío a domicilio</span>' +
+          '<span class="op__t">Envío a domicilio</span>' +
           '<span class="op__d">' + esc(CFG.envio.aclaracion) + '</span>' +
         '</span>' +
       '</label>' +
@@ -34,7 +34,7 @@
         '<input type="radio" name="modalidad" value="retiro"' + (m === 'retiro' ? ' checked' : '') + '>' +
         '<span class="op__dot" aria-hidden="true"></span>' +
         '<span class="op__txt">' +
-          '<span class="op__t">🏠 Retiro en punto (Take Away)</span>' +
+          '<span class="op__t">Retiro en punto (Take Away)</span>' +
           '<span class="op__d">Sin costo. Elegís dónde y a qué hora.</span>' +
         '</span>' +
       '</label>';
@@ -53,7 +53,7 @@
           '<span class="op__txt">' +
             '<span class="op__t">' + esc(p.nombre) + '</span>' +
             '<span class="op__d">' + esc(p.direccion) + '</span>' +
-            '<span class="op__h">🕒 ' + p.horarios.map(esc).join(' · ') + '</span>' +
+            '<span class="op__h">Horarios: ' + p.horarios.map(esc).join(' · ') + '</span>' +
           '</span>' +
         '</label>';
     }).join('');
@@ -104,8 +104,8 @@
     el('resumenMini').innerHTML =
       '<p class="resumen-mini__t">Tu pedido · ' + esc(MENU.semana) + '</p>' +
       lista.map(function (it) {
-        return '<p class="resumen-mini__l"><span>' + it.cantidad + '× ' + esc(it.dia.nombre) +
-               ' · ' + esc(it.categoria.nombre) + ' ' + esc(it.tamano.gramos) + '</span>' +
+        return '<p class="resumen-mini__l"><span>' + it.cantidad + '× ' + esc(it.titulo) +
+               (it.detalle ? ' · ' + esc(it.detalle) : '') + '</span>' +
                '<b>' + Store.plata(it.subtotal) + '</b></p>';
       }).join('') +
       UI.filaTotales(t);
@@ -176,6 +176,31 @@
 
   /* -------------------------------------------- Mensaje para WhatsApp */
 
+  /* Un bloque del mensaje: el título y las líneas de ese tipo. Si no hay
+     ninguna, el bloque entero no aparece: nadie quiere leer un
+     "PARA SUMAR" vacío en el celular. */
+  function bloque(L, lista, tipo, titulo) {
+    var lineas = lista.filter(function (it) { return it.tipo === tipo; });
+    if (!lineas.length) return;
+
+    var unidades = lineas.reduce(function (n, it) { return n + it.cantidad; }, 0);
+    L.push('*' + titulo + ' (' + unidades + ')*');
+
+    lineas.forEach(function (it) {
+      if (it.tipo === 'vianda') {
+        L.push('• ' + it.dia.nombre + ' · ' + it.categoria.nombre +
+               ' (' + it.tamano.gramos + ') x' + it.cantidad +
+               ' — ' + Store.plata(it.subtotal));
+        if (it.plato) L.push('   _' + it.plato.nombre + '_');
+      } else {
+        L.push('• ' + it.titulo + (it.detalle ? ' · ' + it.detalle : '') +
+               ' x' + it.cantidad + ' — ' + Store.plata(it.subtotal));
+      }
+    });
+
+    L.push('');
+  }
+
   function armarMensaje() {
     var d = leerForm();
     var lista = Store.items();
@@ -183,7 +208,7 @@
     var esEnvio = Store.estado.modalidad === 'envio';
 
     var L = [];
-    L.push('*NUEVO PEDIDO · AUMÉ* 🥗');
+    L.push('*NUEVO PEDIDO · AUMÉ*');
     L.push('_' + MENU.semana + '_');
     L.push('');
     L.push('*Cliente:* ' + d.nombre);
@@ -201,26 +226,28 @@
     }
 
     L.push('');
-    L.push('*VIANDAS (' + t.cantidad + ')*');
 
-    lista.forEach(function (it) {
-      L.push('• ' + it.dia.nombre + ' · ' + it.categoria.nombre +
-             ' (' + it.tamano.gramos + ') x' + it.cantidad +
-             ' — ' + Store.plata(it.subtotal));
-      if (it.plato) L.push('   _' + it.plato.nombre + '_');
-    });
+    /* Un bloque por tipo de línea, en el mismo orden en el que se pide */
+    bloque(L, lista, 'vianda', 'VIANDAS');
+    bloque(L, lista, 'pack',   'PROMOS SEMANALES');
+    bloque(L, lista, 'plan',   'PLAN MENSUAL');
+    bloque(L, lista, 'extra',  'PARA SUMAR');
 
-    L.push('');
     L.push('*Subtotal:* ' + Store.plata(t.subtotal));
 
     if (t.esRetiro) {
       L.push('*Envío:* No corresponde (retiro en punto)');
+    } else if (t.envioBonificado) {
+      L.push('*Envío:* Bonificado por la promo');
     } else {
       L.push('*Envío:* ' + Store.plata(t.envio) +
              (t.zona ? ' (' + t.zona.nombre + ')' : ''));
     }
 
     L.push('*TOTAL:* ' + Store.plata(t.total));
+    if (t.ahorroEfectivo > 0) {
+      L.push('*Pagando en efectivo:* ' + Store.plata(t.totalEfectivo));
+    }
     L.push('');
 
     var pago = CFG.metodosPago.filter(function (m) { return m.id === d.pago; })[0];
@@ -271,11 +298,18 @@
       puntoId: Store.estado.punto,
       metodoPago: d.pago,
       notas: d.notas,
+      /* "tipo" es lo que le dice al servidor contra qué tabla mirar el
+         precio: el menú del día, los packs, el plan mensual o los
+         productos. Los precios NO viajan: los recalcula el servidor. */
       items: Store.items().map(function (it) {
         return {
-          dia: it.diaId,
-          categoria: it.catId,
-          tamano: it.tamanoId,
+          tipo: it.tipo,
+          dia: it.diaId || '',
+          categoria: it.catId || '',
+          tamano: it.tamanoId || '',
+          pack: it.packId || '',
+          producto: it.productoId || '',
+          preferencia: it.prefId || '',
           cantidad: it.cantidad
         };
       })
@@ -362,7 +396,7 @@
       var link = el('btnAbrirWa');
       link.href = url;
       link.hidden = false;
-      UI.toast('Tocá "Abrir WhatsApp" o copiá el resumen 👇');
+      UI.toast('Tocá "Abrir WhatsApp" o copiá el resumen');
       el('planB').scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else {
       el('btnAbrirWa').hidden = true;
@@ -387,7 +421,6 @@
 
     el('panelCuerpoCheckout').innerHTML =
       '<div class="listo">' +
-        '<div class="listo__ico" aria-hidden="true">🎉</div>' +
         '<h3 class="listo__t">¡Pedido recibido!</h3>' +
         '<p class="listo__d">' +
           'Gracias ' + esc(d.nombre.split(' ')[0]) + '. Ya tenemos tu pedido anotado.' +
@@ -396,13 +429,13 @@
         '<div class="listo__caja">' +
           '<p class="listo__l"><span>Nº de pedido</span><b>#' + esc(String(datos.id)) + '</b></p>' +
           '<p class="listo__l"><span>' + datos.cantidad + ' ' +
-            UI.plural(datos.cantidad, 'vianda', 'viandas') + '</span><b>' +
+            UI.plural(datos.cantidad, 'ítem', 'ítems') + '</span><b>' +
             Store.plata(datos.total) + '</b></p>' +
           '<p class="listo__l listo__l--suelto">' + entrega + '</p>' +
         '</div>' +
 
         '<p class="listo__aviso">' +
-          '📞 <b>Desde AUMÉ nos comunicamos con vos</b> al ' + esc(d.telefono) +
+          '<b>Desde AUMÉ nos comunicamos con vos</b> al ' + esc(d.telefono) +
           ' para coordinar la entrega y el pago. No hace falta que hagas nada más.' +
         '</p>' +
 
@@ -447,7 +480,7 @@
       el('planB').scrollIntoView({ behavior: 'smooth', block: 'center' });
     } finally {
       btn.disabled = false;
-      btn.textContent = '✓ Dejar mi pedido confirmado';
+      btn.textContent = 'Dejar mi pedido confirmado';
     }
   }
 
@@ -457,7 +490,7 @@
     var texto = el('planBTexto').textContent;
     if (!texto) texto = armarMensaje();
 
-    function ok() { UI.toast('Resumen copiado ✅'); }
+    function ok() { UI.toast('Resumen copiado'); }
     function fallback() {
       var ta = document.createElement('textarea');
       ta.value = texto;
@@ -500,7 +533,7 @@
     btn.id = 'btnConfirmado';
     btn.className = 'btn btn--primario btn--bloque';
     btn.style.marginTop = '10px';
-    btn.textContent = '✓ Dejar mi pedido confirmado';
+    btn.textContent = 'Dejar mi pedido confirmado';
     pie.appendChild(btn);
 
     var nota = document.createElement('p');

@@ -66,11 +66,14 @@ INSERT OR IGNORE INTO metodos_pago (id, nombre, efectivo, orden) VALUES ('transf
 INSERT OR IGNORE INTO metodos_pago (id, nombre, efectivo, orden) VALUES ('mercadopago', 'Mercado Pago', 0, 3);
 
 -- --- Otros productos ----------------------------------------------
-INSERT OR IGNORE INTO productos (id, nombre, detalle, precio, orden) VALUES ('burger8', 'Hamburguesas de legumbres', 'Congeladas · Pack x8 unidades', 13000, 1);
+-- Se suman al pedido por unidad. "grupo" es cómo se ordenan en la
+-- pantalla "Para sumar" de la web.
+INSERT OR IGNORE INTO productos (id, grupo, nombre, detalle, precio, orden) VALUES ('burger8', 'congelados', 'Hamburguesas de legumbres', 'Congeladas · Pack x8 unidades', 13000, 1);
 -- Estos dos entran apagados: existen para que el panel pueda ponerles
--- precio, pero la web no los muestra hasta que lo tengan.
-INSERT OR IGNORE INTO productos (id, nombre, detalle, precio, orden, activo) VALUES ('postres', 'Postres', 'Próximamente', 0, 2, 0);
-INSERT OR IGNORE INTO productos (id, nombre, detalle, precio, orden, activo) VALUES ('yogures', 'Yogures', 'Próximamente', 0, 3, 0);
+-- precio, pero la web no los muestra hasta que lo tengan. Por eso acá no
+-- hay precios de ejemplo: lo que está en la base es lo que se cobra.
+INSERT OR IGNORE INTO productos (id, grupo, nombre, detalle, precio, orden, activo) VALUES ('postres', 'postres', 'Postres', 'Próximamente', 0, 2, 0);
+INSERT OR IGNORE INTO productos (id, grupo, nombre, detalle, precio, orden, activo) VALUES ('yogures', 'yogures', 'Yogures', 'Próximamente', 0, 3, 0);
 
 -- --- Packs semanales ----------------------------------------------
 -- Los packs llevan el envío bonificado. El precio efectivo va tal cual
