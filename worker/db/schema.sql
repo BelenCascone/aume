@@ -247,7 +247,7 @@ CREATE TABLE IF NOT EXISTS pedidos (
 
   cliente_nombre   TEXT    NOT NULL DEFAULT '',
   cliente_telefono TEXT    NOT NULL DEFAULT '',
-  -- Sólo los dígitos del teléfono. Es la clave para detectar clientas que
+  -- Sólo los dígitos del teléfono. Es la clave para detectar clientes que
   -- repiten aunque escriban el número con distinto formato.
   telefono_norm    TEXT    NOT NULL DEFAULT '',
 

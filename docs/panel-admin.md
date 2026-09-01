@@ -41,7 +41,19 @@ porque no pasa por él.
 | `/api/pedidos`                   | GET    | panel       | 3 ✅ |
 | `/api/pedidos/manual`            | POST   | panel       | 3 ✅ |
 | `/api/pedidos/:id`               | PATCH  | panel       | 3 ✅ |
-| `/api/estadisticas`              | GET    | panel       | 4    |
+
+`PATCH /api/pedidos/:id` hace dos cosas según lo que se le mande: sin
+`items` cambia sólo el estado (es lo que usa el desplegable de cada
+fila, que se toca todo el tiempo), y con `items` edita el pedido
+entero. En los dos casos los precios se recalculan en el servidor: el
+panel nunca manda un importe.
+
+`PUT /api/precios` acepta además `productos` (los de "Otros
+productos") y `puntosRetiro`, que se agregan y se sacan desde el
+panel. Sacar un punto lo apaga (`activo = 0`), no lo borra: los
+pedidos viejos guardan su id y si la fila desapareciera el historial
+mostraría un código en vez del nombre del local.
+| `/api/estadisticas?desde=&hasta=` | GET   | panel       | 4 ✅ |
 
 Las rutas marcadas "panel" exigen una identidad válida de Cloudflare
 Access **y** que el pedido salga del propio sitio (defensa contra CSRF).
@@ -56,7 +68,7 @@ demás:
 | Base | Para qué |
 |---|---|
 | `aume-staging` | Probar. Si algo sale mal acá, no pasa nada. |
-| `aume-produccion` | La de verdad, la que ve la clienta. |
+| `aume-produccion` | La de verdad, la que ve el cliente. |
 
 **Las dos ya están creadas y conectadas** en `wrangler.jsonc`. Esta
 sección queda escrita paso a paso por si alguna vez hay que rehacerlas
@@ -171,6 +183,25 @@ Cada uno pregunta `Ok to proceed? (y/N)` → **`y`**.
 > **`--remote` es la base de verdad en Cloudflare.** `--local` sería una
 > copia en tu compu. Si te olvidás la bandera, wrangler te la reclama.
 
+Si la base **ya existía de antes de los feriados**, sumá el cambio 0002.
+Es el único que no viene incluido en `schema.sql`, porque `CREATE TABLE IF
+NOT EXISTS` no toca una tabla que ya está creada:
+
+```bash
+npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0002_feriados.sql
+```
+
+Si contesta `duplicate column name: feriado`, ya estaba aplicado: seguí de
+largo. Si la base la creaste después de la Fase 3, este paso te lo podés
+saltear.
+
+Y el 0003, que suma postres y yogures como productos sin precio para que
+aparezcan en el panel:
+
+```bash
+npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0003_productos.sql
+```
+
 Los dos archivos se pueden correr **todas las veces que haga falta**:
 `schema.sql` usa `CREATE TABLE IF NOT EXISTS` y `semilla.sql` usa
 `INSERT OR IGNORE`, así que no pisan nada que ya hayas editado desde el
@@ -232,9 +263,15 @@ ese archivo siga describiendo la base completa.
 ### Cómo se carga el menú
 
 La nutri arma el menú del mes **separado por semanas**, así que la
-pantalla principal es `/admin/menus/semana.html`: los 5 días con sus 4
-tipos, y un botón que guarda y publica la semana entera de una.
-`/admin/menus/dia.html` sigue existiendo para corregir un día suelto.
+unidad de `/admin/menus/` es la semana entera: los 5 días con sus 4
+tipos en una sola pantalla, con flechas para moverse de semana y dos
+botones — guardar borrador y publicar.
+
+Los platos se editan **en el lugar**: se toca el lápiz, se escribe y con
+Enter queda. Nada viaja al servidor hasta que se toca Guardar o
+Publicar, así se puede corregir tranquila sin que cada tecla dispare una
+escritura. Si se intenta salir con cambios sin guardar, el navegador
+avisa.
 
 **Feriados.** Cada día tiene una casilla *Feriado*. Marcarla borra los
 platos de ese día (si no, la web mostraría "Feriado" y platos al mismo
@@ -244,7 +281,7 @@ justamente lo que hay que comunicar es que ese día no se cocina.
 **Días que ya pasaron.** Si hoy es miércoles, la web ya no deja pedir el
 lunes ni el martes de esta semana: esos días aparecen apagados y sin
 botones. La fecha de "hoy" la decide el **servidor**, no el celular de
-la clienta: de eso depende que se cobre o no una vianda, y un reloj
+el cliente: de eso depende que se cobre o no una vianda, y un reloj
 desajustado no puede habilitar un pedido que no se puede entregar.
 
 ---
@@ -261,7 +298,7 @@ canal `app`:
 
 > **El registro nunca bloquea la venta.** En el camino de WhatsApp el
 > pedido se manda a la API *sin esperar la respuesta*, y WhatsApp se
-> abre en el mismo gesto de la clienta. Si esperáramos a la API, el
+> abre en el mismo gesto del cliente. Si esperáramos a la API, el
 > navegador ya no consideraría la apertura parte del toque y los
 > bloqueadores de pop-ups la frenarían. Y si la API falla, el pedido
 > igual llega por WhatsApp: registrar es un extra, abrir WhatsApp no.
@@ -277,12 +314,121 @@ No hay pasarela de pago online: eso sigue igual que siempre.
 
 ---
 
-## 3. Publicar
+### El tablero
+
+`/admin/estadisticas/` contesta preguntas que cambian decisiones, no
+sólo muestra números: qué menú conviene cocinar más, si la web sirve o
+todo sigue entrando por WhatsApp, si se está creciendo, cuánto deja cada
+pedido, si conviene reforzar el reparto o los puntos de retiro, qué día
+hay que cocinar más y si los clientes vuelven.
+
+Dos cosas que conviene saber para leerlo bien:
+
+- **Los pedidos cancelados no cuentan** en ninguna cifra. No se
+  cocinaron ni se cobraron; contarlos infla la recaudación.
+- **Un cliente es un teléfono.** Es lo único estable: el nombre lo
+  escribe distinto cada vez y no hay cuentas de usuario. Por eso "Ana
+  Pérez" y "ana perez" con el mismo número cuentan como una sola.
+- Los importes salen de lo que **efectivamente se cobró**: cada línea de
+  pedido guarda el precio del momento, así que cambiar la lista de
+  precios hoy no reescribe la historia.
+
+**Los clientes.** El tablero muestra dos listas de diez:
+
+- **Las más frecuentes**, para reconocerles algo. Cada una con su
+  categoría favorita, que sale de sumarle las viandas por categoría de
+  todos sus pedidos del período.
+- **Las que hay que reconquistar**: las que menos pidieron y hace más de
+  dos semanas que no vuelven. El corte de dos semanas está puesto a
+  propósito: alguien que compró por primera vez el martes pasado no es
+  un cliente perdido, es un cliente nuevo, y mandarle una oferta de
+  "volvé" sería molestarla.
+
+> **Los colores de los gráficos no son los de la marca, y es a
+> propósito.** Los de `assets/css/styles.css` funcionan como acento de
+> una pestaña, donde cada uno viene con su nombre al lado; como colores
+> de gráfico fallan: Proteico y Ensalada quedan a ΔE 12,5 en visión
+> normal (y 3,1 en deuteranopía), o sea que ni con visión normal se
+> distinguen bien dos barras vecinas. Los del tablero son los mismos
+> tonos corridos hasta pasar las verificaciones de contraste y de
+> daltonismo, y están definidos en `admin/assets/css/panel.css`.
+> Además ninguna barra depende sólo del color: todas llevan su nombre y
+> su número.
+
+---
+
+### El armazón visual
+
+Desde el rediseño hecho en Open Design, todas las pantallas del panel
+comparten la misma estructura: barra lateral fija con las cinco
+secciones, barra de arriba con el título y el logo (que lleva al inicio)
+y un pie. Eso vive en dos archivos:
+
+| Archivo | Qué tiene |
+|---|---|
+| `admin/assets/css/shell.css` | el armazón y los componentes del tablero (tarjetas de número, gráficos, tablas) |
+| `admin/assets/css/panel.css` | el estilo de las pantallas de trabajo: formularios, cajas, botones |
+
+Las cinco pantallas están migradas al diseño nuevo. `panel.css` quedó
+reducido a los tokens de color y tipografía, el cartel de entorno, los
+avisos de error, las tarjetas de la portada y el toast: todo lo demás
+vive en `shell.css`. **Ningún nombre de clase se pisa entre las dos**.
+
+La paleta de gráficos (`--g-clasico` y compañía) está en `shell.css`, y
+el comentario de arriba de todo explica por qué no son los colores de la
+marca.
+
+El menú lateral se abre y se cierra desde `armarBarra()`, en
+`admin/assets/js/panel.js`. Qué sección está activa lo dice el HTML de
+cada página, no el JavaScript: así se ve bien incluso antes de que el
+navegador ejecute nada.
+
+> **Las animaciones van sólo en la portada** (`admin/assets/js/inicio.js`):
+> los números cuentan desde cero y las tarjetas entran escalonadas. En
+> las pantallas de trabajo no hay ninguna, porque ahí se entra a hacer
+> algo y una cosa que se mueve mientras querés tocarla estorba. Todo se
+> apaga solo si el sistema pide menos movimiento.
+
+---
+
+## 3. Publicar y abrir
+
+### Verlo en tu compu (lo más rápido)
 
 ```bash
-npx wrangler deploy --env staging   # a aume-staging.<tu-subdominio>.workers.dev
-npx wrangler deploy                 # a producción (el dominio real)
+npx wrangler dev --env staging
 ```
+
+Queda escuchando y te imprime `http://localhost:8787`. Ahí:
+
+- `http://localhost:8787/` — la landing
+- `http://localhost:8787/admin/` — el panel
+
+Se corta con `Ctrl + C`. Como en `wrangler.jsonc` la base de staging está
+marcada `"remote": true`, esto se conecta a la base de Cloudflare de
+verdad, no a una copia local: lo que cargues acá queda guardado.
+
+### Publicarlo a staging (para abrirlo desde el celu o mostrárselo a alguien)
+
+```bash
+npx wrangler deploy --env staging
+```
+
+Al terminar imprime la dirección, del estilo
+`https://aume-staging.<tu-subdominio>.workers.dev`. El panel está en
+`/admin/` de esa misma dirección.
+
+> En staging **no hace falta Cloudflare Access**: el panel te deja
+> entrar con una identidad simulada. Es a propósito, para poder probar.
+> En producción es al revés — sin Access configurado devuelve 503.
+
+### Publicarlo a producción
+
+```bash
+npx wrangler deploy
+```
+
+Va al dominio real. Antes de esto tiene que estar hecho el paso 4.
 
 ---
 
@@ -309,7 +455,7 @@ En el dashboard de Cloudflare → **Zero Trust** → **Access** →
 Con `Path: admin` queda protegido `/admin` y todo lo que cuelgue de él
 (`/admin/menus/`, `/admin/pedidos/`, …). **La landing pública no queda
 tocada**: `/`, `/assets/…` y `/api/pedidos` siguen abiertos para las
-clientas.
+clientes.
 
 > **Por qué no se protege también `/api/*` desde Access:** ahí conviven
 > rutas públicas (la landing lee los precios y deja los pedidos) con
@@ -429,7 +575,7 @@ corren igual.
 | 1 | Módulo de precios + la landing lee precios de la API | ✅ hecha |
 | 2 | Módulo de menú (borrador/publicar) + la landing lee el menú | ✅ hecha |
 | 3 | Módulo de pedidos + doble camino del checkout | ✅ hecha |
-| 4 | Módulo de estadísticas | pendiente |
+| 4 | Módulo de estadísticas | ✅ hecha |
 
 En cada fase se corren los tests de Playwright (`npm test`) para
 confirmar que la landing pública sigue intacta.

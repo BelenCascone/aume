@@ -100,9 +100,10 @@ async function atenderApi(request, env, ctx, url) {
 
     const control = await identificar(request, env);
     if (!control.ok) {
+      const entorno = env.AUME_ENTORNO || 'produccion';
       return control.estado === 503
-        ? errores.sinConfigurar(control.motivo)
-        : errores.noAutorizado(control.motivo);
+        ? errores.sinConfigurar(control.motivo, { entorno })
+        : errores.noAutorizado(control.motivo, { entorno });
     }
     identidad = control.identidad;
   }

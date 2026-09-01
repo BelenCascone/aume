@@ -23,7 +23,10 @@ export async function correr(t) {
   const { crearRouter } = await import('../lib/router.js');
 
   /* D1 simulado: alcanza con lo que usa /api/salud */
-  const DB = { prepare: () => ({ first: async () => ({ 1: 1 }) }) };
+  const DB = {
+    prepare: () => ({ bind: () => DB.prepare(), first: async () => ({ 1: 1 }), all: async () => ({ results: [] }) }),
+    batch: async (l) => l.map(() => ({ results: [] }))
+  };
   const ASSETS = { fetch: async () => new Response('landing', { status: 200 }) };
 
   const staging = { AUME_ENTORNO: 'staging', DB, ASSETS };
@@ -58,10 +61,8 @@ export async function correr(t) {
   await responde('un método que no corresponde da 405',
     pedir('/api/precios', { method: 'DELETE' }), staging, 405, 'metodo_no_permitido');
 
-  for (const [ruta, fase] of [['/api/estadisticas', 4]]) {
-    await responde(ruta + ' está registrada (llega en la fase ' + fase + ')',
-      pedir(ruta), staging, 501, 'no_implementado');
-  }
+  await responde('GET /api/estadisticas responde el tablero',
+    pedir('/api/estadisticas'), staging, 200, 'ok');
   /* 422 = llegó a validar el cuerpo vacío, que es lo que se quiere ver */
   await responde('POST /api/pedidos está viva y valida lo que recibe',
     pedir('/api/pedidos', { method: 'POST' }), staging, 422, 'datos_invalidos');
@@ -78,6 +79,19 @@ export async function correr(t) {
   await responde('pero la landing igual puede dejar pedidos',
     pedir('/api/pedidos', { method: 'POST' }), produccion, 422, 'datos_invalidos');
 
+  /* El error tiene que decir EN QUÉ ENTORNO está corriendo. Casi siempre
+     este 503 no es "falta configurar Access": es que se publicó con
+     `wrangler deploy` a secas en vez de `--env staging`, y sin esta
+     pista no hay forma de darse cuenta desde el panel. */
+  {
+    const res = await (await import('../index.js')).default
+      .fetch(pedir('/api/estadisticas'), produccion, {});
+    const cuerpo = await res.json();
+    t.igual('el 503 dice en qué entorno corre', cuerpo.error.entorno, 'produccion');
+    t.ok('y sugiere cómo publicar a staging',
+      cuerpo.error.mensaje.indexOf('--env staging') >= 0);
+  }
+
   /* --- CSRF: escribir desde otro sitio ----------------------------- */
   await responde('un PUT desde otro sitio se rechaza',
     pedir('/api/precios', { method: 'PUT', headers: { 'Sec-Fetch-Site': 'cross-site' } }),
@@ -92,7 +106,7 @@ export async function correr(t) {
     staging, 422, 'datos_invalidos');
   await responde('una lectura de otro sitio no se frena (no escribe nada)',
     pedir('/api/estadisticas', { headers: { 'Sec-Fetch-Site': 'cross-site' } }),
-    staging, 501, 'no_implementado');
+    staging, 200, 'ok');
 
   /* --- Sin base de datos ------------------------------------------ */
   await responde('sin el binding DB lo dice claro',

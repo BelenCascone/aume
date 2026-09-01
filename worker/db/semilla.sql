@@ -68,14 +68,12 @@ INSERT OR IGNORE INTO metodos_pago (id, nombre, efectivo, orden) VALUES ('mercad
 -- --- Otros productos ----------------------------------------------
 -- Se suman al pedido por unidad. "grupo" es cómo se ordenan en la
 -- pantalla "Para sumar" de la web.
---
--- ⚠️ NOMBRES Y PRECIOS A CONFIRMAR en los postres y los yogures: van de
---    ejemplo y tienen que coincidir con assets/js/data/config.js.
-INSERT OR IGNORE INTO productos (id, grupo, nombre, detalle, precio, orden) VALUES ('burger8', 'congelados', 'Hamburguesas de legumbres', 'Congeladas · Pack x8 unidades', 13000, 10);
-INSERT OR IGNORE INTO productos (id, grupo, nombre, detalle, precio, orden) VALUES ('postre-flan', 'postres', 'Flan casero', 'Porción individual', 3500, 1);
-INSERT OR IGNORE INTO productos (id, grupo, nombre, detalle, precio, orden) VALUES ('postre-budin', 'postres', 'Budín de limón', 'Porción individual', 3500, 2);
-INSERT OR IGNORE INTO productos (id, grupo, nombre, detalle, precio, orden) VALUES ('yogur-natural', 'yogures', 'Yogur natural', 'Pote individual', 2800, 3);
-INSERT OR IGNORE INTO productos (id, grupo, nombre, detalle, precio, orden) VALUES ('yogur-granola', 'yogures', 'Yogur con granola', 'Pote individual con granola casera', 3200, 4);
+INSERT OR IGNORE INTO productos (id, grupo, nombre, detalle, precio, orden) VALUES ('burger8', 'congelados', 'Hamburguesas de legumbres', 'Congeladas · Pack x8 unidades', 13000, 1);
+-- Estos dos entran apagados: existen para que el panel pueda ponerles
+-- precio, pero la web no los muestra hasta que lo tengan. Por eso acá no
+-- hay precios de ejemplo: lo que está en la base es lo que se cobra.
+INSERT OR IGNORE INTO productos (id, grupo, nombre, detalle, precio, orden, activo) VALUES ('postres', 'postres', 'Postres', 'Próximamente', 0, 2, 0);
+INSERT OR IGNORE INTO productos (id, grupo, nombre, detalle, precio, orden, activo) VALUES ('yogures', 'yogures', 'Yogures', 'Próximamente', 0, 3, 0);
 
 -- --- Packs semanales ----------------------------------------------
 -- Los packs llevan el envío bonificado. El precio efectivo va tal cual

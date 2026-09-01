@@ -25,7 +25,7 @@ function texto(v, max) {
   return String(v == null ? '' : v).replace(/[\r\n\t]+/g, ' ').replace(/\s{2,}/g, ' ').trim().slice(0, max);
 }
 
-/* Sólo los dígitos: es la clave para reconocer a una clienta que repite
+/* Sólo los dígitos: es la clave para reconocer a un cliente que repite
    aunque escriba el teléfono distinto cada vez. */
 function soloDigitos(v) {
   return String(v == null ? '' : v).replace(/\D/g, '').slice(0, 20);
@@ -42,7 +42,7 @@ function entero(v, max) {
 /* Arma el pedido validando TODO contra la base.
    `exigirMenuPublicado` distingue los dos orígenes:
    · desde la landing (true): sólo se puede pedir lo que está publicado y
-     todavía no pasó. Es lo que la clienta ve.
+     todavía no pasó. Es lo que el cliente ve.
    · desde el panel (false): la secretaria carga lo que le llegó por
      WhatsApp, que puede ser de un día raro o de algo que ya se cerró.
      Ella sabe lo que está haciendo; no le podemos poner la misma
@@ -55,7 +55,7 @@ async function armarPedido(db, cuerpo, opciones) {
   const telefono = texto(cuerpo.cliente && cuerpo.cliente.telefono, 30);
   const digitos = soloDigitos(telefono);
 
-  if (nombre.length < 2) errs.push('Falta el nombre de la clienta.');
+  if (nombre.length < 2) errs.push('Falta el nombre del cliente.');
   if (digitos.length < 8) errs.push('El teléfono no parece válido.');
 
   const modalidad = cuerpo.modalidad === 'retiro' ? 'retiro' : 'envio';
@@ -140,7 +140,7 @@ async function armarPedido(db, cuerpo, opciones) {
   ).bind(hoy).all();
 
   /* Por día de la semana nos quedamos con la fecha más próxima que
-     todavía no pasó: es la que la clienta está viendo en la web. */
+     todavía no pasó: es la que el cliente está viendo en la web. */
   const porDia = {};
   for (const m of (menuRes.results || [])) {
     if (!porDia[m.dia_id]) porDia[m.dia_id] = m;
@@ -338,7 +338,7 @@ async function crear(ctx) {
 
   /* Un doble toque en el checkout, o un reintento después de que se
      cortó la señal, no puede registrar el pedido dos veces. Si ya
-     existe, devolvemos el mismo y listo: para la clienta es idéntico. */
+     existe, devolvemos el mismo y listo: paral cliente es idéntico. */
   if (clave) {
     const ya = await ctx.db.prepare('SELECT id, total, cantidad FROM pedidos WHERE clave_idem = ?')
       .bind(clave).first();
@@ -449,24 +449,85 @@ async function listar(ctx) {
 /* ------------------------- PATCH /api/pedidos/:id  (protegido) */
 
 const ESTADOS = ['nuevo', 'confirmado', 'entregado', 'cancelado'];
+const CANALES = ['app', 'whatsapp'];
 
+/* El PATCH sirve para dos cosas distintas:
+
+   · Sin `items`, cambia sólo el estado. Es lo que usa el desplegable de
+     cada fila del listado, que se toca todo el tiempo y tiene que ser
+     lo más liviano posible.
+
+   · Con `items`, edita el pedido entero. Los precios y el envío se
+     vuelven a calcular en el servidor a partir de la lista de precios
+     de hoy, igual que al cargarlo: el panel nunca manda un importe.
+
+   Lo que NO se toca al editar es cuándo entró el pedido (creado_en,
+   fecha_local, semana_local, dia_semana). El pedido se hizo el día que
+   se hizo; corregirle el nombre al cliente el jueves no lo mueve de
+   día ni le cambia la semana en las estadísticas. */
 async function actualizar(ctx) {
   const id = parseInt(ctx.parametros.id, 10);
   if (!Number.isInteger(id) || id < 1) return errores.datosInvalidos(['Id inválido.']);
 
   const leido = await leerJson(ctx.request);
   if (!leido.ok) return errores.datosInvalidos([leido.motivo]);
+  const cuerpo = leido.cuerpo;
 
-  const estado = texto(leido.cuerpo.estado, 20);
-  if (ESTADOS.indexOf(estado) < 0) {
+  const existe = await ctx.db.prepare('SELECT id, canal FROM pedidos WHERE id = ?').bind(id).first();
+  if (!existe) return errores.noEncontrado('Ese pedido');
+
+  /* --- Camino corto: sólo el estado --- */
+  if (!Array.isArray(cuerpo.items)) {
+    const estado = texto(cuerpo.estado, 20);
+    if (ESTADOS.indexOf(estado) < 0) {
+      return errores.datosInvalidos(['Estado inválido. Puede ser: ' + ESTADOS.join(', ') + '.']);
+    }
+    await ctx.db.prepare('UPDATE pedidos SET estado = ? WHERE id = ?').bind(estado, id).run();
+    return json({ id, estado });
+  }
+
+  /* --- Camino largo: el pedido completo --- */
+  const r = await armarPedido(ctx.db, cuerpo, { exigirMenuPublicado: false });
+  if (!r.ok) return errores.datosInvalidos(r.errs);
+  const p = r.pedido;
+
+  let estado = texto(cuerpo.estado, 20);
+  if (!estado) estado = null;
+  else if (ESTADOS.indexOf(estado) < 0) {
     return errores.datosInvalidos(['Estado inválido. Puede ser: ' + ESTADOS.join(', ') + '.']);
   }
 
-  const existe = await ctx.db.prepare('SELECT id FROM pedidos WHERE id = ?').bind(id).first();
-  if (!existe) return errores.noEncontrado('Ese pedido');
+  let canal = texto(cuerpo.canal, 20);
+  if (CANALES.indexOf(canal) < 0) canal = existe.canal;
 
-  await ctx.db.prepare('UPDATE pedidos SET estado = ? WHERE id = ?').bind(estado, id).run();
-  return json({ id, estado });
+  const ops = [
+    ctx.db.prepare(
+      'UPDATE pedidos SET canal = ?, cliente_nombre = ?, cliente_telefono = ?, telefono_norm = ?, ' +
+      'modalidad = ?, zona_id = ?, direccion = ?, punto_id = ?, metodo_pago = ?, notas = ?, ' +
+      'cantidad = ?, subtotal = ?, envio = ?, total = ?' +
+      (estado ? ', estado = ?' : '') + ' WHERE id = ?'
+    ).bind(...[
+      canal, p.nombre, p.telefono, p.digitos, p.modalidad, p.zonaId, p.direccion,
+      p.puntoId, p.metodoPago, p.notas, p.cantidad, p.subtotal, p.envio, p.total
+    ].concat(estado ? [estado] : []).concat([id])),
+
+    /* Se borran los ítems y se vuelven a escribir. Es más simple y más
+       seguro que buscar cuál cambió: el pedido queda exactamente como
+       lo dejó el formulario, sin restos de la versión anterior. */
+    ctx.db.prepare('DELETE FROM pedido_items WHERE pedido_id = ?').bind(id)
+  ];
+
+  for (const it of p.items) {
+    ops.push(ctx.db.prepare(
+      'INSERT INTO pedido_items (pedido_id, fecha_menu, dia_id, categoria_id, tamano_id, ' +
+      'cantidad, precio_unitario, subtotal, plato_nombre) VALUES (?,?,?,?,?,?,?,?,?)'
+    ).bind(id, it.fechaMenu, it.diaId, it.catId, it.tamId, it.cantidad, it.precio, it.subtotal, it.plato));
+  }
+
+  /* En batch: si algo falla, no queda un pedido con los ítems borrados. */
+  await ctx.db.batch(ops);
+
+  return json({ id, total: p.total, cantidad: p.cantidad });
 }
 
 /* ------------------------------------------------------------ Rutas */

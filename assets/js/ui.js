@@ -244,7 +244,7 @@
 
   /* Un día se cierra cuando ya pasó: si hoy es miércoles, el lunes de
      esta semana ya no se puede pedir. La fecha de "hoy" la manda el
-     servidor, no el celular: el reloj de la clienta puede estar en
+     servidor, no el celular: el reloj del cliente puede estar en
      cualquier lado, y de eso depende que se cobre o no una vianda. */
   function estadoDia(diaId) {
     if (semanaApi.feriados[diaId]) return 'feriado';
@@ -679,8 +679,14 @@
       cambio = true;
     }
     if (d.planMensual && d.planMensual.precios) { CFG.planMensual = d.planMensual; cambio = true; }
+    /* La API devuelve también los productos sin precio definido, porque
+       el panel los necesita para podérselo poner. Acá se filtran: en la
+       web no va nada que todavía no tenga precio. */
     var productos = lista(d.productos);
-    if (productos) { CFG.productos = productos; cambio = true; }
+    if (productos) {
+      CFG.productos = productos.filter(function (p) { return p.activo !== false; });
+      cambio = true;
+    }
 
     return cambio;
   }

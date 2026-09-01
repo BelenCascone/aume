@@ -187,7 +187,7 @@ Los packs y el plan mensual tienen un **precio en efectivo** más bajo, que
 es el que está publicado. El carrito muestra los dos: el total normal y
 cuánto sería pagando en efectivo.
 
-Después la clienta completa nombre, teléfono, envío (con su zona) **o**
+Después el cliente completa nombre, teléfono, envío (con su zona) **o**
 punto de retiro, y método de pago. **"Confirmar pedido por WhatsApp"** abre
 el chat con el mensaje ya escrito, separado en VIANDAS, PROMOS SEMANALES,
 PLAN MENSUAL y PARA SUMAR.
@@ -274,7 +274,7 @@ configura a mano en el dashboard:
 
 - Una aplicación *Self-hosted* sobre el dominio real, con **Path: `admin`**.
   Eso protege `/admin` y todo lo que cuelga de ahí; la landing pública queda
-  abierta para las clientas.
+  abierta para los clientes.
 - Una política **Allow** con selector **Emails** y los **2 mails** del equipo
   (la dueña/nutricionista y la secretaria). Las dos tienen **exactamente los
   mismos permisos** sobre todo el panel: no hay roles diferenciados.

@@ -9,45 +9,94 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Caveat:wght@600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/admin/assets/css/panel.css">
+<link rel="stylesheet" href="/admin/assets/css/shell.css">
 <title>Menú · Panel AUMÉ</title>
 </head>
 <body>
 <div class="entorno" id="entorno" hidden></div>
-<header class="cab">
-  <div class="cont cab__in">
-    <a class="cab__marca" href="/admin/">AUMÉ<span>panel</span></a>
-    <nav class="cab__nav">
-      <a class="cab__a" href="/admin/">Inicio</a>
-      <a class="cab__a" href="/admin/menus/">Menú</a>
-      <a class="cab__a" href="/admin/pedidos/">Pedidos</a>
-      <a class="cab__a" href="/admin/precios/">Precios</a>
-      <a class="cab__a" href="/">Ver la web</a>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <nav class="sidebar-nav" aria-label="Secciones del panel">
+      <a href="/admin/" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h2.5a1 1 0 0 0 1-1v-9"/></svg>
+        Inicio
+      </a>
+      <a href="/admin/menus/" class="nav-item active" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+        Menú
+      </a>
+      <a href="/admin/pedidos/" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+        Pedidos
+      </a>
+      <a href="/admin/precios/" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M12 6v12M15 9.2c-.4-1-1.6-1.7-3-1.7-1.7 0-3 .9-3 2.2 0 3 6 1.6 6 4.6 0 1.3-1.3 2.2-3 2.2-1.4 0-2.6-.7-3-1.7"/></svg>
+        Precios
+      </a>
+      <a href="/admin/estadisticas/" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M4 19V9m6.5 10V4m6.5 15v-7"/></svg>
+        Estadísticas
+      </a>
+      <div class="nav-divider"></div>
+      <a href="/" class="nav-item nav-external">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M14 4h6v6M20 4 10 14M19 13v6a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h6"/></svg>
+        Ver la web
+      </a>
     </nav>
+  </aside>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburgerBtn" aria-label="Abrir menú" data-tooltip="Abrir menú" aria-expanded="false" aria-controls="sidebar">
+          <svg class="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+        <div class="topbar-title">
+          <h1 class="page-title">Menú</h1>
+        </div>
+      </div>
+      <a class="topbar-brand" href="/admin/" aria-label="Ir al inicio del panel">
+        <img src="/assets/img/logo.png" alt="AUMÉ" width="160" height="40">
+      </a>
+    </header>
+
+    <main class="content">
+      <section class="section-block">
+        <p class="eyebrow" style="text-align:center">Editor semanal</p>
+        <div class="week-nav">
+          <button type="button" class="btn-icon" id="btnSemanaAnterior" aria-label="Ver la semana anterior" data-tooltip="Semana anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M15 6l-6 6 6 6"/></svg></button>
+          <div class="week-label-group">
+            <h2 class="week-label" id="rotuloSemana" aria-live="polite">—</h2>
+          </div>
+          <button type="button" class="btn-icon" id="btnSemanaSiguiente" aria-label="Ver la semana siguiente" data-tooltip="Semana siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M9 6l6 6-6 6"/></svg></button>
+        </div>
+        <div class="week-status-row">
+          <span class="badge badge-borrador" id="estadoSemana"><span class="badge-dot"></span><span id="estadoSemanaTexto">—</span></span>
+        </div>
+
+        <div id="aviso" style="margin-top:16px"></div>
+        <p class="cargando" id="cargando">Cargando la semana…</p>
+
+        <div class="week-grid" id="grillaSemana"></div>
+
+        <div class="field" style="margin-top:20px;max-width:520px">
+          <label for="iNota">Nota de la semana (opcional)</label>
+          <input class="input" type="text" id="iNota" maxlength="200" placeholder="Ej.: el jueves se entrega más temprano">
+        </div>
+
+        <div class="publish-bar">
+          <p class="meta save-hint" id="pista" aria-live="polite"></p>
+          <button type="button" class="btn btn-secondary" id="btnBorrador">Guardar borrador</button>
+          <button type="button" class="btn btn-primary" id="btnPublicar">Publicar semana</button>
+        </div>
+      </section>
+    </main>
+    <footer class="pagefoot">
+      Panel interno de AUMÉ · Paraná, Entre Ríos
+    </footer>
   </div>
-</header>
-
-<main class="cont hoja">
-  <h1 class="titulo">Menú</h1>
-  <p class="bajada">
-    Cargá el menú de cada día. Queda como borrador hasta que le des
-    publicar; recién ahí lo ve la clienta.
-  </p>
-
-  <p style="margin-bottom:18px">
-    <a class="btn btn--pri" href="/admin/menus/semana.html">Cargar una semana completa</a>
-  </p>
-
-  <div id="aviso"></div>
-
-  <div class="mes">
-    <label class="campo__l" for="selMes">Mes</label>
-    <select class="mes__sel" id="selMes"></select>
-    <span class="guardar__n" id="resumenMes"></span>
-  </div>
-
-  <p class="cargando" id="cargando">Cargando…</p>
-  <div class="dias" id="dias"></div>
-</main>
+</div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="/admin/assets/js/panel.js"></script>
