@@ -62,25 +62,35 @@
     </header>
 
     <main class="content">
-  <p class="bajada">
-    Cargá el menú de cada día. Queda como borrador hasta que le des
-    publicar; recién ahí lo ve la clienta.
-  </p>
+      <section class="section-block">
+        <p class="eyebrow" style="text-align:center">Editor semanal</p>
+        <div class="week-nav">
+          <button type="button" class="btn-icon" id="btnSemanaAnterior" aria-label="Ver la semana anterior" data-tooltip="Semana anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M15 6l-6 6 6 6"/></svg></button>
+          <div class="week-label-group">
+            <h2 class="week-label" id="rotuloSemana" aria-live="polite">—</h2>
+          </div>
+          <button type="button" class="btn-icon" id="btnSemanaSiguiente" aria-label="Ver la semana siguiente" data-tooltip="Semana siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M9 6l6 6-6 6"/></svg></button>
+        </div>
+        <div class="week-status-row">
+          <span class="badge badge-borrador" id="estadoSemana"><span class="badge-dot"></span><span id="estadoSemanaTexto">—</span></span>
+        </div>
 
-  <p style="margin-bottom:18px">
-    <a class="btn btn--pri" href="/admin/menus/semana.html">Cargar una semana completa</a>
-  </p>
+        <div id="aviso" style="margin-top:16px"></div>
+        <p class="cargando" id="cargando">Cargando la semana…</p>
 
-  <div id="aviso"></div>
+        <div class="week-grid" id="grillaSemana"></div>
 
-  <div class="mes">
-    <label class="campo__l" for="selMes">Mes</label>
-    <select class="mes__sel" id="selMes"></select>
-    <span class="guardar__n" id="resumenMes"></span>
-  </div>
+        <div class="field" style="margin-top:20px;max-width:520px">
+          <label for="iNota">Nota de la semana (opcional)</label>
+          <input class="input" type="text" id="iNota" maxlength="200" placeholder="Ej.: el jueves se entrega más temprano">
+        </div>
 
-  <p class="cargando" id="cargando">Cargando…</p>
-  <div class="dias" id="dias"></div>
+        <div class="publish-bar">
+          <p class="meta save-hint" id="pista" aria-live="polite"></p>
+          <button type="button" class="btn btn-secondary" id="btnBorrador">Guardar borrador</button>
+          <button type="button" class="btn btn-primary" id="btnPublicar">Publicar semana</button>
+        </div>
+      </section>
     </main>
     <footer class="pagefoot">
       Panel interno de AUMÉ · Paraná, Entre Ríos

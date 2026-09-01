@@ -1,300 +1,443 @@
 /* =====================================================================
    AUMÉ · admin/pedidos/pedidos.js
-   Resumen del día o la semana, listado, y alta rápida de los pedidos
-   que llegan por WhatsApp.
+   El listado de pedidos y la carga manual.
+
+   Dos cosas que no se negocian acá:
+
+   · El panel nunca manda un importe. Manda qué se pidió (día, categoría,
+     tamaño, cantidad) y el servidor calcula el precio con la lista de
+     hoy. Si el navegador pudiera decidir el total, cualquiera con la
+     consola abierta se cobraría lo que quiera.
+
+   · Filtrar, ordenar y paginar se hace en el navegador, sobre lo que ya
+     vino de la API. Son a lo sumo 300 pedidos: pedirle al servidor una
+     consulta nueva por cada tecla del buscador sería más lento y más
+     frágil que hacerlo acá.
    ===================================================================== */
 (function () {
   'use strict';
 
   var el = Panel.el, esc = Panel.esc, plata = Panel.plata;
+  var POR_PAGINA = 15;
 
   var COLOR = {
-    clasico: 'var(--c-clasico)', vegetariano: 'var(--c-vegetariano)',
-    proteico: 'var(--c-proteico)', ensalada: 'var(--c-ensalada)',
-    cesar: 'var(--c-ensalada)'
+    clasico: 'var(--g-clasico)', vegetariano: 'var(--g-vegetariano)',
+    proteico: 'var(--g-proteico)', ensalada: 'var(--g-ensalada)', cesar: 'var(--g-cesar)'
   };
+  var ESTADOS = { nuevo: 'Nuevo', confirmado: 'Confirmado', entregado: 'Entregado', cancelado: 'Cancelado' };
+  var CANAL = { app: 'App', whatsapp: 'WhatsApp' };
 
-  var filtro = { rango: 'dia', fecha: null, canal: '' };
-  var catalogo = null;   // precios/catálogo, para el formulario manual
-  var datos = null;
+  var catalogo = null;      // /api/precios
+  var datos = null;         // /api/pedidos
+  var filtro = { rango: 'dia', fecha: '', canal: 'todos', buscar: '' };
+  var orden = { campo: 'hora', dir: -1 };
+  var pagina = 1;
+  var editando = null;      // id del pedido que se está editando, o null
+
+  var miles = new Intl.NumberFormat('es-AR');
+  function num(n) { return miles.format(n || 0); }
 
   function hoyParana() {
     return new Intl.DateTimeFormat('en-CA', {
-      timeZone: 'America/Argentina/Cordoba',
-      year: 'numeric', month: '2-digit', day: '2-digit'
+      timeZone: 'America/Argentina/Cordoba', year: 'numeric', month: '2-digit', day: '2-digit'
     }).format(new Date());
+  }
+
+  function hora(iso) {
+    var d = new Date(iso);
+    if (isNaN(d)) return '—';
+    return new Intl.DateTimeFormat('es-AR', {
+      timeZone: 'America/Argentina/Cordoba', hour: '2-digit', minute: '2-digit'
+    }).format(d);
   }
 
   function nombreDe(lista, id) {
     var x = (lista || []).filter(function (e) { return e.id === id; })[0];
-    return x ? x.nombre : id;
+    return x ? x.nombre : (id || '—');
   }
 
-  /* ---------------------------------------------------------- Resumen */
+  /* ------------------------------------------------------- Listado */
 
-  function pintarResumen(d) {
-    var r = d.resumen;
-    el('resumen').hidden = false;
-    /* El gráfico por tipo de menú vive al final de la página: la lista de
-       pedidos es lo que se viene a buscar, y antes quedaba tapada. */
-    el('cajaBarras').hidden = false;
-
-    el('tarjetas').innerHTML =
-      '<div class="tarjeta"><p class="tarjeta__n">' + r.pedidos + '</p>' +
-        '<p class="tarjeta__l">Pedidos</p></div>' +
-      '<div class="tarjeta"><p class="tarjeta__n">' + (r.viandas || 0) + '</p>' +
-        '<p class="tarjeta__l">Viandas</p></div>' +
-      '<div class="tarjeta tarjeta--app"><p class="tarjeta__n">' + r.porCanal.app.pedidos + '</p>' +
-        '<p class="tarjeta__l">Por la app</p></div>' +
-      '<div class="tarjeta tarjeta--wa"><p class="tarjeta__n">' + r.porCanal.whatsapp.pedidos + '</p>' +
-        '<p class="tarjeta__l">Por WhatsApp</p></div>' +
-      '<div class="tarjeta"><p class="tarjeta__n" style="font-size:1.25rem">' + plata(r.plata || 0) + '</p>' +
-        '<p class="tarjeta__l">Recaudado</p></div>';
-
-    var total = r.porTipo.reduce(function (a, t) { return a + t.viandas; }, 0);
-    el('totalViandas').textContent = total
-      ? total + ' viandas en total'
-      : 'Todavía no hay viandas en este período.';
-
-    el('barras').innerHTML = r.porTipo.map(function (t) {
-      var pct = total ? Math.round(t.viandas * 100 / total) : 0;
-      return '' +
-        '<div class="barra-t" style="--c-cat:' + (COLOR[t.categoria_id] || 'var(--linea)') + '">' +
-          '<span>' + esc(nombreDe(catalogo && catalogo.categorias, t.categoria_id)) + '</span>' +
-          '<span class="barra-t__b"><span class="barra-t__f" style="width:' + pct + '%"></span></span>' +
-          '<span class="barra-t__n">' + t.viandas + '</span>' +
-        '</div>';
-    }).join('');
-  }
-
-  /* ---------------------------------------------------------- Listado */
-
-  function pintarLista(d) {
-    var porPedido = {};
-    (d.items || []).forEach(function (it) {
-      (porPedido[it.pedido_id] = porPedido[it.pedido_id] || []).push(it);
+  function visibles() {
+    var q = filtro.buscar.trim().toLowerCase();
+    return (datos.pedidos || []).filter(function (p) {
+      if (!q) return true;
+      return (p.cliente_nombre || '').toLowerCase().indexOf(q) >= 0 ||
+             (p.cliente_telefono || '').indexOf(q) >= 0;
     });
-
-    el('tituloLista').textContent = 'Listado (' + d.pedidos.length + ')';
-
-    if (!d.pedidos.length) {
-      el('lista').innerHTML =
-        '<div class="caja"><p class="caja__d" style="margin:0">' +
-        'No hay pedidos en este período.</p></div>';
-      return;
-    }
-
-    el('lista').innerHTML = d.pedidos.map(function (p) {
-      var items = (porPedido[p.id] || []).map(function (it) {
-        return '<span class="linea-item"><span>' + it.cantidad + '× ' + esc(it.dia_id) +
-               ' · ' + esc(nombreDe(catalogo && catalogo.categorias, it.categoria_id)) +
-               ' ' + esc(it.tamano_id) +
-               (it.plato_nombre ? ' — ' + esc(it.plato_nombre) : '') +
-               '</span><b>' + plata(it.subtotal) + '</b></span>';
-      }).join('');
-
-      var entrega = p.modalidad === 'retiro'
-        ? '🏠 Retira en ' + esc(nombreDe(catalogo && catalogo.puntosRetiro, p.punto_id))
-        : '🛵 ' + esc(p.direccion) + ' (' + esc(nombreDe(catalogo && catalogo.envio && catalogo.envio.zonas, p.zona_id)) + ')';
-
-      var hora = String(p.creado_en || '').slice(11, 16);
-
-      return '' +
-        '<div class="pedido pedido--' + esc(p.canal) + '">' +
-          '<div class="pedido__cab">' +
-            '<span class="pedido__n">' + esc(p.cliente_nombre) + '</span>' +
-            '<span class="pedido__tel">' + esc(p.cliente_telefono) + '</span>' +
-            '<span class="pedido__tot">' + plata(p.total) + '</span>' +
-          '</div>' +
-          '<p class="pedido__d">' + entrega + ' · ' +
-            esc(nombreDe(catalogo && catalogo.metodosPago, p.metodo_pago)) +
-            ' · ' + esc(p.fecha_local) + ' ' + esc(hora) + ' hs' +
-            (p.notas ? ' · «' + esc(p.notas) + '»' : '') + '</p>' +
-          (items ? '<div class="pedido__items">' + items + '</div>' : '') +
-          '<div class="pedido__pie">' +
-            '<span class="canal canal--' + esc(p.canal) + '">' +
-              (p.canal === 'app' ? 'app' : 'whatsapp') + '</span>' +
-            '<select class="sel-estado" data-id="' + p.id + '">' +
-              ['nuevo', 'confirmado', 'entregado', 'cancelado'].map(function (e) {
-                return '<option value="' + e + '"' + (e === p.estado ? ' selected' : '') + '>' + e + '</option>';
-              }).join('') +
-            '</select>' +
-          '</div>' +
-        '</div>';
-    }).join('');
   }
 
-  /* ------------------------------------------------------------ Datos */
+  function ordenados(lista) {
+    var campo = orden.campo, dir = orden.dir;
+    var clave = {
+      hora: function (p) { return p.creado_en || ''; },
+      cliente: function (p) { return (p.cliente_nombre || '').toLowerCase(); },
+      canal: function (p) { return p.canal || ''; },
+      items: function (p) { return p.cantidad || 0; },
+      monto: function (p) { return p.total || 0; },
+      estado: function (p) { return p.estado || ''; }
+    }[campo];
+
+    /* El id de desempate no es decorativo: sin él, dos pedidos con el
+       mismo valor cambian de lugar en cada repintado y la fila que
+       querías tocar se te mueve abajo del dedo. */
+    return lista.slice().sort(function (a, b) {
+      var x = clave(a), y = clave(b);
+      if (x < y) return -dir;
+      if (x > y) return dir;
+      return a.id - b.id;
+    });
+  }
+
+  var iconoEditar = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3Z"/></svg>';
+
+  function celdaEstado(p) {
+    var opciones = Object.keys(ESTADOS).map(function (k) {
+      return '<option value="' + k + '"' + (k === p.estado ? ' selected' : '') + '>' + ESTADOS[k] + '</option>';
+    }).join('');
+    return '<span class="row-actions">' +
+      '<span class="status-select badge-' + esc(p.estado) + '">' +
+        '<select data-id="' + p.id + '" aria-label="Estado del pedido de ' + esc(p.cliente_nombre) + '">' +
+        opciones + '</select></span>' +
+      '<button type="button" class="row-edit-btn" data-editar="' + p.id + '" ' +
+        'aria-label="Editar el pedido de ' + esc(p.cliente_nombre) + '" data-tooltip="Editar pedido">' +
+        iconoEditar + '</button></span>';
+  }
+
+  function resumenItems(p) {
+    var items = (datos.items || []).filter(function (i) { return i.pedido_id === p.id; });
+    if (!items.length) return num(p.cantidad) + (p.cantidad === 1 ? ' vianda' : ' viandas');
+    var cats = [];
+    items.forEach(function (i) {
+      var n = nombreDe(catalogo && catalogo.categorias, i.categoria_id);
+      if (cats.indexOf(n) < 0) cats.push(n);
+    });
+    return num(p.cantidad) + (p.cantidad === 1 ? ' vianda · ' : ' viandas · ') + esc(cats.join(', '));
+  }
+
+  function pintarTabla() {
+    var lista = ordenados(visibles());
+    var paginas = Math.max(1, Math.ceil(lista.length / POR_PAGINA));
+    if (pagina > paginas) pagina = paginas;
+    var desde = (pagina - 1) * POR_PAGINA;
+    var enPagina = lista.slice(desde, desde + POR_PAGINA);
+
+    el('cuerpoTabla').innerHTML = lista.length === 0
+      ? '<tr class="empty-row"><td colspan="6">No hay pedidos que coincidan con este filtro.</td></tr>'
+      : enPagina.map(function (p) {
+          return '<tr>' +
+            '<td data-label="Hora">' + esc(hora(p.creado_en)) + '</td>' +
+            '<td data-label="Clienta">' + esc(p.cliente_nombre || '—') +
+              '<br><span class="meta">' + esc(p.cliente_telefono || '') + '</span></td>' +
+            '<td data-label="Canal"><span class="channel-tag">' + esc(CANAL[p.canal] || p.canal) + '</span></td>' +
+            '<td data-label="Viandas">' + resumenItems(p) + '</td>' +
+            '<td data-label="Monto" class="num-col num">' + plata(p.total) + '</td>' +
+            '<td data-label="Estado">' + celdaEstado(p) + '</td>' +
+          '</tr>';
+        }).join('');
+
+    el('infoPagina').textContent = lista.length === 0
+      ? 'Sin resultados'
+      : 'Mostrando ' + (desde + 1) + '–' + Math.min(desde + POR_PAGINA, lista.length) +
+        ' de ' + lista.length + (lista.length === 1 ? ' pedido' : ' pedidos');
+    el('indicadorPagina').textContent = 'Página ' + pagina + ' de ' + paginas;
+    el('btnPrev').disabled = pagina <= 1;
+    el('btnNext').disabled = pagina >= paginas;
+
+    document.querySelectorAll('.ds-table th[data-sort]').forEach(function (th) {
+      var k = th.getAttribute('data-sort');
+      th.setAttribute('aria-sort', k === orden.campo
+        ? (orden.dir === 1 ? 'ascending' : 'descending') : 'none');
+    });
+  }
+
+  function pintarResumen() {
+    var r = datos.resumen;
+    el('kpis').innerHTML =
+      tarjeta('Pedidos', num(r.pedidos)) +
+      tarjeta('Viandas', num(r.viandas || 0)) +
+      tarjeta('Por la app', num(r.porCanal.app.pedidos)) +
+      tarjeta('Recaudado', plata(r.plata || 0));
+    el('secResumen').hidden = false;
+
+    var total = (r.porTipo || []).reduce(function (a, t) { return a + t.viandas; }, 0);
+    el('desglose').innerHTML = !total
+      ? '<p class="meta">Todavía no hay viandas en este filtro.</p>'
+      : r.porTipo.map(function (t) {
+          var pct = Math.round(t.viandas * 100 / total);
+          var color = COLOR[t.categoria_id] || 'var(--muted)';
+          var nom = nombreDe(catalogo && catalogo.categorias, t.categoria_id);
+          return '<div class="hbar-row" tabindex="0" data-tooltip="' +
+              esc(nom + ': ' + num(t.viandas) + ' viandas (' + pct + '% del total)') + '">' +
+            '<div class="hbar-top"><span class="hbar-name">' +
+              '<span class="hbar-dot" style="background:' + color + '"></span>' + esc(nom) +
+            '</span><span class="hbar-num num">' + num(t.viandas) + ' · ' + pct + '%</span></div>' +
+            '<div class="hbar-track"><div class="hbar-fill" style="width:' + pct + '%;background:' + color + '"></div></div>' +
+          '</div>';
+        }).join('');
+    el('secDesglose').hidden = false;
+  }
+
+  function tarjeta(etiqueta, valor) {
+    return '<div class="kpi-card"><p class="kpi-label">' + esc(etiqueta) + '</p>' +
+      '<p class="kpi-num num">' + esc(valor) + '</p></div>';
+  }
+
+  /* -------------------------------------------------------- Cargar */
 
   async function cargar() {
-    el('cargando').hidden = false;
     Panel.limpiarAviso(el('aviso'));
+    el('cargando').hidden = false;
     try {
       if (!catalogo) catalogo = await Panel.pedir('/api/precios');
       var q = '?rango=' + filtro.rango + '&fecha=' + filtro.fecha +
-              (filtro.canal ? '&canal=' + filtro.canal : '');
+              (filtro.canal !== 'todos' ? '&canal=' + filtro.canal : '');
       datos = await Panel.pedir('/api/pedidos' + q);
-      el('cargando').hidden = true;
-      pintarResumen(datos);
-      pintarLista(datos);
+      pintarTabla();
+      pintarResumen();
+      el('secListado').hidden = false;
     } catch (e) {
-      el('cargando').hidden = true;
       Panel.mostrarError(el('aviso'), e);
+      el('secListado').hidden = true;
+      el('secResumen').hidden = true;
+      el('secDesglose').hidden = true;
+    } finally {
+      el('cargando').hidden = true;
     }
   }
 
-  /* --------------------------------------------- Formulario manual */
+  /* ------------------------------------------------- Formulario */
 
-  function filaItem(n) {
-    var cats = (catalogo.categorias || []).concat(catalogo.extraFijo ? [catalogo.extraFijo] : []);
-    return '' +
-      '<div class="grilla" data-item style="margin-bottom:8px">' +
-        '<select class="mes__sel" data-campo="dia">' +
-          (catalogo.dias || []).map(function (d) {
-            return '<option value="' + esc(d.id) + '">' + esc(d.nombre) + '</option>';
-          }).join('') + '</select>' +
-        '<select class="mes__sel" data-campo="categoria">' +
-          cats.map(function (c) {
-            return '<option value="' + esc(c.id) + '">' + esc(c.nombre) + '</option>';
-          }).join('') + '</select>' +
-        '<select class="mes__sel" data-campo="tamano">' +
-          (catalogo.tamanos || []).map(function (t) {
-            return '<option value="' + esc(t.id) + '">' + esc(t.nombre) + ' ' + esc(t.gramos) + '</option>';
-          }).join('') + '</select>' +
-        '<input class="campo__i" type="number" min="1" max="99" value="1" data-campo="cantidad" ' +
-          'aria-label="Cantidad de la vianda ' + n + '">' +
-      '</div>';
+  function opciones(lista, sel) {
+    return (lista || []).map(function (x) {
+      return '<option value="' + esc(x.id) + '"' + (x.id === sel ? ' selected' : '') + '>' +
+        esc(x.nombre) + '</option>';
+    }).join('');
   }
 
-  function prepararManual() {
-    el('mZona').innerHTML = ((catalogo.envio && catalogo.envio.zonas) || []).map(function (z) {
-      return '<option value="' + esc(z.id) + '">' + esc(z.nombre) + '</option>';
-    }).join('');
-    el('mPunto').innerHTML = (catalogo.puntosRetiro || []).map(function (p) {
-      return '<option value="' + esc(p.id) + '">' + esc(p.nombre) + '</option>';
-    }).join('');
-    el('mPago').innerHTML = (catalogo.metodosPago || []).map(function (m) {
-      return '<option value="' + esc(m.id) + '">' + esc(m.nombre) + '</option>';
-    }).join('');
-    el('mItems').innerHTML = filaItem(1);
+  function filaItem(it) {
+    it = it || {};
+    return '<div class="field-row item-fila" style="grid-template-columns:1fr 1fr 1fr auto;align-items:end;margin-bottom:10px">' +
+      '<div class="field"><label>Día</label><select class="select it-dia">' +
+        opciones(catalogo.dias, it.dia_id) + '</select></div>' +
+      '<div class="field"><label>Menú</label><select class="select it-cat">' +
+        opciones(catalogo.categorias, it.categoria_id) + '</select></div>' +
+      '<div class="field"><label>Tamaño</label><select class="select it-tam">' +
+        opciones(catalogo.tamanos, it.tamano_id) + '</select></div>' +
+      '<div class="field" style="width:92px"><label>Cant.</label>' +
+        '<input class="input it-cant" type="number" min="1" max="99" value="' + (it.cantidad || 1) + '"></div>' +
+      '<button type="button" class="btn-icon btn-borrar it-quitar" aria-label="Quitar esta vianda" data-tooltip="Quitar">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M5 12h14"/></svg></button>' +
+    '</div>';
   }
 
-  function alternarEntrega() {
-    var esEnvio = el('mModalidad').value === 'envio';
-    el('cZona').hidden = !esEnvio;
-    el('cDireccion').hidden = !esEnvio;
-    el('cPunto').hidden = esEnvio;
-  }
-
-  function cuerpoManual() {
-    var items = [].slice.call(el('mItems').querySelectorAll('[data-item]')).map(function (f) {
-      var v = function (campo) { return f.querySelector('[data-campo="' + campo + '"]').value; };
+  function itemsDelFormulario() {
+    return Array.prototype.map.call(el('iItems').querySelectorAll('.item-fila'), function (f) {
       return {
-        dia: v('dia'), categoria: v('categoria'), tamano: v('tamano'),
-        cantidad: parseInt(v('cantidad'), 10) || 0
+        dia: f.querySelector('.it-dia').value,
+        categoria: f.querySelector('.it-cat').value,
+        tamano: f.querySelector('.it-tam').value,
+        cantidad: Number(f.querySelector('.it-cant').value) || 0
       };
-    });
+    }).filter(function (i) { return i.cantidad > 0; });
+  }
 
-    var esEnvio = el('mModalidad').value === 'envio';
+  function sincronizarEntrega() {
+    var esEnvio = el('iModalidad').value === 'envio';
+    el('fZona').hidden = !esEnvio;
+    el('fPunto').hidden = esEnvio;
+    el('fDireccion').hidden = !esEnvio;
+  }
+
+  function abrirDialogo(pedido) {
+    editando = pedido ? pedido.id : null;
+    el('dlgTitulo').textContent = pedido ? 'Editar pedido' : 'Cargar pedido manual';
+    el('dlgGuardar').textContent = pedido ? 'Guardar cambios' : 'Cargar pedido';
+    Panel.limpiarAviso(el('dlgAviso'));
+    el('dlgTotal').textContent = pedido
+      ? 'Hoy figura en ' + plata(pedido.total) + '. Al guardar se recalcula con los precios de hoy.'
+      : 'El total lo calcula el servidor con la lista de precios de hoy.';
+
+    el('iZona').innerHTML = opciones(catalogo.envio.zonas, pedido && pedido.zona_id);
+    el('iPunto').innerHTML = opciones(catalogo.puntosRetiro, pedido && pedido.punto_id);
+    el('iPago').innerHTML = opciones(catalogo.metodosPago, pedido && pedido.metodo_pago);
+
+    el('iCliente').value = pedido ? (pedido.cliente_nombre || '') : '';
+    el('iTelefono').value = pedido ? (pedido.cliente_telefono || '') : '';
+    el('iCanal').value = pedido ? pedido.canal : 'whatsapp';
+    el('iEstado').value = pedido ? pedido.estado : 'nuevo';
+    el('iModalidad').value = pedido ? pedido.modalidad : 'envio';
+    el('iDireccion').value = pedido ? (pedido.direccion || '') : '';
+    el('iNotas').value = pedido ? (pedido.notas || '') : '';
+
+    var items = pedido ? (datos.items || []).filter(function (i) { return i.pedido_id === pedido.id; }) : [];
+    el('iItems').innerHTML = (items.length ? items : [null]).map(filaItem).join('');
+
+    sincronizarEntrega();
+    ['fCliente', 'fTelefono', 'fDireccion'].forEach(function (id) {
+      el(id).classList.remove('is-invalid');
+    });
+    el('dlgPedido').showModal();
+    el('iCliente').focus();
+  }
+
+  function cuerpoDelFormulario() {
+    var esEnvio = el('iModalidad').value === 'envio';
+    /* Los nombres son los que espera armarPedido() en
+       worker/rutas/pedidos.js: cliente anidado, zonaId y puntoId. */
     return {
-      cliente: { nombre: el('mNombre').value, telefono: el('mTel').value },
-      modalidad: esEnvio ? 'envio' : 'retiro',
-      zonaId: esEnvio ? el('mZona').value : null,
-      direccion: esEnvio ? el('mDireccion').value : '',
-      puntoId: esEnvio ? null : el('mPunto').value,
-      metodoPago: el('mPago').value,
-      notas: el('mNotas').value,
-      items: items
+      cliente: { nombre: el('iCliente').value, telefono: el('iTelefono').value },
+      canal: el('iCanal').value,
+      estado: el('iEstado').value,
+      modalidad: el('iModalidad').value,
+      zonaId: esEnvio ? el('iZona').value : '',
+      puntoId: esEnvio ? '' : el('iPunto').value,
+      direccion: esEnvio ? el('iDireccion').value : '',
+      metodoPago: el('iPago').value,
+      notas: el('iNotas').value,
+      items: itemsDelFormulario()
     };
   }
 
-  async function guardarManual(ev) {
-    ev.preventDefault();
-    Panel.limpiarAviso(el('aviso'));
+  function validar(c) {
+    var bien = true;
+    function marcar(campo, ok) {
+      el(campo).classList.toggle('is-invalid', !ok);
+      if (!ok) bien = false;
+    }
+    marcar('fCliente', c.cliente.nombre.trim().length > 1);
+    marcar('fTelefono', c.cliente.telefono.replace(/\D/g, '').length >= 6);
+    marcar('fDireccion', c.modalidad !== 'envio' || c.direccion.trim().length > 3);
+    if (!c.items.length) {
+      Panel.mostrarError(el('dlgAviso'), { mensaje: 'Agregá al menos una vianda.', detalles: [] });
+      bien = false;
+    }
+    return bien;
+  }
 
-    var btn = el('btnGuardarManual');
-    btn.disabled = true;
-    btn.textContent = 'Anotando…';
+  async function guardar(ev) {
+    ev.preventDefault();
+    var c = cuerpoDelFormulario();
+    Panel.limpiarAviso(el('dlgAviso'));
+    if (!validar(c)) return;
+
+    el('dlgGuardar').disabled = true;
     try {
-      await Panel.pedir('/api/pedidos/manual', { metodo: 'POST', cuerpo: cuerpoManual() });
-      Panel.toast('Pedido anotado ✅');
-      el('formManual').hidden = true;
-      el('btnAbrirManual').hidden = false;
-      el('mNombre').value = ''; el('mTel').value = '';
-      el('mDireccion').value = ''; el('mNotas').value = '';
-      el('mItems').innerHTML = filaItem(1);
+      if (editando === null) {
+        await Panel.pedir('/api/pedidos/manual', { metodo: 'POST', cuerpo: c });
+        Panel.toast('Pedido cargado.');
+      } else {
+        await Panel.pedir('/api/pedidos/' + editando, { metodo: 'PATCH', cuerpo: c });
+        Panel.toast('Pedido actualizado.');
+      }
+      el('dlgPedido').close();
       await cargar();
     } catch (e) {
-      Panel.mostrarError(el('aviso'), e);
+      Panel.mostrarError(el('dlgAviso'), e);
     } finally {
-      btn.disabled = false;
-      btn.textContent = 'Anotar pedido';
+      el('dlgGuardar').disabled = false;
     }
   }
 
-  /* ---------------------------------------------------------- Filtros */
+  /* -------------------------------------------------------- Eventos */
 
-  function marcar(ids, activo) {
-    ids.forEach(function (id) {
-      el(id).setAttribute('aria-pressed', String(id === activo));
+  function grupoSegmentado(selector, alElegir) {
+    document.querySelectorAll(selector).forEach(function (b) {
+      b.addEventListener('click', function () {
+        document.querySelectorAll(selector).forEach(function (o) {
+          var on = o === b;
+          o.classList.toggle('active', on);
+          o.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        pagina = 1;
+        alElegir(b);
+      });
     });
   }
 
-  document.addEventListener('DOMContentLoaded', function () {
+  function arrancar() {
     filtro.fecha = hoyParana();
     el('fFecha').value = filtro.fecha;
 
-    el('fDia').addEventListener('click', function () {
-      filtro.rango = 'dia'; marcar(['fDia', 'fSemana'], 'fDia'); cargar();
+    grupoSegmentado('.seg-tab[data-rango]', function (b) {
+      filtro.rango = b.getAttribute('data-rango');
+      /* Con "Todos" la fecha no filtra nada: se apaga para que no
+         parezca que sí. */
+      el('fFecha').disabled = filtro.rango === 'todo';
+      cargar();
     });
-    el('fSemana').addEventListener('click', function () {
-      filtro.rango = 'semana'; marcar(['fDia', 'fSemana'], 'fSemana'); cargar();
+    grupoSegmentado('.seg-tab[data-canal]', function (b) {
+      filtro.canal = b.getAttribute('data-canal');
+      cargar();
     });
+
     el('fFecha').addEventListener('change', function () {
-      filtro.fecha = el('fFecha').value || hoyParana(); cargar();
+      filtro.fecha = el('fFecha').value || hoyParana();
+      pagina = 1;
+      cargar();
     });
 
-    el('fTodos').addEventListener('click', function () {
-      filtro.canal = ''; marcar(['fTodos', 'fApp', 'fWa'], 'fTodos'); cargar();
-    });
-    el('fApp').addEventListener('click', function () {
-      filtro.canal = 'app'; marcar(['fTodos', 'fApp', 'fWa'], 'fApp'); cargar();
-    });
-    el('fWa').addEventListener('click', function () {
-      filtro.canal = 'whatsapp'; marcar(['fTodos', 'fApp', 'fWa'], 'fWa'); cargar();
+    el('fBuscar').addEventListener('input', function () {
+      filtro.buscar = el('fBuscar').value;
+      pagina = 1;
+      pintarTabla();
     });
 
-    el('btnAbrirManual').addEventListener('click', function () {
-      prepararManual();
-      alternarEntrega();
-      el('formManual').hidden = false;
-      el('btnAbrirManual').hidden = true;
-      el('mNombre').focus();
+    document.querySelectorAll('.ds-table th[data-sort]').forEach(function (th) {
+      th.querySelector('.sort-btn').addEventListener('click', function () {
+        var k = th.getAttribute('data-sort');
+        if (orden.campo === k) orden.dir = -orden.dir;
+        else { orden.campo = k; orden.dir = k === 'hora' ? -1 : 1; }
+        pintarTabla();
+      });
     });
-    el('btnCancelarManual').addEventListener('click', function () {
-      el('formManual').hidden = true;
-      el('btnAbrirManual').hidden = false;
-    });
-    el('btnMasItem').addEventListener('click', function () {
-      var n = el('mItems').querySelectorAll('[data-item]').length + 1;
-      el('mItems').insertAdjacentHTML('beforeend', filaItem(n));
-    });
-    el('mModalidad').addEventListener('change', alternarEntrega);
-    el('formManual').addEventListener('submit', guardarManual);
 
-    /* Cambiar el estado de un pedido desde el listado */
-    el('lista').addEventListener('change', async function (ev) {
-      var id = ev.target.getAttribute && ev.target.getAttribute('data-id');
-      if (!id) return;
+    el('btnPrev').addEventListener('click', function () { pagina -= 1; pintarTabla(); });
+    el('btnNext').addEventListener('click', function () { pagina += 1; pintarTabla(); });
+
+    /* Cambiar el estado desde la fila. Es lo que más se toca en el día,
+       así que va por el camino corto del PATCH: sólo el estado. */
+    el('cuerpoTabla').addEventListener('change', async function (ev) {
+      var sel = ev.target.closest('select[data-id]');
+      if (!sel) return;
+      var id = Number(sel.getAttribute('data-id'));
+      var antes = (datos.pedidos.filter(function (p) { return p.id === id; })[0] || {}).estado;
       try {
-        await Panel.pedir('/api/pedidos/' + id, { metodo: 'PATCH', cuerpo: { estado: ev.target.value } });
-        Panel.toast('Pedido #' + id + ': ' + ev.target.value);
+        await Panel.pedir('/api/pedidos/' + id, { metodo: 'PATCH', cuerpo: { estado: sel.value } });
+        datos.pedidos.forEach(function (p) { if (p.id === id) p.estado = sel.value; });
+        pintarTabla();
+        Panel.toast('Estado actualizado.');
       } catch (e) {
+        sel.value = antes;
         Panel.mostrarError(el('aviso'), e);
       }
     });
 
-    cargar();
-  });
+    el('cuerpoTabla').addEventListener('click', function (ev) {
+      var b = ev.target.closest('[data-editar]');
+      if (!b) return;
+      var id = Number(b.getAttribute('data-editar'));
+      var p = datos.pedidos.filter(function (x) { return x.id === id; })[0];
+      if (p) abrirDialogo(p);
+    });
 
+    el('btnNuevo').addEventListener('click', function () { abrirDialogo(null); });
+    el('dlgCerrar').addEventListener('click', function () { el('dlgPedido').close(); });
+    el('dlgCancelar').addEventListener('click', function () { el('dlgPedido').close(); });
+    el('iModalidad').addEventListener('change', sincronizarEntrega);
+    el('btnMasItem').addEventListener('click', function () {
+      el('iItems').insertAdjacentHTML('beforeend', filaItem(null));
+    });
+    el('iItems').addEventListener('click', function (ev) {
+      if (!ev.target.closest('.it-quitar')) return;
+      var filas = el('iItems').querySelectorAll('.item-fila');
+      if (filas.length <= 1) { Panel.toast('El pedido tiene que tener al menos una vianda.'); return; }
+      ev.target.closest('.item-fila').remove();
+    });
+    el('formPedido').addEventListener('submit', guardar);
+
+    cargar();
+  }
+
+  document.addEventListener('DOMContentLoaded', arrancar);
 })();

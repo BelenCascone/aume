@@ -437,8 +437,14 @@
     var packs = d.packs && lista(d.packs.opciones);
     if (packs) { CFG.packs.opciones = packs; cambio = true; }
     if (d.planMensual && d.planMensual.precios) { CFG.planMensual = d.planMensual; cambio = true; }
+    /* La API devuelve también los productos sin precio definido, porque
+       el panel los necesita para podérselo poner. Acá se filtran: en la
+       web no va nada que todavía no tenga precio. */
     var productos = lista(d.productos);
-    if (productos) { CFG.productos = productos; cambio = true; }
+    if (productos) {
+      CFG.productos = productos.filter(function (p) { return p.activo !== false; });
+      cambio = true;
+    }
 
     return cambio;
   }

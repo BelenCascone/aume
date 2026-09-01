@@ -41,6 +41,18 @@ porque no pasa por él.
 | `/api/pedidos`                   | GET    | panel       | 3 ✅ |
 | `/api/pedidos/manual`            | POST   | panel       | 3 ✅ |
 | `/api/pedidos/:id`               | PATCH  | panel       | 3 ✅ |
+
+`PATCH /api/pedidos/:id` hace dos cosas según lo que se le mande: sin
+`items` cambia sólo el estado (es lo que usa el desplegable de cada
+fila, que se toca todo el tiempo), y con `items` edita el pedido
+entero. En los dos casos los precios se recalculan en el servidor: el
+panel nunca manda un importe.
+
+`PUT /api/precios` acepta además `productos` (los de "Otros
+productos") y `puntosRetiro`, que se agregan y se sacan desde el
+panel. Sacar un punto lo apaga (`activo = 0`), no lo borra: los
+pedidos viejos guardan su id y si la fila desapareciera el historial
+mostraría un código en vez del nombre del local.
 | `/api/estadisticas?desde=&hasta=` | GET   | panel       | 4 ✅ |
 
 Las rutas marcadas "panel" exigen una identidad válida de Cloudflare
@@ -183,6 +195,13 @@ Si contesta `duplicate column name: feriado`, ya estaba aplicado: seguí de
 largo. Si la base la creaste después de la Fase 3, este paso te lo podés
 saltear.
 
+Y el 0003, que suma postres y yogures como productos sin precio para que
+aparezcan en el panel:
+
+```bash
+npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0003_productos.sql
+```
+
 Los dos archivos se pueden correr **todas las veces que haga falta**:
 `schema.sql` usa `CREATE TABLE IF NOT EXISTS` y `semilla.sql` usa
 `INSERT OR IGNORE`, así que no pisan nada que ya hayas editado desde el
@@ -244,9 +263,15 @@ ese archivo siga describiendo la base completa.
 ### Cómo se carga el menú
 
 La nutri arma el menú del mes **separado por semanas**, así que la
-pantalla principal es `/admin/menus/semana.html`: los 5 días con sus 4
-tipos, y un botón que guarda y publica la semana entera de una.
-`/admin/menus/dia.html` sigue existiendo para corregir un día suelto.
+unidad de `/admin/menus/` es la semana entera: los 5 días con sus 4
+tipos en una sola pantalla, con flechas para moverse de semana y dos
+botones — guardar borrador y publicar.
+
+Los platos se editan **en el lugar**: se toca el lápiz, se escribe y con
+Enter queda. Nada viaja al servidor hasta que se toca Guardar o
+Publicar, así se puede corregir tranquila sin que cada tecla dispare una
+escritura. Si se intenta salir con cambios sin guardar, el navegador
+avisa.
 
 **Feriados.** Cada día tiene una casilla *Feriado*. Marcarla borra los
 platos de ese día (si no, la web mostraría "Feriado" y platos al mismo
@@ -344,11 +369,14 @@ y un pie. Eso vive en dos archivos:
 | `admin/assets/css/shell.css` | el armazón y los componentes del tablero (tarjetas de número, gráficos, tablas) |
 | `admin/assets/css/panel.css` | el estilo de las pantallas de trabajo: formularios, cajas, botones |
 
-Las dos hojas conviven a propósito. `shell.css` es el diseño nuevo y
-`panel.css` es lo que ya estaba; **ningún nombre de clase se pisa entre
-las dos**, así que se puede migrar el contenido de una pantalla por vez
-sin romper las otras. Hoy Estadísticas ya usa los componentes nuevos; el
-resto conserva su contenido dentro del armazón nuevo.
+Las cinco pantallas están migradas al diseño nuevo. `panel.css` quedó
+reducido a los tokens de color y tipografía, el cartel de entorno, los
+avisos de error, las tarjetas de la portada y el toast: todo lo demás
+vive en `shell.css`. **Ningún nombre de clase se pisa entre las dos**.
+
+La paleta de gráficos (`--g-clasico` y compañía) está en `shell.css`, y
+el comentario de arriba de todo explica por qué no son los colores de la
+marca.
 
 El menú lateral se abre y se cierra desde `armarBarra()`, en
 `admin/assets/js/panel.js`. Qué sección está activa lo dice el HTML de

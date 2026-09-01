@@ -62,35 +62,66 @@
     </header>
 
     <main class="content">
-  <p class="bajada">Todo lo que antes se editaba a mano, desde acá.</p>
+      <section class="section-block">
+        <div class="row-between range-header" style="flex-direction:row;text-align:left">
+          <p class="eyebrow" style="margin:0">Resumen</p>
+          <div class="range-tabs" role="group" aria-label="Rango de fechas">
+            <button type="button" class="range-tab active" data-rango="hoy" aria-pressed="true">Hoy</button>
+            <button type="button" class="range-tab" data-rango="7" aria-pressed="false">7 días</button>
+            <button type="button" class="range-tab" data-rango="28" aria-pressed="false">28 días</button>
+          </div>
+        </div>
+        <div id="aviso"></div>
+        <div class="kpi-grid" id="kpis"></div>
+      </section>
 
-  <section class="inicio-kpis" id="inicioKpis" hidden aria-label="Los últimos 7 días"></section>
+      <section class="section-block grid-split" id="graficos"></section>
 
-  <div class="modulos">
-    <a class="modulo modulo--clasico" href="/admin/precios/">
-      <div class="modulo__i" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.6 3.2 20 10.6a2 2 0 0 1 0 2.8l-6.6 6.6a2 2 0 0 1-2.8 0L3 12.4V4.8A1.6 1.6 0 0 1 4.6 3.2h8Z"/><circle cx="8.4" cy="7.6" r="1.4"/></svg></div>
-      <p class="modulo__t">Precios</p>
-      <p class="modulo__d">Vianda por tamaño, envío por zona, packs semanales y plan mensual.</p>
-    </a>
+      <section class="section-block">
+        <div class="row-between" style="margin-bottom:4px">
+          <h2 class="h3-like">Pedidos recientes</h2>
+          <a href="/admin/pedidos/" class="meta" style="font-weight:600;color:var(--fg)">Ver todos →</a>
+        </div>
+        <div class="card table-wrap">
+          <table class="ds-table">
+            <thead>
+              <tr>
+                <th>Hora</th><th>Clienta</th><th>Canal</th>
+                <th>Viandas</th><th class="num-col">Monto</th><th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="recientes">
+              <tr class="empty-row"><td colspan="6">Cargando…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-    <a class="modulo modulo--vegetariano" href="/admin/menus/">
-      <div class="modulo__i" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><path d="M3.5 12h17M12 5v14"/></svg></div>
-      <p class="modulo__t">Menú</p>
-      <p class="modulo__d">Cargar el menú de cada día, guardarlo como borrador y publicarlo.</p>
-    </a>
-
-    <a class="modulo modulo--proteico" href="/admin/pedidos/">
-      <div class="modulo__i" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4.5" width="14" height="16" rx="2"/><path d="M9 3.5h6a1 1 0 0 1 1 1V6H8V4.5a1 1 0 0 1 1-1Z"/><path d="M8.5 11h7M8.5 14.5h7M8.5 18h4"/></svg></div>
-      <p class="modulo__t">Pedidos</p>
-      <p class="modulo__d">Los que entran solos por la web y los que llegan por WhatsApp.</p>
-    </a>
-
-    <a class="modulo modulo--ensalada" href="/admin/estadisticas/">
-      <div class="modulo__i" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M9.5 20V6M15 20V13M20 20V4"/></svg></div>
-      <p class="modulo__t">Estadísticas</p>
-      <p class="modulo__d">Qué menú se pide más, cuánto se recaudó y de dónde vienen los pedidos.</p>
-    </a>
-  </div>
+      <section class="section-block">
+        <p class="eyebrow">Ir a</p>
+        <div class="modulos">
+          <a class="modulo modulo--clasico" href="/admin/precios/">
+            <div class="modulo__i" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.6 3.2 20 10.6a2 2 0 0 1 0 2.8l-6.6 6.6a2 2 0 0 1-2.8 0L3 12.4V4.8A1.6 1.6 0 0 1 4.6 3.2h8Z"/><circle cx="8.4" cy="7.6" r="1.4"/></svg></div>
+            <p class="modulo__t">Precios</p>
+            <p class="modulo__d">Vianda por tamaño, envío por zona, packs, plan mensual y puntos de retiro.</p>
+          </a>
+          <a class="modulo modulo--vegetariano" href="/admin/menus/">
+            <div class="modulo__i" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><path d="M3.5 12h17M12 5v14"/></svg></div>
+            <p class="modulo__t">Menú</p>
+            <p class="modulo__d">Cargar la semana, marcar feriados y publicarla.</p>
+          </a>
+          <a class="modulo modulo--proteico" href="/admin/pedidos/">
+            <div class="modulo__i" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4.5" width="14" height="16" rx="2"/><path d="M9 3.5h6a1 1 0 0 1 1 1V6H8V4.5a1 1 0 0 1 1-1Z"/><path d="M8.5 11h7M8.5 14.5h7M8.5 18h4"/></svg></div>
+            <p class="modulo__t">Pedidos</p>
+            <p class="modulo__d">Los que entran solos por la web y los que cargás vos.</p>
+          </a>
+          <a class="modulo modulo--ensalada" href="/admin/estadisticas/">
+            <div class="modulo__i" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9m6.5 10V4m6.5 15v-7"/></svg></div>
+            <p class="modulo__t">Estadísticas</p>
+            <p class="modulo__d">Qué menú se pide más, cuánto se recaudó y quiénes repiten.</p>
+          </a>
+        </div>
+      </section>
     </main>
     <footer class="pagefoot">
       Panel interno de AUMÉ · Paraná, Entre Ríos
