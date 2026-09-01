@@ -68,7 +68,7 @@ demás:
 | Base | Para qué |
 |---|---|
 | `aume-staging` | Probar. Si algo sale mal acá, no pasa nada. |
-| `aume-produccion` | La de verdad, la que ve la clienta. |
+| `aume-produccion` | La de verdad, la que ve el cliente. |
 
 **Las dos ya están creadas y conectadas** en `wrangler.jsonc`. Esta
 sección queda escrita paso a paso por si alguna vez hay que rehacerlas
@@ -281,7 +281,7 @@ justamente lo que hay que comunicar es que ese día no se cocina.
 **Días que ya pasaron.** Si hoy es miércoles, la web ya no deja pedir el
 lunes ni el martes de esta semana: esos días aparecen apagados y sin
 botones. La fecha de "hoy" la decide el **servidor**, no el celular de
-la clienta: de eso depende que se cobre o no una vianda, y un reloj
+el cliente: de eso depende que se cobre o no una vianda, y un reloj
 desajustado no puede habilitar un pedido que no se puede entregar.
 
 ---
@@ -298,7 +298,7 @@ canal `app`:
 
 > **El registro nunca bloquea la venta.** En el camino de WhatsApp el
 > pedido se manda a la API *sin esperar la respuesta*, y WhatsApp se
-> abre en el mismo gesto de la clienta. Si esperáramos a la API, el
+> abre en el mismo gesto del cliente. Si esperáramos a la API, el
 > navegador ya no consideraría la apertura parte del toque y los
 > bloqueadores de pop-ups la frenarían. Y si la API falla, el pedido
 > igual llega por WhatsApp: registrar es un extra, abrir WhatsApp no.
@@ -320,20 +320,20 @@ No hay pasarela de pago online: eso sigue igual que siempre.
 sólo muestra números: qué menú conviene cocinar más, si la web sirve o
 todo sigue entrando por WhatsApp, si se está creciendo, cuánto deja cada
 pedido, si conviene reforzar el reparto o los puntos de retiro, qué día
-hay que cocinar más y si las clientas vuelven.
+hay que cocinar más y si los clientes vuelven.
 
 Dos cosas que conviene saber para leerlo bien:
 
 - **Los pedidos cancelados no cuentan** en ninguna cifra. No se
   cocinaron ni se cobraron; contarlos infla la recaudación.
-- **Una clienta es un teléfono.** Es lo único estable: el nombre lo
+- **Un cliente es un teléfono.** Es lo único estable: el nombre lo
   escribe distinto cada vez y no hay cuentas de usuario. Por eso "Ana
   Pérez" y "ana perez" con el mismo número cuentan como una sola.
 - Los importes salen de lo que **efectivamente se cobró**: cada línea de
   pedido guarda el precio del momento, así que cambiar la lista de
   precios hoy no reescribe la historia.
 
-**Las clientas.** El tablero muestra dos listas de diez:
+**Los clientes.** El tablero muestra dos listas de diez:
 
 - **Las más frecuentes**, para reconocerles algo. Cada una con su
   categoría favorita, que sale de sumarle las viandas por categoría de
@@ -341,7 +341,7 @@ Dos cosas que conviene saber para leerlo bien:
 - **Las que hay que reconquistar**: las que menos pidieron y hace más de
   dos semanas que no vuelven. El corte de dos semanas está puesto a
   propósito: alguien que compró por primera vez el martes pasado no es
-  una clienta perdida, es una clienta nueva, y mandarle una oferta de
+  un cliente perdido, es un cliente nuevo, y mandarle una oferta de
   "volvé" sería molestarla.
 
 > **Los colores de los gráficos no son los de la marca, y es a
@@ -455,7 +455,7 @@ En el dashboard de Cloudflare → **Zero Trust** → **Access** →
 Con `Path: admin` queda protegido `/admin` y todo lo que cuelgue de él
 (`/admin/menus/`, `/admin/pedidos/`, …). **La landing pública no queda
 tocada**: `/`, `/assets/…` y `/api/pedidos` siguen abiertos para las
-clientas.
+clientes.
 
 > **Por qué no se protege también `/api/*` desde Access:** ahí conviven
 > rutas públicas (la landing lee los precios y deja los pedidos) con

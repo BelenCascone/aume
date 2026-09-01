@@ -10,7 +10,7 @@
    · ¿Cuánto deja cada pedido? -> ticketPromedio
    · ¿Conviene reforzar el reparto o los puntos de retiro? -> entrega
    · ¿Qué día hay que cocinar más? -> porDiaEntrega
-   · ¿Las clientas vuelven? -> clientas
+   · ¿Los clientes vuelven? -> clientes
 
    Todo sale de lo que efectivamente se cobró: los pedido_items guardan
    el precio del momento, así que cambiar la lista de precios hoy no
@@ -65,7 +65,7 @@ async function tablero(ctx) {
 
   const [
     totalesRes, canalRes, tipoRes, tamanoRes, entregaRes,
-    diaPedidoRes, diaEntregaRes, semanaRes, pagoRes, zonaRes, clientasRes,
+    diaPedidoRes, diaEntregaRes, semanaRes, pagoRes, zonaRes, clientesRes,
     favoritaRes
   ] = await db.batch([
     db.prepare('SELECT COUNT(*) AS pedidos, COALESCE(SUM(cantidad),0) AS viandas, ' +
@@ -100,14 +100,14 @@ async function tablero(ctx) {
     db.prepare('SELECT zona_id AS id, COUNT(*) AS pedidos FROM pedidos ' + wP +
       " AND modalidad = 'envio' AND zona_id IS NOT NULL GROUP BY zona_id ORDER BY pedidos DESC").bind(...p),
 
-    /* Una clienta = un teléfono. Es lo único estable: el nombre lo
+    /* Un cliente = un teléfono. Es lo único estable: el nombre lo
        escribe distinto cada vez y no hay cuentas de usuario. */
     db.prepare('SELECT telefono_norm AS tel, MAX(cliente_nombre) AS nombre, ' +
       'COUNT(*) AS pedidos, COALESCE(SUM(total),0) AS plata, MAX(fecha_local) AS ultimo ' +
       'FROM pedidos ' + wP + " AND telefono_norm != '' " +
       'GROUP BY telefono_norm ORDER BY pedidos DESC, plata DESC, tel').bind(...p),
 
-    /* Qué categoría pide más cada clienta. Viene ordenada de mayor a
+    /* Qué categoría pide más cada cliente. Viene ordenada de mayor a
        menor, así que la primera fila de cada teléfono es la favorita. */
     db.prepare('SELECT p.telefono_norm AS tel, i.categoria_id AS cat, ' +
       'SUM(i.cantidad) AS viandas FROM pedido_items i ' + wI +
@@ -130,8 +130,8 @@ async function tablero(ctx) {
     entrega[e.id] = { pedidos: e.pedidos, plata: e.plata };
   }
 
-  const clientas = filas(clientasRes);
-  const repiten = clientas.filter((c) => c.pedidos > 1);
+  const clientes = filas(clientesRes);
+  const repiten = clientes.filter((c) => c.pedidos > 1);
 
   /* La favorita de cada teléfono: como la consulta viene ordenada por
      viandas de mayor a menor, alcanza con quedarse con la primera fila
@@ -143,11 +143,11 @@ async function tablero(ctx) {
   const conFavorita = (c) => ({ ...c, categoria: favorita.get(c.tel) || null });
 
   /* Para reconquistar no sirve cualquiera que pidió poco: alguien que
-     pidió por primera vez esta semana no es una clienta perdida, es una
-     clienta nueva, y escribirle una oferta sería molestarla. Por eso
+     pidió por primera vez esta semana no es un cliente perdido, es un
+     cliente nuevo, y escribirle una oferta sería molestarla. Por eso
      miramos sólo a las que hace más de dos semanas que no vuelven. */
   const dormidaDesde = restarDias(hasta, 14);
-  const dormidas = clientas
+  const dormidas = clientes
     .filter((c) => c.ultimo <= dormidaDesde)
     .sort((a, b) => a.pedidos - b.pedidos || a.ultimo.localeCompare(b.ultimo) ||
                     a.tel.localeCompare(b.tel))
@@ -199,10 +199,10 @@ async function tablero(ctx) {
     pagos: filas(pagoRes),
     zonas: filas(zonaRes),
 
-    clientas: {
-      total: clientas.length,
+    clientes: {
+      total: clientes.length,
       repiten: repiten.length,
-      pctRepiten: clientas.length ? Math.round(repiten.length * 100 / clientas.length) : 0,
+      pctRepiten: clientes.length ? Math.round(repiten.length * 100 / clientes.length) : 0,
       /* Sólo las que repiten, que son las que interesan para fidelizar.
          El teléfono va entero porque la secretaria lo necesita para
          llamarlas: es la misma información que ya ve en el listado. */

@@ -127,7 +127,7 @@
       : enPagina.map(function (p) {
           return '<tr>' +
             '<td data-label="Hora">' + esc(hora(p.creado_en)) + '</td>' +
-            '<td data-label="Clienta">' + esc(p.cliente_nombre || '—') +
+            '<td data-label="Cliente">' + esc(p.cliente_nombre || '—') +
               '<br><span class="meta">' + esc(p.cliente_telefono || '') + '</span></td>' +
             '<td data-label="Canal"><span class="channel-tag">' + esc(CANAL[p.canal] || p.canal) + '</span></td>' +
             '<td data-label="Viandas">' + resumenItems(p) + '</td>' +

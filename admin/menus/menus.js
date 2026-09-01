@@ -110,7 +110,7 @@
     var chapa = el('estadoSemana');
     chapa.className = 'badge ' + (todo ? 'badge-publicado' : 'badge-borrador');
     el('estadoSemanaTexto').textContent = todo
-      ? 'Publicada · la ve la clienta'
+      ? 'Publicada · la ve el cliente'
       : (publicados.length ? 'Publicada a medias · ' + publicados.length + ' de ' + conServicio.length + ' días'
                            : 'Borrador · todavía no la ve nadie');
 

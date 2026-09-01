@@ -124,36 +124,36 @@ export async function correr(t) {
   t.igual('la segunda con 1 (el cancelado no cuenta)', r.d.semanas[1].pedidos, 1);
   t.igual('el crecimiento compara la última contra la anterior', r.d.crecimiento.pedidos, -2);
 
-  /* --- Clientas que repiten: Ana pidió dos veces con el mismo teléfono,
+  /* --- Clientes que repiten: Ana pidió dos veces con el mismo teléfono,
          aunque escribió el nombre distinto --- */
-  t.igual('4 teléfonos distintos', r.d.clientas.total, 3);
-  t.igual('una repite', r.d.clientas.repiten, 1);
+  t.igual('4 teléfonos distintos', r.d.clientes.total, 3);
+  t.igual('una repite', r.d.clientes.repiten, 1);
   t.igual('reconocida por el teléfono, no por el nombre',
-    r.d.clientas.top[0].tel, '3434000111');
-  t.igual('con sus 2 pedidos', r.d.clientas.top[0].pedidos, 2);
+    r.d.clientes.top[0].tel, '3434000111');
+  t.igual('con sus 2 pedidos', r.d.clientes.top[0].pedidos, 2);
   t.igual('y su categoría favorita, sumando los dos pedidos',
-    r.d.clientas.top[0].categoria, 'clasico');
-  t.ok('la lista de fieles no pasa de 10', r.d.clientas.top.length <= 10);
+    r.d.clientes.top[0].categoria, 'clasico');
+  t.ok('la lista de fieles no pasa de 10', r.d.clientes.top.length <= 10);
 
   /* --- Para reconquistar: las que menos pidieron y hace más que no
          vuelven. Bea (1 pedido, 2026-09-08) antes que Cami (1 pedido
          pero más reciente) y que Ana (2 pedidos). --- */
   t.igual('primero la que menos pidió y hace más que no vuelve',
-    r.d.clientas.reconquistar[0].tel, '3434000222');
+    r.d.clientes.reconquistar[0].tel, '3434000222');
   t.igual('con los días que lleva sin pedir',
-    r.d.clientas.reconquistar[0].diasSinPedir, 22);
+    r.d.clientes.reconquistar[0].diasSinPedir, 22);
   t.igual('y también su categoría favorita',
-    r.d.clientas.reconquistar[0].categoria, 'vegetariano');
+    r.d.clientes.reconquistar[0].categoria, 'vegetariano');
   t.igual('desempata por fecha: Cami pidió lo mismo pero más cerca',
-    r.d.clientas.reconquistar[1].tel, '3434000333');
+    r.d.clientes.reconquistar[1].tel, '3434000333');
   t.ok('la lista para reconquistar no pasa de 10',
-    r.d.clientas.reconquistar.length <= 10);
+    r.d.clientes.reconquistar.length <= 10);
 
-  /* Una clienta que compró hace tres días no es una clienta perdida:
-     es una clienta nueva. Escribirle una oferta sería molestarla. */
+  /* Un cliente que compró hace tres días no es un cliente perdido:
+     es un cliente nuevo. Escribirle una oferta sería molestarla. */
   r = await pedir('?desde=2026-09-01&hasta=2026-09-20');
   t.igual('nadie para reconquistar si todas compraron hace poco',
-    r.d.clientas.reconquistar.length, 0);
+    r.d.clientes.reconquistar.length, 0);
   r = await pedir('?desde=2026-09-01&hasta=2026-09-30');
 
   /* --- Rango --- */

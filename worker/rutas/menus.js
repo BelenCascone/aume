@@ -30,7 +30,7 @@ function sumarDias(fechaISO, n) {
   return d.toISOString().slice(0, 10);
 }
 
-/* El lunes de la semana que la clienta tiene que ver hoy.
+/* El lunes de la semana que el cliente tiene que ver hoy.
 
    Los pedidos de la semana se reciben hasta el domingo a las 20:00, así
    que el sábado y el domingo ya conviene mostrar la semana que viene:
@@ -118,7 +118,7 @@ async function menuPublico(ctx) {
     feriados,
     /* La landing usa esto para no dejar pedir días que ya pasaron. La
        fecha la manda el servidor a propósito: el reloj del celular de
-       la clienta puede estar en cualquier lado. */
+       el cliente puede estar en cualquier lado. */
     hoy: fechaLocal(),
     desde,
     hasta

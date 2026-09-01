@@ -171,7 +171,7 @@
     entornoPintado = entorno;
 
     if (entorno === 'produccion') {
-      caja.textContent = '⚠ Estás en PRODUCCIÓN · lo que toques acá lo ve la clienta';
+      caja.textContent = '⚠ Estás en PRODUCCIÓN · lo que toques acá lo ve el cliente';
       caja.className = 'entorno entorno--prod';
     } else {
       caja.textContent = '⚠ Entorno de prueba (' + entorno + ') · los cambios no afectan a la web real';

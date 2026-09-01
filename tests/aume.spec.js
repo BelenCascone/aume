@@ -339,9 +339,9 @@ test.describe('Checkout', () => {
   });
 
   /* Regresión: el mensaje usa "*Campo:*" como estructura, así que el texto
-     libre de la clienta no puede contener saltos de línea ni asteriscos, o
+     libre del cliente no puede contener saltos de línea ni asteriscos, o
      podría agregar un TOTAL o un Pago falsos al final del pedido. */
-  test('el texto de la clienta no puede falsificar líneas del pedido', async ({ page }) => {
+  test('el texto del cliente no puede falsificar líneas del pedido', async ({ page }) => {
     await sumar(page, 'lunes', 'estandar', 1);
     await irAlCheckout(page);
     await completarRetiro(page, 'Ana Pérez', '3434000111', 'base');

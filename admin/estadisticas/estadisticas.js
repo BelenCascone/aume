@@ -247,41 +247,41 @@
       tarjeta('Por dónde entran los pedidos', 'Canal', barras(canalFilas, totalCanal)) +
       tarjeta('Qué día se cocina más', 'Cocina', barras(diaFilas, totalDia));
 
-    /* --- Clientas que repiten --- */
-    var C = d.clientas;
+    /* --- Clientes que repiten --- */
+    var C = d.clientes;
     var callout = '<div class="stat-callout"><span class="stat-num num">' + C.pctRepiten + '%</span>' +
       '<p class="stat-text">' + num(C.repiten) + ' de ' + num(C.total) +
-      ' clientas volvieron a pedir más de una vez en este período. ' +
-      'Estas son las que más repiten — vale la pena reconocerles algo.</p></div>';
+      ' clientes volvieron a pedir más de una vez en este período. ' +
+      'Estos son los que más repiten — vale la pena reconocerles algo.</p></div>';
 
     el('secFieles').innerHTML =
       '<p class="eyebrow">Fidelización</p>' +
-      '<h2 class="h3-like" style="margin-bottom:16px">Las 10 clientas más frecuentes</h2>' +
+      '<h2 class="h3-like" style="margin-bottom:16px">Los 10 clientes más frecuentes</h2>' +
       callout +
       tabla(
-        [{ titulo: 'Clienta' }, { titulo: 'Teléfono' }, { titulo: 'Categoría favorita' },
+        [{ titulo: 'Cliente' }, { titulo: 'Teléfono' }, { titulo: 'Categoría favorita' },
          { titulo: 'Pedidos', num: true }, { titulo: 'Gastado', num: true }],
         C.top.map(function (c) {
           return [esc(c.nombre || '—'), esc(c.tel), etiquetaCat(c.categoria),
                   num(c.pedidos), plata(c.plata)];
         }),
-        'Todavía no hay clientas que hayan pedido más de una vez en este período.');
+        'Todavía no hay clientes que hayan pedido más de una vez en este período.');
 
-    /* --- Clientas para reconquistar --- */
+    /* --- Clientes para reconquistar --- */
     el('secReconquistar').innerHTML =
       '<p class="eyebrow">Reactivación</p>' +
-      '<h2 class="h3-like" style="margin-bottom:6px">Las 10 clientas para reconquistar</h2>' +
-      '<p class="meta" style="max-width:60ch;margin-bottom:16px">Las que menos pidieron y hace ' +
-      'más de dos semanas que no vuelven. Las que compraron hace pocos días no están acá: ' +
-      'todavía no se fueron, son clientas nuevas.</p>' +
+      '<h2 class="h3-like" style="margin-bottom:6px">Los 10 clientes para reconquistar</h2>' +
+      '<p class="meta" style="max-width:60ch;margin-bottom:16px">Los que menos pidieron y hace ' +
+      'más de dos semanas que no vuelven. Los que compraron hace pocos días no están acá: ' +
+      'todavía no se fueron, son clientes nuevos.</p>' +
       tabla(
-        [{ titulo: 'Clienta' }, { titulo: 'Teléfono' }, { titulo: 'Categoría favorita' },
+        [{ titulo: 'Cliente' }, { titulo: 'Teléfono' }, { titulo: 'Categoría favorita' },
          { titulo: 'Pedidos', num: true }, { titulo: 'Sin pedir hace', num: true }],
         C.reconquistar.map(function (c) {
           return [esc(c.nombre || '—'), esc(c.tel), etiquetaCat(c.categoria),
                   num(c.pedidos), num(c.diasSinPedir) + ' días'];
         }),
-        'Nadie para reconquistar: todas las clientas del período volvieron hace poco.');
+        'Nadie para reconquistar: todos los clientes del período volvieron hace poco.');
 
     el('rotulo').textContent = 'Del ' + fechaLarga(d.desde) + ' al ' + fechaLarga(d.hasta);
   }

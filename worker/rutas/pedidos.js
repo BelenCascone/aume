@@ -25,7 +25,7 @@ function texto(v, max) {
   return String(v == null ? '' : v).replace(/[\r\n\t]+/g, ' ').replace(/\s{2,}/g, ' ').trim().slice(0, max);
 }
 
-/* Sólo los dígitos: es la clave para reconocer a una clienta que repite
+/* Sólo los dígitos: es la clave para reconocer a un cliente que repite
    aunque escriba el teléfono distinto cada vez. */
 function soloDigitos(v) {
   return String(v == null ? '' : v).replace(/\D/g, '').slice(0, 20);
@@ -42,7 +42,7 @@ function entero(v, max) {
 /* Arma el pedido validando TODO contra la base.
    `exigirMenuPublicado` distingue los dos orígenes:
    · desde la landing (true): sólo se puede pedir lo que está publicado y
-     todavía no pasó. Es lo que la clienta ve.
+     todavía no pasó. Es lo que el cliente ve.
    · desde el panel (false): la secretaria carga lo que le llegó por
      WhatsApp, que puede ser de un día raro o de algo que ya se cerró.
      Ella sabe lo que está haciendo; no le podemos poner la misma
@@ -55,7 +55,7 @@ async function armarPedido(db, cuerpo, opciones) {
   const telefono = texto(cuerpo.cliente && cuerpo.cliente.telefono, 30);
   const digitos = soloDigitos(telefono);
 
-  if (nombre.length < 2) errs.push('Falta el nombre de la clienta.');
+  if (nombre.length < 2) errs.push('Falta el nombre del cliente.');
   if (digitos.length < 8) errs.push('El teléfono no parece válido.');
 
   const modalidad = cuerpo.modalidad === 'retiro' ? 'retiro' : 'envio';
@@ -100,7 +100,7 @@ async function armarPedido(db, cuerpo, opciones) {
   ).bind(hoy).all();
 
   /* Por día de la semana nos quedamos con la fecha más próxima que
-     todavía no pasó: es la que la clienta está viendo en la web. */
+     todavía no pasó: es la que el cliente está viendo en la web. */
   const porDia = {};
   for (const m of (menuRes.results || [])) {
     if (!porDia[m.dia_id]) porDia[m.dia_id] = m;
@@ -217,7 +217,7 @@ async function crear(ctx) {
 
   /* Un doble toque en el checkout, o un reintento después de que se
      cortó la señal, no puede registrar el pedido dos veces. Si ya
-     existe, devolvemos el mismo y listo: para la clienta es idéntico. */
+     existe, devolvemos el mismo y listo: paral cliente es idéntico. */
   if (clave) {
     const ya = await ctx.db.prepare('SELECT id, total, cantidad FROM pedidos WHERE clave_idem = ?')
       .bind(clave).first();
@@ -339,7 +339,7 @@ const CANALES = ['app', 'whatsapp'];
 
    Lo que NO se toca al editar es cuándo entró el pedido (creado_en,
    fecha_local, semana_local, dia_semana). El pedido se hizo el día que
-   se hizo; corregirle el nombre a la clienta el jueves no lo mueve de
+   se hizo; corregirle el nombre al cliente el jueves no lo mueve de
    día ni le cambia la semana en las estadísticas. */
 async function actualizar(ctx) {
   const id = parseInt(ctx.parametros.id, 10);

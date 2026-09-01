@@ -169,7 +169,7 @@
           });
           return '<tr>' +
             '<td data-label="Hora">' + esc(hora(p.creado_en)) + '</td>' +
-            '<td data-label="Clienta">' + esc(p.cliente_nombre || '—') + '</td>' +
+            '<td data-label="Cliente">' + esc(p.cliente_nombre || '—') + '</td>' +
             '<td data-label="Canal"><span class="channel-tag">' + esc(CANAL[p.canal] || p.canal) + '</span></td>' +
             '<td data-label="Viandas">' + num(p.cantidad) +
               (p.cantidad === 1 ? ' vianda' : ' viandas') +

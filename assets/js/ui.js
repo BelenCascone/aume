@@ -188,7 +188,7 @@
 
   /* Un día se cierra cuando ya pasó: si hoy es miércoles, el lunes de
      esta semana ya no se puede pedir. La fecha de "hoy" la manda el
-     servidor, no el celular: el reloj de la clienta puede estar en
+     servidor, no el celular: el reloj del cliente puede estar en
      cualquier lado, y de eso depende que se cobre o no una vianda. */
   function estadoDia(diaId) {
     if (semanaApi.feriados[diaId]) return 'feriado';

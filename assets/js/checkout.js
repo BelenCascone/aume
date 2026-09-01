@@ -119,7 +119,7 @@
     c.classList.toggle('campo--error', !!hayError);
   }
 
-  /* Texto escrito por la clienta.
+  /* Texto escrito por el cliente.
 
      El mensaje de WhatsApp usa "*Campo:*" como estructura, así que si dejamos
      pasar un salto de línea seguido de "*TOTAL:*" cualquiera puede agregar
@@ -245,7 +245,7 @@
      se pidió, nunca CUÁNTO sale.
      ================================================================= */
 
-  /* Una clave por intento de compra. Si la clienta toca dos veces, o se
+  /* Una clave por intento de compra. Si el cliente toca dos veces, o se
      corta la señal y reintenta, el servidor reconoce que es el mismo
      pedido y no lo duplica. Se renueva cuando el pedido entra bien. */
   var claveIntento = null;
@@ -321,7 +321,7 @@
     }
 
     /* Registramos el pedido SIN esperar la respuesta, y abrimos WhatsApp
-       en el mismo gesto de la clienta.
+       en el mismo gesto del cliente.
 
        El orden importa: si esperáramos a la API, el navegador ya no
        consideraría la apertura como parte del toque y los bloqueadores
@@ -331,7 +331,7 @@
     registrar('checkout-whatsapp').then(function () {
       claveIntento = null;
     }).catch(function () {
-      /* Silencio a propósito: la clienta ya está en WhatsApp con su
+      /* Silencio a propósito: el cliente ya está en WhatsApp con su
          pedido. Un cartel de error acá sólo la asustaría por algo que
          no le impide comprar. */
     });
@@ -356,7 +356,7 @@
       /* Ventana bloqueada (webview de Instagram, bloqueador de pop-ups).
          Antes acá hacíamos location.href = url, pero eso se llevaba la
          pestaña de AUMÉ y el resumen que acabábamos de mostrar desaparecía
-         justo cuando más falta hace; y sin WhatsApp instalado, la clienta
+         justo cuando más falta hace; y sin WhatsApp instalado, el cliente
          quedaba en una página de error sin su pedido. Un enlace real no lo
          bloquea ningún navegador y deja la web en su lugar. */
       var link = el('btnAbrirWa');
