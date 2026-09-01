@@ -298,7 +298,7 @@ esquema está en `worker/db/schema.sql` y los datos iniciales (copiados de
 > el plan mensual y los productos como líneas del pedido:
 >
 > ```bash
-> npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0003_lineas_pedido.sql
+> npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0004_lineas_pedido.sql
 > ```
 >
 > Las bases nuevas ya salen con eso desde `schema.sql`. Hay un entorno de
