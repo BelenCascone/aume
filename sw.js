@@ -49,7 +49,7 @@ self.addEventListener('fetch', function (e) {
   /* La API y el panel NO se cachean nunca.
      ---------------------------------------------------------------
      /api/  · son los precios y el menú de AHORA. Guardar una copia
-              significaría mostrarle a una clienta un precio viejo, o
+              significaría mostrarle a un cliente un precio viejo, o
               peor: guardar un error del servidor y seguir sirviéndolo
               como si fuera la respuesta buena.
      /admin/ · el panel siempre tiene que pedirle los datos frescos al

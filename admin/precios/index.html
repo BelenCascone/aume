@@ -10,95 +10,160 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Caveat:wght@600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/admin/assets/css/panel.css">
+<link rel="stylesheet" href="/admin/assets/css/shell.css">
 </head>
 <body>
 <div class="entorno" id="entorno" hidden></div>
-<header class="cab">
-  <div class="cont cab__in">
-    <a class="cab__marca" href="/admin/"><img class="cab__logo" src="/assets/img/logo.png" alt="" width="34" height="34"><span class="cab__marca-t">AUMÉ<span class="cab__marca-s">panel</span></span></a>
-    <nav class="cab__nav">
-      <a class="cab__a" href="/admin/">Inicio</a>
-      <a class="cab__a" href="/admin/menus/">Menú</a>
-      <a class="cab__a" href="/admin/pedidos/">Pedidos</a>
-      <a class="cab__a" href="/admin/precios/">Precios</a>
-      <a class="cab__a" href="/admin/estadisticas/">Estadísticas</a>
-      <a class="cab__a" href="/">Ver la web</a>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <nav class="sidebar-nav" aria-label="Secciones del panel">
+      <a href="/admin/" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h2.5a1 1 0 0 0 1-1v-9"/></svg>
+        Inicio
+      </a>
+      <a href="/admin/menus/" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+        Menú
+      </a>
+      <a href="/admin/pedidos/" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+        Pedidos
+      </a>
+      <a href="/admin/precios/" class="nav-item active" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M12 6v12M15 9.2c-.4-1-1.6-1.7-3-1.7-1.7 0-3 .9-3 2.2 0 3 6 1.6 6 4.6 0 1.3-1.3 2.2-3 2.2-1.4 0-2.6-.7-3-1.7"/></svg>
+        Precios
+      </a>
+      <a href="/admin/estadisticas/" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M4 19V9m6.5 10V4m6.5 15v-7"/></svg>
+        Estadísticas
+      </a>
+      <div class="nav-divider"></div>
+      <a href="/" class="nav-item nav-external">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M14 4h6v6M20 4 10 14M19 13v6a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h6"/></svg>
+        Ver la web
+      </a>
     </nav>
+  </aside>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburgerBtn" aria-label="Abrir menú" data-tooltip="Abrir menú" aria-expanded="false" aria-controls="sidebar">
+          <svg class="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+        <div class="topbar-title">
+          <h1 class="page-title">Precios</h1>
+        </div>
+      </div>
+      <a class="topbar-brand" href="/admin/" aria-label="Ir al inicio del panel">
+        <img src="/assets/img/logo.png" alt="AUMÉ" width="160" height="40">
+      </a>
+    </header>
+
+    <main class="content">
+      <form id="form" novalidate>
+        <div class="page-intro">
+          <p class="eyebrow">Ajustes generales</p>
+          <h2>Precios, envíos y puntos de retiro</h2>
+          <p>Esto es lo que ven tus clientes al hacer un pedido. Al guardar, los
+             cambios se ven en la web al instante: ya no hay que tocar
+             <code>config.js</code> ni publicar nada.</p>
+        </div>
+
+        <div id="aviso"></div>
+        <p class="cargando" id="cargando">Cargando los precios…</p>
+
+        <div id="cuerpo" hidden>
+          <section class="section-block">
+            <div class="card">
+              <h3 class="card-title">Vianda por tamaño</h3>
+              <p class="card-hint">El precio depende sólo del tamaño: una Clásica y una Proteica valen lo mismo.</p>
+              <div class="field-grid-2" id="viandas"></div>
+            </div>
+          </section>
+
+          <section class="section-block">
+            <div class="card">
+              <h3 class="card-title">Zonas de envío</h3>
+              <p class="card-hint">Es por entrega. Las viandas sueltas siempre pagan envío.</p>
+              <div id="zonas"></div>
+              <div class="field" style="margin-top:16px">
+                <label for="iAclaracion">Aclaración que ve el cliente</label>
+                <input class="input" type="text" id="iAclaracion" maxlength="200">
+              </div>
+            </div>
+          </section>
+
+          <section class="section-block">
+            <div class="card">
+              <h3 class="card-title">Packs semanales</h3>
+              <p class="card-hint">El precio en efectivo va tal cual se publica: no se calcula solo,
+                 porque algunos están redondeados a mano.</p>
+              <div id="packs"></div>
+            </div>
+          </section>
+
+          <section class="section-block">
+            <div class="card">
+              <h3 class="card-title">Otros productos</h3>
+              <p class="card-hint">Fuera del menú semanal. Si dejás el precio vacío, la web no lo muestra.</p>
+              <div id="productos"></div>
+            </div>
+          </section>
+
+          <section class="section-block">
+            <div class="card">
+              <h3 class="card-title">Plan mensual</h3>
+              <p class="card-hint">Cambia todos los meses porque cambia la cantidad de días hábiles.</p>
+              <div class="field-grid-3">
+                <div class="field">
+                  <label for="iPlanMes">Mes</label>
+                  <input class="input" type="text" id="iPlanMes" maxlength="40" placeholder="Septiembre">
+                </div>
+                <div class="field">
+                  <label for="iPlanAlmuerzos">Almuerzos del mes</label>
+                  <input class="input" type="number" id="iPlanAlmuerzos" min="1" max="31">
+                </div>
+                <div class="field">
+                  <label for="iPlanDescuento">Descuento en efectivo</label>
+                  <input class="input" type="text" id="iPlanDescuento" maxlength="10" placeholder="15%">
+                </div>
+              </div>
+              <div id="planPrecios" style="margin-top:16px"></div>
+              <label class="field" style="flex-direction:row;align-items:center;gap:10px;margin-top:14px">
+                <input type="checkbox" id="iPlanEnvio">
+                <span>El plan mensual lleva el envío bonificado</span>
+              </label>
+              <div class="plan-preview">
+                <p class="plan-preview-label">Precio del plan por vianda estándar · <span id="planMesRotulo">—</span></p>
+                <p class="plan-preview-value num" id="planTotal">—</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="section-block">
+            <div class="card">
+              <h3 class="card-title">Puntos de retiro</h3>
+              <p class="card-hint">Dónde pueden retirar sin pagar envío. El orden es el que ve el cliente.</p>
+              <div id="puntos"></div>
+              <button type="button" class="btn btn-secondary" id="btnMasPunto" style="margin-top:16px">+ Agregar punto de retiro</button>
+            </div>
+          </section>
+
+          <div class="save-bar">
+            <p class="meta save-hint" id="pista" aria-live="polite"></p>
+            <button type="button" class="btn btn-secondary" id="btnDeshacer">Deshacer</button>
+            <button type="submit" class="btn btn-primary" id="btnGuardar">Guardar cambios</button>
+          </div>
+        </div>
+      </form>
+    </main>
+    <footer class="pagefoot">
+      Panel interno de AUMÉ · Paraná, Entre Ríos
+    </footer>
   </div>
-</header>
-
-<main class="cont hoja">
-  <h1 class="titulo">Precios</h1>
-  <p class="bajada">
-    Lo que cambies acá se ve en la web apenas guardás. Esta es la única
-    fuente de verdad: ya no hay que editar <code>config.js</code>.
-  </p>
-
-  <div id="aviso"></div>
-  <p class="cargando" id="cargando">Cargando los precios…</p>
-
-  <form id="form" hidden novalidate>
-    <div class="caja">
-      <h2 class="caja__t">Vianda por tamaño</h2>
-      <p class="caja__d">El precio depende sólo del tamaño: una Clásica y una Proteica valen lo mismo.</p>
-      <div class="grilla" id="viandas"></div>
-    </div>
-
-    <div class="caja">
-      <h2 class="caja__t">Envío por zona</h2>
-      <p class="caja__d">Es por entrega. Las viandas sueltas siempre pagan envío.</p>
-      <div class="grilla" id="zonas"></div>
-      <div class="campo" style="margin-top:12px">
-        <label class="campo__l" for="envioAclaracion">Aclaración que ve la clienta</label>
-        <input class="campo__i" type="text" id="envioAclaracion" maxlength="200">
-      </div>
-    </div>
-
-    <div class="caja">
-      <h2 class="caja__t">Packs semanales</h2>
-      <p class="caja__d">
-        El precio en efectivo va tal cual se publica: no se calcula solo,
-        porque algunos están redondeados a mano. Los packs llevan el envío bonificado.
-      </p>
-      <div id="packs"></div>
-    </div>
-
-    <div class="caja">
-      <h2 class="caja__t">Plan mensual</h2>
-      <p class="caja__d">Cambia todos los meses porque cambia la cantidad de días hábiles.</p>
-      <div class="grilla">
-        <div class="campo">
-          <label class="campo__l" for="planMes">Mes</label>
-          <input class="campo__i" type="text" id="planMes" maxlength="40" placeholder="Septiembre">
-        </div>
-        <div class="campo">
-          <label class="campo__l" for="planAlmuerzos">Almuerzos del mes</label>
-          <input class="campo__i" type="text" inputmode="numeric" id="planAlmuerzos" maxlength="3">
-        </div>
-        <div class="campo">
-          <label class="campo__l" for="planDescuento">Descuento en efectivo</label>
-          <input class="campo__i" type="text" id="planDescuento" maxlength="10" placeholder="15%">
-        </div>
-      </div>
-      <div id="planPrecios" style="margin-top:14px"></div>
-      <label class="check" style="margin-top:12px">
-        <input type="checkbox" id="planEnvio">
-        El plan mensual lleva el envío bonificado
-      </label>
-      <p class="campo__ayuda" style="margin-top:6px">
-        Dejá un precio vacío si ese tamaño todavía no se publicó: la web no lo muestra.
-      </p>
-    </div>
-
-    <div class="guardar">
-      <div class="cont guardar__in" style="padding-inline:0">
-        <button type="submit" class="btn btn--pri" id="btnGuardar">Guardar cambios</button>
-        <button type="button" class="btn btn--fan" id="btnDeshacer">Deshacer</button>
-        <span class="guardar__n" id="nota"></span>
-      </div>
-    </div>
-  </form>
-</main>
+</div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="/admin/assets/js/panel.js"></script>

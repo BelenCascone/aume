@@ -28,7 +28,11 @@ export async function leerPrecios(db) {
       db.prepare('SELECT tamano_id, lista, efectivo FROM plan_mensual_precios'),
       db.prepare('SELECT id, nombre, direccion, horarios FROM puntos_retiro WHERE activo = 1 ORDER BY orden'),
       db.prepare('SELECT id, nombre, efectivo FROM metodos_pago WHERE activo = 1 ORDER BY orden'),
-      db.prepare('SELECT id, nombre, detalle, precio FROM productos WHERE activo = 1 ORDER BY orden'),
+      /* Sin filtrar por activo: el panel necesita ver también los que
+         todavía no tienen precio (postres, yogures) para podérselo
+         poner. Quien no los muestra es la web, y para eso va la
+         bandera `activo` en la respuesta. */
+      db.prepare('SELECT id, nombre, detalle, precio, activo FROM productos ORDER BY orden'),
       db.prepare('SELECT clave, valor FROM ajustes')
     ]);
 
@@ -87,7 +91,8 @@ export async function leerPrecios(db) {
       id: m.id, nombre: m.nombre, efectivo: m.efectivo === 1
     })),
     productos: filas(prods).map((p) => ({
-      id: p.id, nombre: p.nombre, detalle: p.detalle, precio: p.precio
+      id: p.id, nombre: p.nombre, detalle: p.detalle, precio: p.precio,
+      activo: p.activo === 1
     })),
     whatsapp: aj.whatsapp || ''
   };
@@ -209,6 +214,66 @@ async function guardar(ctx) {
       const efec = importe(pr.efectivo, 'Plan mensual ' + tamId + ' (efectivo)', errs, true);
       ops.push(db.prepare('UPDATE plan_mensual_precios SET lista = ?, efectivo = ? WHERE tamano_id = ?')
         .bind(lista, efec, tamId));
+    }
+  }
+
+  /* --- Otros productos (hamburguesas, postres, yogures…) ---
+     precio null o vacío = todavía sin definir. Se guarda en 0 y con
+     activo = 0: así la web no lo muestra, pero el producto sigue
+     existiendo en el panel para ponerle precio cuando se decida. */
+  if (Array.isArray(c.productos)) {
+    for (const pr of c.productos) {
+      const id = texto(pr.id, 40);
+      if (!id) { errs.push('Un producto vino sin id.'); continue; }
+      const vacio = pr.precio === null || pr.precio === undefined || String(pr.precio).trim() === '';
+      const n = vacio ? 0 : importe(pr.precio, 'Precio de ' + (pr.nombre || id), errs);
+      if (n === null) continue;
+      ops.push(db.prepare('UPDATE productos SET nombre = ?, detalle = ?, precio = ?, activo = ? WHERE id = ?')
+        .bind(texto(pr.nombre, 80), texto(pr.detalle, 120), n, vacio ? 0 : 1, id));
+    }
+  }
+
+  /* --- Puntos de retiro ---
+     Acá sí se agregan y se sacan, no sólo se editan: la nutri suma o
+     deja de trabajar con un local y tiene que poder hacerlo sola.
+
+     "Sacar" es activo = 0, no DELETE: los pedidos viejos guardan el
+     punto_id y si la fila desaparece el historial queda mostrando un
+     código en vez del nombre del local. */
+  if (Array.isArray(c.puntosRetiro)) {
+    const vistos = [];
+    let orden = 0;
+    for (const pt of c.puntosRetiro) {
+      const nombre = texto(pt.nombre, 80);
+      if (!nombre) { errs.push('Un punto de retiro vino sin nombre.'); continue; }
+
+      let id = texto(pt.id, 40).toLowerCase().replace(/[^a-z0-9]+/g, '');
+      if (!id) {
+        /* Punto nuevo: el id sale del nombre. */
+        id = nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                   .replace(/[^a-z0-9]+/g, '').slice(0, 30) || ('punto' + (orden + 1));
+      }
+      if (vistos.indexOf(id) >= 0) { errs.push('Hay dos puntos de retiro con el mismo nombre: ' + nombre + '.'); continue; }
+      vistos.push(id);
+      orden += 1;
+
+      const horarios = Array.isArray(pt.horarios)
+        ? pt.horarios.map((h) => texto(h, 60)).filter(Boolean)
+        : [];
+
+      ops.push(db.prepare(
+        'INSERT INTO puntos_retiro (id, nombre, direccion, horarios, orden, activo) ' +
+        'VALUES (?,?,?,?,?,1) ON CONFLICT(id) DO UPDATE SET nombre = excluded.nombre, ' +
+        'direccion = excluded.direccion, horarios = excluded.horarios, orden = excluded.orden, activo = 1'
+      ).bind(id, nombre, texto(pt.direccion, 120), JSON.stringify(horarios), orden));
+    }
+
+    if (!errs.length) {
+      /* Los que ya no vienen en la lista se apagan. */
+      const marcas = vistos.map(() => '?').join(',');
+      ops.push(db.prepare(
+        'UPDATE puntos_retiro SET activo = 0' + (vistos.length ? ' WHERE id NOT IN (' + marcas + ')' : '')
+      ).bind(...vistos));
     }
   }
 

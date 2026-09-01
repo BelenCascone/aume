@@ -162,7 +162,7 @@ export async function correr(t) {
 
   /* --------------------------------------- Alta desde el panel */
   r = await llamar('/api/pedidos/manual', 'POST', base({
-    cliente: { nombre: 'Clienta de WhatsApp', telefono: '3434999888' }
+    cliente: { nombre: 'Cliente de WhatsApp', telefono: '3434999888' }
   }));
   t.igual('la secretaria puede cargar un pedido a mano', r.estado, 201);
   t.igual('y queda con canal "whatsapp"',

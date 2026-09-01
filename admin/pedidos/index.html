@@ -9,119 +9,221 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Caveat:wght@600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/admin/assets/css/panel.css">
+<link rel="stylesheet" href="/admin/assets/css/shell.css">
 <title>Pedidos · Panel AUMÉ</title>
 </head>
 <body>
 <div class="entorno" id="entorno" hidden></div>
-<header class="cab">
-  <div class="cont cab__in">
-    <a class="cab__marca" href="/admin/"><img class="cab__logo" src="/assets/img/logo.png" alt="" width="34" height="34"><span class="cab__marca-t">AUMÉ<span class="cab__marca-s">panel</span></span></a>
-    <nav class="cab__nav">
-      <a class="cab__a" href="/admin/">Inicio</a>
-      <a class="cab__a" href="/admin/menus/">Menú</a>
-      <a class="cab__a" href="/admin/pedidos/">Pedidos</a>
-      <a class="cab__a" href="/admin/precios/">Precios</a>
-      <a class="cab__a" href="/admin/estadisticas/">Estadísticas</a>
-      <a class="cab__a" href="/">Ver la web</a>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <nav class="sidebar-nav" aria-label="Secciones del panel">
+      <a href="/admin/" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h2.5a1 1 0 0 0 1-1v-9"/></svg>
+        Inicio
+      </a>
+      <a href="/admin/menus/" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+        Menú
+      </a>
+      <a href="/admin/pedidos/" class="nav-item active" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+        Pedidos
+      </a>
+      <a href="/admin/precios/" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M12 6v12M15 9.2c-.4-1-1.6-1.7-3-1.7-1.7 0-3 .9-3 2.2 0 3 6 1.6 6 4.6 0 1.3-1.3 2.2-3 2.2-1.4 0-2.6-.7-3-1.7"/></svg>
+        Precios
+      </a>
+      <a href="/admin/estadisticas/" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M4 19V9m6.5 10V4m6.5 15v-7"/></svg>
+        Estadísticas
+      </a>
+      <div class="nav-divider"></div>
+      <a href="/" class="nav-item nav-external">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M14 4h6v6M20 4 10 14M19 13v6a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h6"/></svg>
+        Ver la web
+      </a>
     </nav>
-  </div>
-</header>
-
-<main class="cont hoja">
-  <h1 class="titulo">Pedidos</h1>
-  <p class="bajada">
-    Los que entran solos desde la web y los que cargás vos cuando llegan
-    por WhatsApp.
-  </p>
-
-  <div id="aviso"></div>
-
-  <div class="filtros">
-    <button type="button" class="chip" id="fDia" aria-pressed="true">Por día</button>
-    <button type="button" class="chip" id="fSemana" aria-pressed="false">Por semana</button>
-    <input class="mes__sel" type="date" id="fFecha">
-    <button type="button" class="chip" id="fTodos" aria-pressed="true">Todos</button>
-    <button type="button" class="chip" id="fApp" aria-pressed="false">Solo app</button>
-    <button type="button" class="chip" id="fWa" aria-pressed="false">Solo WhatsApp</button>
-  </div>
-
-  <p class="cargando" id="cargando">Cargando…</p>
-
-  <section id="resumen" hidden>
-    <div class="tarjetas" id="tarjetas"></div>
-    <div class="caja">
-      <h2 class="caja__t">Por tipo de menú</h2>
-      <p class="caja__d" id="totalViandas"></p>
-      <div class="barras" id="barras"></div>
-    </div>
-  </section>
-
-  <div class="caja">
-    <h2 class="caja__t">Anotar un pedido de WhatsApp</h2>
-    <p class="caja__d">Para los que te llegan por mensaje directo.</p>
-    <button type="button" class="btn btn--fan" id="btnAbrirManual">+ Nuevo pedido</button>
-
-    <form id="formManual" hidden style="margin-top:16px">
-      <div class="grilla">
-        <div class="campo" id="cNombre">
-          <label class="campo__l" for="mNombre">Cliente</label>
-          <input class="campo__i" type="text" id="mNombre" maxlength="60">
-          <p class="campo__e">Poné el nombre.</p>
+  </aside>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburgerBtn" aria-label="Abrir menú" data-tooltip="Abrir menú" aria-expanded="false" aria-controls="sidebar">
+          <svg class="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+        <div class="topbar-title">
+          <h1 class="page-title">Pedidos</h1>
         </div>
-        <div class="campo" id="cTel">
-          <label class="campo__l" for="mTel">Teléfono</label>
-          <input class="campo__i" type="tel" id="mTel" maxlength="30">
-          <p class="campo__e">Poné un teléfono válido.</p>
+      </div>
+      <a class="topbar-brand" href="/admin/" aria-label="Ir al inicio del panel">
+        <img src="/assets/img/logo.png" alt="AUMÉ" width="160" height="40">
+      </a>
+    </header>
+
+    <main class="content">
+      <section class="section-block">
+        <div class="filter-row">
+          <div class="seg-group" role="group" aria-label="Qué pedidos mostrar">
+            <button type="button" class="seg-tab active" data-rango="dia" aria-pressed="true">Del día</button>
+            <button type="button" class="seg-tab" data-rango="semana" aria-pressed="false">De la semana</button>
+            <button type="button" class="seg-tab" data-rango="todo" aria-pressed="false">Todos</button>
+          </div>
+          <input class="input" type="date" id="fFecha" aria-label="Día a mostrar" style="width:auto;min-width:160px">
+          <div class="seg-group" role="group" aria-label="Filtrar por canal">
+            <button type="button" class="seg-tab active" data-canal="todos" aria-pressed="true">Todos</button>
+            <button type="button" class="seg-tab" data-canal="app" aria-pressed="false">App</button>
+            <button type="button" class="seg-tab" data-canal="whatsapp" aria-pressed="false">WhatsApp</button>
+          </div>
+          <div class="search-field">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="search" id="fBuscar" placeholder="Buscar cliente…" aria-label="Buscar por nombre o teléfono">
+          </div>
+          <button type="button" class="btn btn-primary" id="btnNuevo" style="margin-left:auto">Cargar pedido manual</button>
+        </div>
+      </section>
+
+      <div id="aviso"></div>
+      <p class="cargando" id="cargando">Cargando…</p>
+
+      <section class="section-block" id="secListado" hidden>
+        <div class="row-between" style="margin-bottom:4px">
+          <h2 class="h3-like">Listado de pedidos</h2>
+        </div>
+        <div class="card table-wrap">
+          <table class="ds-table">
+            <thead>
+              <tr>
+              <th data-sort="hora" aria-sort="none"><button class="sort-btn" type="button" data-tooltip="Ordenar por hora">Hora<svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6"/></svg></button></th>
+              <th data-sort="cliente" aria-sort="none"><button class="sort-btn" type="button" data-tooltip="Ordenar por cliente">Cliente<svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6"/></svg></button></th>
+              <th data-sort="canal" aria-sort="none"><button class="sort-btn" type="button" data-tooltip="Ordenar por canal">Canal<svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6"/></svg></button></th>
+              <th data-sort="items" aria-sort="none"><button class="sort-btn" type="button" data-tooltip="Ordenar por viandas">Viandas<svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6"/></svg></button></th>
+              <th class="num-col" data-sort="monto" aria-sort="none"><button class="sort-btn sort-btn-end" type="button" data-tooltip="Ordenar por monto">Monto<svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6"/></svg></button></th>
+              <th data-sort="estado" aria-sort="none"><button class="sort-btn" type="button" data-tooltip="Ordenar por estado">Estado<svg class="sort-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6"/></svg></button></th>
+              </tr>
+            </thead>
+            <tbody id="cuerpoTabla"></tbody>
+          </table>
+        </div>
+        <div class="pagination-bar">
+          <p class="meta" id="infoPagina" aria-live="polite"></p>
+          <div class="pagination-controls">
+            <button type="button" class="btn-icon" id="btnPrev" aria-label="Página anterior" data-tooltip="Página anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M15 6l-6 6 6 6"/></svg></button>
+            <span class="meta" id="indicadorPagina">Página 1 de 1</span>
+            <button type="button" class="btn-icon" id="btnNext" aria-label="Página siguiente" data-tooltip="Página siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M9 6l6 6-6 6"/></svg></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-block" id="secResumen" hidden>
+        <div class="kpi-grid" id="kpis"></div>
+      </section>
+
+      <section class="section-block" id="secDesglose" hidden>
+        <div class="card">
+          <p class="eyebrow">Por categoría</p>
+          <h3 style="font-size:16px;margin-bottom:16px">Viandas del listado filtrado</h3>
+          <div class="hbar-list" id="desglose" aria-live="polite"></div>
+        </div>
+      </section>
+    </main>
+    <footer class="pagefoot">
+      Panel interno de AUMÉ · Paraná, Entre Ríos
+    </footer>
+  </div>
+</div>
+
+<dialog class="dlg" id="dlgPedido" aria-labelledby="dlgTitulo">
+  <form id="formPedido" novalidate>
+    <div class="dialog-head">
+      <h2 id="dlgTitulo">Cargar pedido manual</h2>
+      <button type="button" class="dialog-close" id="dlgCerrar" aria-label="Cerrar" data-tooltip="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+
+    <div class="dialog-body">
+      <div id="dlgAviso"></div>
+
+      <div class="field-row">
+        <div class="field" id="fCliente">
+          <label for="iCliente">Cliente</label>
+          <input class="input" type="text" id="iCliente" maxlength="60" required>
+          <span class="field-error">Poné el nombre.</span>
+        </div>
+        <div class="field" id="fTelefono">
+          <label for="iTelefono">Teléfono</label>
+          <input class="input" type="tel" id="iTelefono" maxlength="30" required>
+          <span class="field-error">Poné un teléfono válido.</span>
         </div>
       </div>
 
-      <p class="campo__l" style="margin:14px 0 6px">Viandas</p>
-      <div id="mItems"></div>
-      <button type="button" class="btn btn--fan" id="btnMasItem">+ Agregar vianda</button>
-
-      <div class="grilla" style="margin-top:14px">
-        <div class="campo">
-          <label class="campo__l" for="mModalidad">Entrega</label>
-          <select class="mes__sel" id="mModalidad">
-            <option value="envio">Envío a domicilio</option>
-            <option value="retiro">Retiro en punto</option>
+      <div class="field-row">
+        <div class="field">
+          <label for="iCanal">Canal</label>
+          <select class="select" id="iCanal">
+            <option value="whatsapp">WhatsApp</option>
+            <option value="app">App</option>
           </select>
         </div>
-        <div class="campo" id="cZona">
-          <label class="campo__l" for="mZona">Zona</label>
-          <select class="mes__sel" id="mZona"></select>
-        </div>
-        <div class="campo" id="cPunto" hidden>
-          <label class="campo__l" for="mPunto">Punto de retiro</label>
-          <select class="mes__sel" id="mPunto"></select>
-        </div>
-        <div class="campo" id="cPago">
-          <label class="campo__l" for="mPago">Pago</label>
-          <select class="mes__sel" id="mPago"></select>
+        <div class="field">
+          <label for="iEstado">Estado</label>
+          <select class="select" id="iEstado">
+            <option value="nuevo">Nuevo</option>
+            <option value="confirmado">Confirmado</option>
+            <option value="entregado">Entregado</option>
+            <option value="cancelado">Cancelado</option>
+          </select>
         </div>
       </div>
 
-      <div class="campo" id="cDireccion" style="margin-top:12px">
-        <label class="campo__l" for="mDireccion">Dirección</label>
-        <input class="campo__i" type="text" id="mDireccion" maxlength="120">
-        <p class="campo__e">Falta la dirección.</p>
+      <div>
+        <label class="field" style="gap:0"><span style="font-size:13px;font-weight:500;margin-bottom:8px">Viandas</span></label>
+        <div id="iItems"></div>
+        <button type="button" class="btn btn-secondary" id="btnMasItem" style="margin-top:10px">+ Agregar vianda</button>
       </div>
 
-      <div class="campo" style="margin-top:12px">
-        <label class="campo__l" for="mNotas">Aclaraciones</label>
-        <input class="campo__i" type="text" id="mNotas" maxlength="300">
+      <div class="field-row">
+        <div class="field">
+          <label for="iModalidad">Entrega</label>
+          <select class="select" id="iModalidad">
+            <option value="envio">Envío a domicilio</option>
+            <option value="retiro">Retiro en un punto</option>
+          </select>
+        </div>
+        <div class="field" id="fZona">
+          <label for="iZona">Zona</label>
+          <select class="select" id="iZona"></select>
+        </div>
+        <div class="field" id="fPunto" hidden>
+          <label for="iPunto">Punto de retiro</label>
+          <select class="select" id="iPunto"></select>
+        </div>
       </div>
 
-      <div class="guardar__in" style="margin-top:16px">
-        <button type="submit" class="btn btn--pri" id="btnGuardarManual">Anotar pedido</button>
-        <button type="button" class="btn btn--fan" id="btnCancelarManual">Cancelar</button>
+      <div class="field" id="fDireccion">
+        <label for="iDireccion">Dirección de entrega</label>
+        <input class="input" type="text" id="iDireccion" maxlength="120">
+        <span class="field-error">Falta la dirección.</span>
       </div>
-    </form>
-  </div>
 
-  <h2 class="caja__t" style="margin-bottom:10px" id="tituloLista">Listado</h2>
-  <div id="lista"></div>
-</main>
+      <div class="field">
+        <label for="iPago">Pago</label>
+        <select class="select" id="iPago"></select>
+      </div>
+
+      <div class="field">
+        <label for="iNotas">Notas (opcional)</label>
+        <textarea class="textarea" id="iNotas" maxlength="300" placeholder="Alergias, horario preferido, etc."></textarea>
+      </div>
+
+      <p class="meta" id="dlgTotal" aria-live="polite"></p>
+    </div>
+
+    <div class="dialog-foot">
+      <button type="button" class="btn btn-secondary" id="dlgCancelar">Cancelar</button>
+      <button type="submit" class="btn btn-primary" id="dlgGuardar">Cargar pedido</button>
+    </div>
+  </form>
+</dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="/admin/assets/js/panel.js"></script>

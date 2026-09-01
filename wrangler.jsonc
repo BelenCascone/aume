@@ -2,7 +2,7 @@
   // =====================================================================
   // AUMÉ · configuración de Cloudflare
   // ---------------------------------------------------------------------
-  // Lo de arriba (sin "env") es PRODUCCIÓN: es lo que ve la clienta.
+  // Lo de arriba (sin "env") es PRODUCCIÓN: es lo que ve el cliente.
   // Abajo, en "env.staging", hay una copia entera del sitio con su propia
   // base de datos, para probar sin tocar nada real.
   //

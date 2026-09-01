@@ -157,7 +157,7 @@ manuscritos), **Montserrat** (textos).
 
 ## 7. Cómo funciona el pedido
 
-1. La clienta elige tipo de menú (Clásico / Vegetariano / Proteico / Ensalada).
+1. El cliente elige tipo de menú (Clásico / Vegetariano / Proteico / Ensalada).
 2. Suma viandas por día y por tamaño (350gr o XL 500gr). La Ensalada César
    aparece en todos los días, mire el menú que mire.
 3. La barra inferior muestra el total.
@@ -249,7 +249,7 @@ configura a mano en el dashboard:
 
 - Una aplicación *Self-hosted* sobre el dominio real, con **Path: `admin`**.
   Eso protege `/admin` y todo lo que cuelga de ahí; la landing pública queda
-  abierta para las clientas.
+  abierta para los clientes.
 - Una política **Allow** con selector **Emails** y los **2 mails** del equipo
   (la dueña/nutricionista y la secretaria). Las dos tienen **exactamente los
   mismos permisos** sobre todo el panel: no hay roles diferenciados.

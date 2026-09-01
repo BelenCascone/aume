@@ -91,16 +91,16 @@ export async function correr(t) {
   t.ok('un plato sin nombre no se guarda (ese día no hay esa opción)',
     !r.cuerpo.datos.platos.vegetariano);
 
-  /* Esta es la que importa: el borrador no puede llegar a la clienta */
+  /* Esta es la que importa: el borrador no puede llegar al cliente */
   r = await llamar('/api/menus?desde=' + nuevo);
-  t.igual('un borrador NO se le muestra a la clienta', r.cuerpo.datos.platos, null);
+  t.igual('un borrador NO se le muestra al cliente', r.cuerpo.datos.platos, null);
 
   r = await llamar('/api/menus/' + nuevo + '/publicar', 'POST');
   t.igual('publicar responde ok', r.estado, 200);
   t.igual('y el día queda publicado', r.cuerpo.datos.estado, 'publicado');
 
   r = await llamar('/api/menus?desde=' + nuevo);
-  t.igual('ahora sí lo ve la clienta',
+  t.igual('ahora sí lo ve el cliente',
     r.cuerpo.datos.platos.lunes.clasico.nombre, 'Milanesa napolitana');
   t.igual('con la nota del día', r.cuerpo.datos.nota, 'Semana de primavera');
 
@@ -174,7 +174,7 @@ export async function correr(t) {
   r = await llamar('/api/menus?desde=2026-08-31');
   t.ok('la respuesta trae la fecha de cada día, para poder cerrar los pasados',
     r.cuerpo.datos.fechas.lunes === '2026-08-31');
-  t.ok('y el "hoy" del servidor, no el del celular de la clienta',
+  t.ok('y el "hoy" del servidor, no el del celular del cliente',
     /^\d{4}-\d{2}-\d{2}$/.test(r.cuerpo.datos.hoy));
 
   /* ------------------------------------------- Semana: rechazos */
