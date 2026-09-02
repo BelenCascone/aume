@@ -2,7 +2,7 @@
   "name": "AUMÉ Viandas",
   "short_name": "AUMÉ",
   "description": "Viandas saludables en Paraná. El equilibrio perfecto entre nutrirse y comer rico.",
-  "start_url": "./index.html",
+  "start_url": "./pedido/",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

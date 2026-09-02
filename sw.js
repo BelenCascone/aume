@@ -4,11 +4,15 @@
    se ve el menú actualizado; si no hay, la web igual abre.
    Al publicar cambios grandes, subí el número de VERSION.
    ===================================================================== */
-var VERSION = 'aume-v4';
+var VERSION = 'aume-v5';
 
+/* La pantalla de pedidos se guarda por sus dos direcciones —'/pedido/' y
+   '/pedido/index.html'— porque el cache busca por la dirección pedida, y
+   quien tenga la web instalada puede entrar por cualquiera de las dos. */
 var BASICOS = [
   './',
-  './index.html',
+  './pedido/',
+  './pedido/index.html',
   './manifest.json',
   './assets/css/styles.css',
   './assets/js/data/config.js',
@@ -73,7 +77,7 @@ self.addEventListener('fetch', function (e) {
       })
       .catch(function () {
         return caches.match(req).then(function (hit) {
-          return hit || caches.match('./index.html');
+          return hit || caches.match('./pedido/');
         });
       })
   );

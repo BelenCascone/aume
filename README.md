@@ -12,6 +12,13 @@ y enviarlos ya armados por WhatsApp.
 No hace falta instalar nada: **doble clic en `index.html`** y se abre en el navegador.
 Funciona igual desde el celular una vez publicada (ver punto 4).
 
+El sitio tiene dos pantallas y cada una vive en su dirección:
+
+| Dirección | Qué es |
+|---|---|
+| `/` | La landing: la presentación de AUMÉ. **Todavía no está escrita**, así que por ahora es un puente que lleva derecho al menú. |
+| `/pedido/` | La pantalla de pedidos: el menú, el carrito y el mensaje de WhatsApp. Es lo que había antes en la portada y funciona exactamente igual. |
+
 ---
 
 ## 2. Actualizar el menú de la semana ⭐
@@ -125,7 +132,9 @@ Si algún día cambia el logo, reemplazá `logo.png` (fondo transparente, alto
 
 ```
 aume/
-├── index.html                  Estructura de la página
+├── index.html                  Puente a /pedido/ (acá va a ir la landing)
+├── pedido/
+│   └── index.html              Estructura de la pantalla de pedidos
 ├── manifest.json               Datos de la PWA (nombre, colores, ícono)
 ├── sw.js                       Cache offline (sólo en sitio publicado)
 ├── _headers                    Cabeceras de seguridad del hosting
@@ -165,8 +174,8 @@ manuscritos), **Montserrat** (textos).
 
 ## 7. Cómo funciona el pedido
 
-La web abre directamente en el menú: no hay nada que scrollear antes de
-poder elegir. Arriba quedan siempre fijos el **logo**, las **cuatro formas
+La pantalla de pedidos abre directamente en el menú: no hay nada que
+scrollear antes de poder elegir. Arriba quedan siempre fijos el **logo**, las **cuatro formas
 de pedir** y los **cuatro tipos de menú**; abajo, también fijo, el
 **resumen del pedido**, que es por donde se entra al carrito.
 
