@@ -12,7 +12,7 @@
 
    Los colores de assets/css/styles.css funcionan como acento de una
    pestaña, donde cada uno viene con su nombre al lado. Como colores de
-   gráfico fallan: Proteico (#9B7AA2) y Ensalada (#5B9B97) quedan a ΔE
+   gráfico fallan: Proteico (#AD94B4) y Ensalada (#6EA6A4) quedan a ΔE
    12,5 en visión normal y 3,1 en deuteranopía — o sea, ni con visión
    normal se distinguen bien dos barras vecinas.
 
@@ -25,18 +25,18 @@
    su número al lado.
    ===================================================================== */
 :root{
-  --g-clasico:     #D97838;
+  --g-clasico:     #DC8D43;
   --g-vegetariano: #2E7D4F;
   --g-proteico:    #8A4FB0;
   --g-ensalada:    #2196A8;
   --g-cesar:       #B5446E;
-  --g-uno:         #D97838;   /* serie única */
+  --g-uno:         #DC8D43;   /* serie única */
   --g-neutro:      #6B6560;
 
-  --bg:#F9F6F0; --bg-alt:#F2ECE2; --surface:#FFF;
-  --fg:#2C2C2C; --muted:#6B6560; --border:#E8E0D4;
-  --accent:#D97838; --accent-dark:#C86828;
-  --success:#3E7A5E; --danger:#C0552F;
+  --bg:#FFFCED; --bg-alt:#F4F1E0; --surface:#FFF;
+  --fg:#2C2C2C; --muted:#6B6560; --border:#E8E3D0;
+  --accent:#DC8D43; --accent-dark:#9E6630;
+  --success:#42815D; --danger:#C0552F;
 
   --accent-soft:color-mix(in oklch, var(--accent) 14%, transparent);
   --fg-soft:color-mix(in oklch, var(--fg) 5%, transparent);

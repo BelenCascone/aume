@@ -2,27 +2,27 @@
      Se reemplaza por la foto de la cocina o del equipo de AUME cuando
      llegue el material. Ver README, punto 5. -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" role="img" aria-hidden="true">
-  <rect width="1200" height="600" fill="#F9F6F0"/>
-  <rect x="0" y="430" width="1200" height="170" fill="#F2ECE2"/>
-  <rect x="0" y="422" width="1200" height="10" fill="#E8E0D4"/>
+  <rect width="1200" height="600" fill="#FFFCED"/>
+  <rect x="0" y="430" width="1200" height="170" fill="#F4F1E0"/>
+  <rect x="0" y="422" width="1200" height="10" fill="#E8E3D0"/>
   <rect x="38" y="170" width="260" height="252" rx="22" fill="#FFFFFF"/>
-  <rect x="38" y="170" width="260" height="252" rx="22" fill="none" stroke="#D97838" stroke-width="4" opacity=".45"/>
-  <rect x="74" y="212" width="188" height="122" rx="14" fill="#D97838" opacity=".5"/>
-  <rect x="74" y="350" width="188" height="40" rx="12" fill="#D97838" opacity=".3"/>
-  <rect x="38" y="152" width="260" height="26" rx="13" fill="#D97838" opacity=".3"/>
+  <rect x="38" y="170" width="260" height="252" rx="22" fill="none" stroke="#DC8D43" stroke-width="4" opacity=".45"/>
+  <rect x="74" y="212" width="188" height="122" rx="14" fill="#DC8D43" opacity=".5"/>
+  <rect x="74" y="350" width="188" height="40" rx="12" fill="#DC8D43" opacity=".3"/>
+  <rect x="38" y="152" width="260" height="26" rx="13" fill="#DC8D43" opacity=".3"/>
   <rect x="326" y="170" width="260" height="252" rx="22" fill="#FFFFFF"/>
-  <rect x="326" y="170" width="260" height="252" rx="22" fill="none" stroke="#3E7A5E" stroke-width="4" opacity=".45"/>
-  <rect x="362" y="212" width="188" height="122" rx="14" fill="#3E7A5E" opacity=".5"/>
-  <rect x="362" y="350" width="188" height="40" rx="12" fill="#3E7A5E" opacity=".3"/>
-  <rect x="326" y="152" width="260" height="26" rx="13" fill="#3E7A5E" opacity=".3"/>
+  <rect x="326" y="170" width="260" height="252" rx="22" fill="none" stroke="#4B936A" stroke-width="4" opacity=".45"/>
+  <rect x="362" y="212" width="188" height="122" rx="14" fill="#4B936A" opacity=".5"/>
+  <rect x="362" y="350" width="188" height="40" rx="12" fill="#4B936A" opacity=".3"/>
+  <rect x="326" y="152" width="260" height="26" rx="13" fill="#4B936A" opacity=".3"/>
   <rect x="614" y="170" width="260" height="252" rx="22" fill="#FFFFFF"/>
-  <rect x="614" y="170" width="260" height="252" rx="22" fill="none" stroke="#9B7AA2" stroke-width="4" opacity=".45"/>
-  <rect x="650" y="212" width="188" height="122" rx="14" fill="#9B7AA2" opacity=".5"/>
-  <rect x="650" y="350" width="188" height="40" rx="12" fill="#9B7AA2" opacity=".3"/>
-  <rect x="614" y="152" width="260" height="26" rx="13" fill="#9B7AA2" opacity=".3"/>
+  <rect x="614" y="170" width="260" height="252" rx="22" fill="none" stroke="#AD94B4" stroke-width="4" opacity=".45"/>
+  <rect x="650" y="212" width="188" height="122" rx="14" fill="#AD94B4" opacity=".5"/>
+  <rect x="650" y="350" width="188" height="40" rx="12" fill="#AD94B4" opacity=".3"/>
+  <rect x="614" y="152" width="260" height="26" rx="13" fill="#AD94B4" opacity=".3"/>
   <rect x="902" y="170" width="260" height="252" rx="22" fill="#FFFFFF"/>
-  <rect x="902" y="170" width="260" height="252" rx="22" fill="none" stroke="#5B9B97" stroke-width="4" opacity=".45"/>
-  <rect x="938" y="212" width="188" height="122" rx="14" fill="#5B9B97" opacity=".5"/>
-  <rect x="938" y="350" width="188" height="40" rx="12" fill="#5B9B97" opacity=".3"/>
-  <rect x="902" y="152" width="260" height="26" rx="13" fill="#5B9B97" opacity=".3"/>
+  <rect x="902" y="170" width="260" height="252" rx="22" fill="none" stroke="#6EA6A4" stroke-width="4" opacity=".45"/>
+  <rect x="938" y="212" width="188" height="122" rx="14" fill="#6EA6A4" opacity=".5"/>
+  <rect x="938" y="350" width="188" height="40" rx="12" fill="#6EA6A4" opacity=".3"/>
+  <rect x="902" y="152" width="260" height="26" rx="13" fill="#6EA6A4" opacity=".3"/>
 </svg>

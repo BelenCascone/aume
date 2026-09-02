@@ -12,31 +12,46 @@
 
 /* ---------------------------------------------------------------- 1. TOKENS */
 :root{
-  /* Paleta de marca */
-  --c-clasico:            #D97838;
-  --c-clasico-dark:       #C86828;
-  --c-clasico-suave:      #FBEEE3;
+  /* PALETA DE MARCA
+     ------------------------------------------------------------------
+     Los cuatro colores y el crema son los que pasó la diseñadora: van
+     tal cual, sin retocar, y son los que se ven en todo lo que
+     identifica a un menú (el punto de color, el borde, el fondo suave).
 
-  --c-vegetariano:        #3E7A5E;
-  --c-vegetariano-claro:  #4A8B6C;
-  --c-vegetariano-suave:  #E7F0EA;
+     Al lado de cada uno hay una versión "-dark". No es un capricho: los
+     colores de la marca son claros, y ninguno llega al contraste
+     mínimo para texto sobre el crema. El color de marca pinta, el
+     oscuro escribe. Así el texto se lee y la identidad no se toca. */
+  --c-clasico:            #DC8D43;   /* marca */
+  --c-clasico-hover:      #CA823E;
+  --c-clasico-dark:       #9E6630;   /* texto sobre crema */
+  --c-clasico-suave:      #FBF1E8;
 
-  --c-proteico:           #9B7AA2;
-  --c-proteico-suave:     #F1EAF3;
+  --c-vegetariano:        #4B936A;   /* marca */
+  --c-vegetariano-dark:   #42815D;
+  --c-vegetariano-hover:  #386E55;
+  --c-vegetariano-claro:  #66A380;
+  --c-vegetariano-suave:  #E9F2ED;
 
-  --c-ensalada:           #5B9B97;
-  --c-ensalada-suave:     #E4F0EF;
+  --c-proteico:           #AD94B4;   /* marca */
+  --c-proteico-dark:      #806E85;
+  --c-proteico-suave:     #F5F2F6;
 
-  /* Neutros */
-  --crema:      #F9F6F0;
-  --crema-alt:  #F2ECE2;
+  --c-ensalada:           #6EA6A4;   /* marca */
+  --c-ensalada-dark:      #517B79;
+  --c-ensalada-suave:     #EEF4F4;
+
+  /* Neutros. El crema es el de la marca; el resto se derivó de él para
+     que las líneas y los fondos alternos no tiren a gris. */
+  --crema:      #FFFCED;
+  --crema-alt:  #F4F1E0;
   --blanco:     #FFFFFF;
   --tinta:      #2C2C2C;
   --tinta-60:   #6B6560;
-  --linea:      #E8E0D4;
+  --linea:      #E8E3D0;
 
   /* Semánticos */
-  --exito:      #3E7A5E;
+  --exito:      #42815D;
   --alerta:     #C0552F;
 
   /* Tipografías */
@@ -123,7 +138,7 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
    Debajo, pegado, el selector de qué se quiere pedir. */
 .topbar{
   position:sticky; top:0; z-index:40;
-  background:rgba(249,246,240,.94);
+  background:rgba(255,252,237,.94);
   backdrop-filter:saturate(180%) blur(10px);
   border-bottom:1px solid var(--linea);
 }
@@ -173,10 +188,15 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
 }
 .btn:active{ transform:scale(.98); }
 .btn:disabled{ opacity:.45; cursor:not-allowed; transform:none; }
-.btn--primario{ background:var(--c-clasico); color:var(--blanco); box-shadow:var(--sombra-md); }
-.btn--primario:hover:not(:disabled){ background:var(--c-clasico-dark); }
-.btn--verde{ background:var(--c-vegetariano); color:var(--blanco); box-shadow:var(--sombra-md); }
-.btn--verde:hover:not(:disabled){ background:var(--c-vegetariano-claro); }
+/* El naranja de la marca es claro: encima, el texto oscuro se lee al
+   doble que el blanco (5,3 contra 2,7 de contraste). Por eso el botón
+   principal lleva el color de marca tal cual y el texto en tinta.
+   El verde es al revés: hace falta bajarlo un poco para que el blanco
+   entre, así que el botón usa la variante oscura. */
+.btn--primario{ background:var(--c-clasico); color:var(--tinta); box-shadow:var(--sombra-md); }
+.btn--primario:hover:not(:disabled){ background:var(--c-clasico-hover); }
+.btn--verde{ background:var(--c-vegetariano-dark); color:var(--blanco); box-shadow:var(--sombra-md); }
+.btn--verde:hover:not(:disabled){ background:var(--c-vegetariano-hover); }
 .btn--fantasma{ background:transparent; color:var(--tinta); border:1.5px solid var(--linea); }
 .btn--fantasma:hover{ border-color:var(--c-clasico); color:var(--c-clasico-dark); }
 .btn--bloque{ width:100%; }

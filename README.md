@@ -194,16 +194,41 @@ aume/
 
 ### Paleta (definida en `:root` de `styles.css`)
 
-| Uso | Color |
+Son los colores que pasó la diseñadora, sin retocar:
+
+| Uso | Color de marca |
 |---|---|
-| Marca / Menú Clásico | `#D97838` · `#C86828` |
-| Menú Vegetariano / Puntos de retiro | `#3E7A5E` · `#4A8B6C` |
-| Menú Proteico | `#9B7AA2` |
-| Menú Ensaladas | `#5B9B97` |
-| Fondo crema · Blanco · Texto | `#F9F6F0` · `#FFFFFF` · `#2C2C2C` |
+| Menú Clásico | `#DC8D43` |
+| Menú Vegetariano | `#4B936A` |
+| Menú Proteico | `#AD94B4` |
+| Menú Ensaladas | `#6EA6A4` |
+| Fondo crema · Blanco · Texto | `#FFFCED` · `#FFFFFF` · `#2C2C2C` |
+
+Al lado de cada uno, en `styles.css`, hay una variante `-dark`
+(`--c-clasico-dark`, etc.). **No son colores nuevos de la marca**: los
+cuatro colores son claros y ninguno llega al contraste mínimo para usarse
+como texto sobre el crema. La regla es simple:
+
+> **el color de marca pinta, la variante oscura escribe.**
+
+El punto de color de un menú, su borde y su fondo suave usan el color tal
+cual. El texto usa la variante oscura. Por lo mismo, el botón principal
+lleva el naranja de la marca con el texto en tinta (se lee al doble que en
+blanco), y el botón verde usa la variante oscura para que el blanco entre.
 
 Tipografías: **Playfair Display** (títulos), **Caveat** (días y detalles
 manuscritos), **Montserrat** (textos).
+
+> ⚠️ Falta pasar el sitio a **Glacial Indifference**, la tipografía de la
+> marca. Está en `marca/glacial-indifference.rar`, con licencia SIL Open
+> Font (se puede usar y alojar en el sitio sin problema). Para aplicarla
+> hay que descomprimir ese archivo y dejar
+> `GlacialIndifference-Regular.otf` y `GlacialIndifference-Bold.otf` en
+> `assets/fonts/`.
+
+El material original que pasó la diseñadora —el logo, la paleta y la
+tipografía— está en la carpeta **`marca/`**, con su propio `LEEME.txt`.
+Esa carpeta no se publica.
 
 ---
 

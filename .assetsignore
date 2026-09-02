@@ -25,3 +25,13 @@ node_modules/
 
 # admin/ SÍ se publica: son las pantallas del panel. Quien lo protege es
 # Cloudflare Access, que corta el acceso antes de servir el archivo.
+
+# --- Material de marca ---------------------------------------------
+# El logo original, la paleta y la tipografía que pasó la diseñadora.
+# Es material de trabajo: sirve para el proyecto, no para publicar.
+marca/
+
+# Y por las dudas, cualquier archivo suelto que quede en la carpeta.
+*.rar
+*.zip
+*.jpeg

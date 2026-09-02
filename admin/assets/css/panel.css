@@ -9,13 +9,13 @@
    pisan: está verificado.
    ===================================================================== */
 :root{
-  --c-clasico:#D97838; --c-clasico-dark:#C86828; --c-clasico-suave:#FBEEE3;
-  --c-vegetariano:#3E7A5E; --c-vegetariano-suave:#E7F0EA;
-  --c-proteico:#9B7AA2; --c-proteico-suave:#F3EDF5;
-  --c-ensalada:#5B9B97; --c-ensalada-suave:#E9F3F2;
-  --crema:#F9F6F0; --crema-alt:#F2ECE2; --blanco:#FFF;
-  --tinta:#2C2C2C; --tinta-60:#6B6560; --linea:#E8E0D4;
-  --exito:#3E7A5E; --alerta:#C0552F;
+  --c-clasico:#DC8D43; --c-clasico-dark:#9E6630; --c-clasico-suave:#FBF1E8;
+  --c-vegetariano:#4B936A; --c-vegetariano-dark:#42815D; --c-vegetariano-suave:#E9F2ED;
+  --c-proteico:#AD94B4; --c-proteico-suave:#F5F2F6;
+  --c-ensalada:#6EA6A4; --c-ensalada-suave:#EEF4F4;
+  --crema:#FFFCED; --crema-alt:#F4F1E0; --blanco:#FFF;
+  --tinta:#2C2C2C; --tinta-60:#6B6560; --linea:#E8E3D0;
+  --exito:#42815D; --alerta:#C0552F;
   --f-display:'Playfair Display',Georgia,serif;
   --f-script:'Caveat','Segoe Script',cursive;
   --f-body:'Montserrat','Inter',-apple-system,'Segoe UI',sans-serif;
