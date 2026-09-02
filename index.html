@@ -257,21 +257,77 @@
           <li>Opciones vegetarianas y de alto contenido proteico</li>
           <li>Entrega en tu oficina, al mediodía</li>
         </ul>
-        <a class="btn btn--verde empresas__cta" id="ctaEmpresas" href="#" target="_blank" rel="noopener">
-          Pedir una propuesta por WhatsApp
+        <a class="btn btn--fantasma empresas__cta" id="ctaEmpresas" href="#" target="_blank" rel="noopener">
+          O escribinos por WhatsApp
         </a>
       </div>
-      <!-- Cuando exista el formulario de cotización va acá, en lugar de
-           esta lista. Mientras tanto adelanta qué vamos a preguntar, para
-           que la consulta por WhatsApp llegue con los datos puestos. -->
+      <!-- El único formulario del sitio. Se manda con fetch, no con un
+           envío de HTML común: así `form-action 'none'` de la política de
+           seguridad puede quedarse como está. -->
       <div class="empresas__marco">
-        <p class="empresas__dato">Para armarte la propuesta necesitamos saber</p>
-        <ol class="empresas__pide">
-          <li>Cuántas personas son</li>
-          <li>Dónde queda la oficina</li>
-          <li>Qué días de la semana</li>
-        </ol>
-        <p class="empresas__pie">Te la mandamos armada, sin compromiso.</p>
+        <form id="formCotizacion" novalidate>
+          <p class="empresas__dato">Pedí tu propuesta</p>
+
+          <div class="campo-l">
+            <label class="campo-l__l" for="cContacto">Tu nombre</label>
+            <input class="campo-l__i" type="text" id="cContacto" name="contacto"
+                   autocomplete="name" maxlength="80" required>
+          </div>
+
+          <div class="campo-l">
+            <label class="campo-l__l" for="cEmpresa">Empresa <span>(opcional)</span></label>
+            <input class="campo-l__i" type="text" id="cEmpresa" name="empresa"
+                   autocomplete="organization" maxlength="120">
+          </div>
+
+          <div class="campo-l campo-l--par">
+            <div>
+              <label class="campo-l__l" for="cEmail">Mail</label>
+              <input class="campo-l__i" type="email" id="cEmail" name="email"
+                     autocomplete="email" maxlength="120">
+            </div>
+            <div>
+              <label class="campo-l__l" for="cTelefono">Teléfono</label>
+              <input class="campo-l__i" type="tel" id="cTelefono" name="telefono"
+                     autocomplete="tel" inputmode="tel" maxlength="40">
+            </div>
+          </div>
+          <p class="campo-l__ayuda">Con uno de los dos alcanza.</p>
+
+          <div class="campo-l campo-l--par">
+            <div>
+              <label class="campo-l__l" for="cPersonas">¿Cuántos son?</label>
+              <input class="campo-l__i" type="number" id="cPersonas" name="personas"
+                     inputmode="numeric" min="1" max="2000">
+            </div>
+            <div>
+              <label class="campo-l__l" for="cDias">¿Qué días?</label>
+              <input class="campo-l__i" type="text" id="cDias" name="dias"
+                     maxlength="80" placeholder="Ej.: lunes a viernes">
+            </div>
+          </div>
+
+          <div class="campo-l">
+            <label class="campo-l__l" for="cZona">¿Dónde queda la oficina?</label>
+            <input class="campo-l__i" type="text" id="cZona" name="zona"
+                   maxlength="120" placeholder="Barrio o dirección">
+          </div>
+
+          <div class="campo-l">
+            <label class="campo-l__l" for="cMensaje">Algo más <span>(opcional)</span></label>
+            <textarea class="campo-l__ta" id="cMensaje" name="mensaje" rows="3"
+                      maxlength="1000" placeholder="Restricciones alimentarias, horarios…"></textarea>
+          </div>
+
+          <button type="submit" class="btn btn--verde btn--bloque" id="cEnviar">
+            Pedir la propuesta
+          </button>
+          <p class="campo-l__ayuda">Te contestamos por el medio que nos dejes.</p>
+        </form>
+
+        <!-- Fuera del formulario a propósito: al enviarse bien, el
+             formulario se vacía y el aviso tiene que sobrevivir. -->
+        <div id="cAviso" class="cot-aviso" hidden></div>
       </div>
     </div>
   </section>
@@ -377,5 +433,6 @@
 <script src="assets/js/data/config.js"></script>
 <script src="assets/js/data/menu.js"></script>
 <script src="assets/js/landing.js"></script>
+<script src="assets/js/cotizacion.js"></script>
 </body>
 </html>

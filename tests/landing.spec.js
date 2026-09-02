@@ -219,7 +219,102 @@ test.describe('Tips y recetas', () => {
   });
 });
 
+
+/* ------------------------------------------- El formulario de empresas */
+
+test.describe('Cotización para empresas', () => {
+
+  test('el formulario está y pide lo mínimo para poder contestar', async ({ page }) => {
+    const form = page.locator('#formCotizacion');
+    await expect(form).toBeVisible();
+    for (const campo of ['contacto', 'empresa', 'email', 'telefono', 'personas', 'zona', 'dias', 'mensaje']) {
+      await expect(form.locator('[name="' + campo + '"]')).toHaveCount(1);
+    }
+  });
+
+  test('sin datos de contacto avisa y no manda nada', async ({ page }) => {
+    let mandado = false;
+    await page.route('**/api/cotizaciones', (ruta) => { mandado = true; ruta.abort(); });
+
+    await page.locator('#cEnviar').click();
+
+    await expect(page.locator('#cAviso')).toBeVisible();
+    await expect(page.locator('#cAviso')).toContainText('nombre');
+    expect(mandado, 'mandó el formulario igual').toBe(false);
+  });
+
+  test('con nombre pero sin mail ni teléfono, tampoco', async ({ page }) => {
+    let mandado = false;
+    await page.route('**/api/cotizaciones', (ruta) => { mandado = true; ruta.abort(); });
+
+    await page.fill('#cContacto', 'Marina López');
+    await page.locator('#cEnviar').click();
+
+    await expect(page.locator('#cAviso')).toContainText('mail o un teléfono');
+    expect(mandado).toBe(false);
+  });
+
+  test('un mail mal escrito se avisa antes de mandar', async ({ page }) => {
+    await page.fill('#cContacto', 'Marina');
+    await page.fill('#cEmail', 'marina@@nada');
+    await page.locator('#cEnviar').click();
+    await expect(page.locator('#cAviso')).toContainText('mail no parece');
+  });
+
+  test('una consulta completa se manda y el formulario desaparece', async ({ page }) => {
+    let recibido = null;
+    await page.route('**/api/cotizaciones', async (ruta) => {
+      recibido = JSON.parse(ruta.request().postData() || '{}');
+      await ruta.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({ ok: true, datos: { recibida: true } })
+      });
+    });
+
+    await page.fill('#cContacto', 'Marina López');
+    await page.fill('#cEmpresa', 'Estudio López');
+    await page.fill('#cEmail', 'marina@estudio.com.ar');
+    await page.fill('#cPersonas', '12');
+    await page.locator('#cEnviar').click();
+
+    await expect(page.locator('#cAviso')).toContainText('Recibimos tu consulta');
+    /* Se saca el formulario para que nadie lo mande dos veces */
+    await expect(page.locator('#formCotizacion')).toHaveCount(0);
+
+    expect(recibido.contacto).toBe('Marina López');
+    expect(recibido.email).toBe('marina@estudio.com.ar');
+    expect(recibido.personas).toBe('12');
+  });
+
+  test('si el servidor rechaza, lo dice y el formulario sigue ahí', async ({ page }) => {
+    await page.route('**/api/cotizaciones', (ruta) => ruta.fulfill({
+      status: 422,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ok: false,
+        error: { codigo: 'datos_invalidos', mensaje: 'no', detalles: ['Ese teléfono parece incompleto.'] }
+      })
+    }));
+
+    await page.fill('#cContacto', 'Marina');
+    await page.fill('#cEmail', 'marina@estudio.com.ar');
+    await page.locator('#cEnviar').click();
+
+    await expect(page.locator('#cAviso')).toContainText('Ese teléfono parece incompleto');
+    await expect(page.locator('#formCotizacion')).toBeVisible();
+  });
+
+  /* El formulario existe SIN aflojar la política de seguridad porque se
+     manda con fetch. Si alguien la cambiara, esto lo avisa. */
+  test('la política sigue prohibiendo enviar formularios', async ({ page }) => {
+    const r = await page.request.get('/');
+    expect(r.headers()['content-security-policy']).toContain("form-action 'none'");
+  });
+});
+
 /* ------------------------------------------------------- Publicación */
+
 
 
 test.describe('Cómo se ve y cómo se sirve', () => {

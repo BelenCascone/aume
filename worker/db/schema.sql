@@ -47,6 +47,9 @@ VALUES (4, 'Promos, plan mensual y productos como líneas del pedido');
 INSERT OR IGNORE INTO esquema_version (version, descripcion)
 VALUES (5, 'Publicaciones: tips, recetas e info nutricional');
 
+INSERT OR IGNORE INTO esquema_version (version, descripcion)
+VALUES (6, 'Cotizaciones para empresas');
+
 
 -- =====================================================================
 -- CATÁLOGO  (lo que hoy vive en assets/js/data/config.js)
@@ -342,3 +345,38 @@ CREATE TABLE IF NOT EXISTS publicaciones (
 
 CREATE INDEX IF NOT EXISTS idx_publicaciones_estado
   ON publicaciones (estado, fecha DESC);
+
+
+-- =====================================================================
+-- COTIZACIONES  (el formulario de empresas de la landing)
+-- ---------------------------------------------------------------------
+-- Es lo único del sitio donde alguien de afuera deja sus datos. Se
+-- guarda acá y se ve en el panel, así no depende de que a nadie le
+-- llegue un mail.
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS cotizaciones (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  empresa     TEXT    NOT NULL DEFAULT '',
+  contacto    TEXT    NOT NULL,
+  email       TEXT    NOT NULL DEFAULT '',
+  telefono    TEXT    NOT NULL DEFAULT '',
+  personas    INTEGER NOT NULL DEFAULT 0 CHECK (personas >= 0),
+  zona        TEXT    NOT NULL DEFAULT '',
+  dias        TEXT    NOT NULL DEFAULT '',
+  mensaje     TEXT    NOT NULL DEFAULT '',
+
+  estado      TEXT    NOT NULL DEFAULT 'nueva'
+              CHECK (estado IN ('nueva', 'contactada', 'cerrada')),
+
+  -- De dónde llegó, HASHEADO: alcanza para frenar a alguien que mande
+  -- cien formularios seguidos y no guarda la dirección de nadie.
+  origen_hash TEXT    NOT NULL DEFAULT '',
+
+  creada_en   TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_cotizaciones_estado
+  ON cotizaciones (estado, creada_en DESC);
+
+CREATE INDEX IF NOT EXISTS idx_cotizaciones_origen
+  ON cotizaciones (origen_hash, creada_en);

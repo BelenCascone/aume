@@ -506,3 +506,42 @@ html{ scroll-padding-top:82px; }
 .nota__estado{
   padding-block:clamp(48px, 10vw, 90px); text-align:center; color:var(--tinta-60);
 }
+
+/* --------------------------------------- 18. FORMULARIO DE COTIZACIÓN
+   El único formulario del sitio. Campos grandes y con el label siempre
+   visible: se completa desde el celular y con una mano. */
+.campo-l{ margin-top:14px; }
+.campo-l__l{
+  display:block; font-size:.82rem; font-weight:600; margin-bottom:6px;
+}
+.campo-l__l span{ font-weight:400; color:var(--tinta-60); }
+.campo-l__i,
+.campo-l__ta{
+  width:100%; padding:12px 14px;
+  border:1.5px solid var(--linea); border-radius:var(--r-sm);
+  background:var(--blanco); color:var(--tinta);
+  font-family:inherit; font-size:16px;   /* 16px evita el zoom en iOS */
+}
+.campo-l__ta{ resize:vertical; min-height:76px; line-height:1.5; }
+.campo-l__i:focus-visible,
+.campo-l__ta:focus-visible{ outline:2px solid var(--c-vegetariano); outline-offset:1px; }
+.campo-l__i[aria-invalid="true"]{ border-color:var(--alerta); }
+.campo-l--par{ display:grid; gap:12px; grid-template-columns:1fr 1fr; }
+@media (max-width:420px){ .campo-l--par{ grid-template-columns:1fr; } }
+.campo-l__ayuda{ margin-top:7px; font-size:.8rem; color:var(--tinta-60); }
+
+.cot-aviso{
+  margin-top:16px; padding:13px 15px; border-radius:var(--r-sm);
+  font-size:.9rem; border-left:3px solid var(--alerta);
+  background:#FBEDE7; color:var(--tinta);
+}
+.cot-aviso--bien{
+  border-left-color:var(--c-vegetariano);
+  background:var(--c-vegetariano-suave);
+}
+.cot-aviso__t{ font-weight:700; margin-bottom:4px; }
+.cot-aviso ul{ margin:6px 0 0; padding-left:18px; }
+.cot-aviso li{ margin-top:3px; }
+
+#formCotizacion .btn{ margin-top:18px; }
+.empresas__cta{ margin-top:18px; }

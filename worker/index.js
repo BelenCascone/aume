@@ -24,6 +24,7 @@ import { registrar as registrarMenus }        from './rutas/menus.js';
 import { registrar as registrarPedidos }      from './rutas/pedidos.js';
 import { registrar as registrarEstadisticas } from './rutas/estadisticas.js';
 import { registrar as registrarPublicaciones } from './rutas/publicaciones.js';
+import { registrar as registrarCotizaciones } from './rutas/cotizaciones.js';
 
 /* ----------------------------------------------------------- Rutas */
 
@@ -56,6 +57,7 @@ registrarMenus(router);
 registrarPedidos(router);
 registrarEstadisticas(router);
 registrarPublicaciones(router);
+registrarCotizaciones(router);
 
 /* --------------------------------------------------------- Handler */
 

@@ -62,6 +62,9 @@ mostraría un código en vez del nombre del local.
 | `/api/publicaciones/:id`         | PUT    | panel       | 5 ✅ |
 | `/api/publicaciones/:id`         | DELETE | panel       | 5 ✅ |
 | `/api/publicaciones/imagenes`    | POST   | panel       | 5 ✅ |
+| `/api/cotizaciones`              | POST   | **público** (formulario de la landing) | 6 ✅ |
+| `/api/cotizaciones`              | GET    | panel       | 6 ✅ |
+| `/api/cotizaciones/:id`          | PATCH  | panel       | 6 ✅ |
 
 Las rutas marcadas "panel" exigen una identidad válida de Cloudflare
 Access **y** que el pedido salga del propio sitio (defensa contra CSRF).
@@ -318,6 +321,37 @@ El worker acepta JPG, PNG y WEBP de hasta 3 MB, y **le pone él el nombre
 al archivo**: nada de lo que mande el navegador decide dónde se guarda.
 Las fotos se sirven con cache de un año, porque cada una tiene su propio
 nombre al azar y nunca cambia.
+
+---
+
+### Las cotizaciones de empresas
+
+El formulario del bloque "Para tu equipo" de la landing. Lo que llega se
+guarda en la base y **aparece en la portada del panel**, arriba de "Ir
+a", con una chapa que dice cuántas están sin responder. Desde ahí se
+marca cada una como *contactada* o *cerrada*.
+
+Va en la portada a propósito: lo que importa es no dejar a nadie
+esperando. Si hay una consulta nueva, tiene que verse al entrar.
+
+Tres cosas que conviene saber:
+
+- **Recibir es público; leer, no.** La ruta que recibe la puede llamar
+  cualquiera, porque es un formulario abierto. La que lista las
+  cotizaciones exige identidad de Access: son datos de contacto de gente
+  que confió en que iban a AUMÉ y a nadie más.
+- **Hay un freno de envíos**: hasta 3 consultas del mismo origen cada 15
+  minutos. Un formulario público sin freno se llena de basura en una
+  semana. Pasado el límite, el mensaje ofrece WhatsApp en vez de dejar a
+  la persona colgada.
+- **La dirección de quien envía se guarda hasheada**, no en claro.
+  Alcanza para contar cuántas vinieron del mismo lado y no guarda la
+  dirección de nadie.
+
+El formulario se manda con `fetch` y no con un envío de HTML común. Eso
+permite tenerlo **sin tocar** `form-action 'none'` de la política de
+seguridad, que sigue protegiendo contra formularios inyectados que
+apunten a otro sitio. Hay un test que verifica que esa regla siga puesta.
 
 ---
 
