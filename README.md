@@ -18,6 +18,7 @@ El sitio tiene dos pantallas y cada una vive en su dirección:
 |---|---|
 | `/` | La landing: la presentación de AUMÉ. Es lo que ve alguien que llega desde Instagram. |
 | `/pedido/` | La pantalla de pedidos: el menú, el carrito y el mensaje de WhatsApp. Es lo que había antes en la portada y funciona exactamente igual. |
+| `/tips/?nota=…` | Una publicación sola, para poder compartir el link por WhatsApp. |
 
 Los **textos de la landing** están escritos en `index.html` y se editan ahí
 mismo. Los **datos** —el menú de la semana, los cuatro menús, las zonas de
@@ -166,6 +167,8 @@ aume/
 ├── index.html                  La landing (la portada del sitio)
 ├── pedido/
 │   └── index.html              Estructura de la pantalla de pedidos
+├── tips/
+│   └── index.html              Una publicación suelta (/tips/?nota=…)
 ├── manifest.json               Datos de la PWA (nombre, colores, ícono)
 ├── sw.js                       Cache offline (sólo en sitio publicado)
 ├── _headers                    Cabeceras de seguridad del hosting
@@ -186,7 +189,8 @@ aume/
 │       ├── ui.js               Dibujado de menú, carrito y paneles
 │       ├── checkout.js         Formulario y mensaje de WhatsApp
 │       ├── app.js              Arranque y eventos
-│       └── landing.js          Dibuja la landing con los mismos datos
+│       ├── landing.js          Dibuja la landing con los mismos datos
+│       └── nota.js             Dibuja una publicación suelta
 │
 ├── package.json                Sólo para correr los tests
 ├── playwright.config.js        Config de los tests
@@ -329,8 +333,15 @@ sueltos: `npm` sólo se usa para correr los tests.
 
 ## 10. Panel de administración (en construcción)
 
-Panel privado para cargar el menú, editar los precios, anotar los pedidos y
-mirar las estadísticas, sin tener que editar archivos a mano.
+Panel privado para cargar el menú, editar los precios, anotar los pedidos,
+**publicar tips y recetas** y mirar las estadísticas, sin tener que editar
+archivos a mano.
+
+> **Publicaciones** es la pantalla que le da autonomía a quien maneja las
+> redes: escribe el tip o la receta ahí y aparece solo en la landing. Lo
+> que queda en borrador no lo ve nadie. Las fotos necesitan un paso de
+> configuración que todavía falta hacer una vez — está explicado en
+> [`docs/panel-admin.md`](docs/panel-admin.md).
 
 **No reemplaza nada de lo de arriba todavía.** Se suma al lado, en carpetas
 nuevas, y la web pública sigue funcionando exactamente igual:
@@ -373,11 +384,17 @@ Los menús, los precios y los pedidos viven en una base **Cloudflare D1**. El
 esquema está en `worker/db/schema.sql` y los datos iniciales (copiados de
 `config.js` y `menu.js`) en `worker/db/semilla.sql`.
 
-> Si la base **ya existe**, hay que correrle el cambio que agrega las promos,
-> el plan mensual y los productos como líneas del pedido:
+> Si la base **ya existe**, hay que correrle los cambios que le faltan.
+> El de las promos, el plan mensual y los productos como líneas del pedido:
 >
 > ```bash
 > npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0004_lineas_pedido.sql
+> ```
+>
+> Y el de las publicaciones:
+>
+> ```bash
+> npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0005_publicaciones.sql
 > ```
 >
 > Las bases nuevas ya salen con eso desde `schema.sql`. Hay un entorno de

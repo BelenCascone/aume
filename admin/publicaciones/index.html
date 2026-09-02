@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/assets/img/favicon-64.png" sizes="64x64" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin/assets/css/panel.css">
+<link rel="stylesheet" href="/admin/assets/css/shell.css">
+<title>Publicaciones · Panel AUMÉ</title>
+</head>
+<body>
+<div class="entorno" id="entorno" hidden></div>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <nav class="sidebar-nav" aria-label="Secciones del panel">
+      <a href="/admin/" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h2.5a1 1 0 0 0 1-1v-9"/></svg>
+        Inicio
+      </a>
+      <a href="/admin/menus/" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+        Menú
+      </a>
+      <a href="/admin/pedidos/" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+        Pedidos
+      </a>
+      <a href="/admin/precios/" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M12 6v12M15 9.2c-.4-1-1.6-1.7-3-1.7-1.7 0-3 .9-3 2.2 0 3 6 1.6 6 4.6 0 1.3-1.3 2.2-3 2.2-1.4 0-2.6-.7-3-1.7"/></svg>
+        Precios
+      </a>
+      <a href="/admin/publicaciones/" class="nav-item active" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M5 4h9l5 5v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z"/><path d="M14 4v5h5M8 13h8M8 17h5"/></svg>
+        Publicaciones
+      </a>
+      <a href="/admin/estadisticas/" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M4 19V9m6.5 10V4m6.5 15v-7"/></svg>
+        Estadísticas
+      </a>
+      <div class="nav-divider"></div>
+      <a href="/" class="nav-item nav-external">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" focusable="false"><path d="M14 4h6v6M20 4 10 14M19 13v6a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h6"/></svg>
+        Ver la web
+      </a>
+    </nav>
+  </aside>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburgerBtn" aria-label="Abrir menú" data-tooltip="Abrir menú" aria-expanded="false" aria-controls="sidebar">
+          <svg class="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+        <div class="topbar-title">
+          <h1 class="page-title">Publicaciones</h1>
+        </div>
+      </div>
+      <a class="topbar-brand" href="/admin/" aria-label="Ir al inicio del panel">
+        <img src="/assets/img/logo.png" alt="AUMÉ" width="160" height="40">
+      </a>
+    </header>
+
+    <main class="content">
+      <section class="section-block">
+        <div class="row-between" style="margin-bottom:10px">
+          <div>
+            <p class="eyebrow" style="margin:0">Tips, recetas e info nutricional</p>
+            <p class="meta" style="margin-top:4px">
+              Lo que cargues acá sale en la web, en la sección de tips.
+              Lo que quede en borrador no lo ve nadie.
+            </p>
+          </div>
+          <button type="button" class="btn btn-primary" id="btnNueva">Nueva publicación</button>
+        </div>
+
+        <div id="aviso"></div>
+        <p class="cargando" id="cargando">Cargando las publicaciones…</p>
+
+        <div class="card table-wrap" id="tabla" hidden>
+          <table class="ds-table">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Tipo</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th><span aria-hidden="true"></span></th>
+              </tr>
+            </thead>
+            <tbody id="filas"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+    <footer class="pagefoot">
+      Panel interno de AUMÉ · Paraná, Entre Ríos
+    </footer>
+  </div>
+</div>
+
+<!-- ================================================ EDITOR
+     La misma ventana sirve para crear y para editar: cambia el título y
+     a qué dirección se manda al guardar. -->
+<dialog class="dlg" id="dlg" aria-labelledby="dlgTitulo">
+  <form id="formPub" novalidate>
+    <div class="dialog-head">
+      <h2 id="dlgTitulo">Nueva publicación</h2>
+      <button type="button" class="dialog-close" id="dlgCerrar" aria-label="Cerrar" data-tooltip="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+
+    <div class="dialog-body">
+      <div id="dlgAviso"></div>
+
+      <div class="field">
+        <label for="fTitulo">Título</label>
+        <input class="input" type="text" id="fTitulo" maxlength="120"
+               placeholder="Ej.: 3 mitos de invierno que arruinan tu nutrición">
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="fCategoria">Tipo</label>
+          <select class="input" id="fCategoria">
+            <option value="tip">Tip</option>
+            <option value="receta">Receta</option>
+            <option value="nutricion">Info nutricional</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fFecha">Fecha</label>
+          <input class="input" type="date" id="fFecha">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="fCopete">Copete <span class="meta">(la bajada que se ve en la tarjeta)</span></label>
+        <input class="input" type="text" id="fCopete" maxlength="300"
+               placeholder="Una línea que invite a abrir la nota">
+      </div>
+
+      <div class="field">
+        <label for="fCuerpo">Texto</label>
+        <textarea class="textarea" id="fCuerpo" rows="10" maxlength="8000"
+                  placeholder="Escribí acá la nota. Dejá un renglón en blanco entre párrafo y párrafo."></textarea>
+        <p class="meta">Dejá un renglón en blanco entre párrafo y párrafo.</p>
+      </div>
+
+      <div class="field">
+        <label for="fImagen">Foto <span class="meta">(opcional)</span></label>
+        <input class="input" type="file" id="fImagen" accept="image/jpeg,image/png,image/webp">
+        <p class="meta">JPG, PNG o WEBP, hasta 3 MB.</p>
+        <div id="vistaPrevia" hidden>
+          <img id="imgPrevia" alt="" style="max-width:220px;border-radius:8px;margin-top:8px">
+          <button type="button" class="btn btn-secondary" id="btnQuitarFoto"
+                  style="margin-top:8px">Quitar la foto</button>
+        </div>
+      </div>
+
+      <div class="field" id="campoAlt" hidden>
+        <label for="fImagenAlt">Qué se ve en la foto</label>
+        <input class="input" type="text" id="fImagenAlt" maxlength="150"
+               placeholder="Ej.: un bowl de garbanzos con rúcula y tomates">
+        <p class="meta">Lo leen quienes navegan con lector de pantalla, y se muestra si la foto no carga.</p>
+      </div>
+    </div>
+
+    <div class="dialog-foot">
+      <button type="button" class="btn btn-secondary" id="dlgCancelar">Cancelar</button>
+      <button type="button" class="btn btn-secondary" id="btnBorrador">Guardar borrador</button>
+      <button type="button" class="btn btn-primary" id="btnPublicar">Publicar</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="/admin/assets/js/panel.js"></script>
+<script src="/admin/publicaciones/publicaciones.js"></script>
+</body>
+</html>

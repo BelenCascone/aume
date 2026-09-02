@@ -54,6 +54,14 @@ panel. Sacar un punto lo apaga (`activo = 0`), no lo borra: los
 pedidos viejos guardan su id y si la fila desapareciera el historial
 mostraría un código en vez del nombre del local.
 | `/api/estadisticas?desde=&hasta=` | GET   | panel       | 4 ✅ |
+| `/api/publicaciones`             | GET    | **público** (sólo publicadas) | 5 ✅ |
+| `/api/publicaciones/:id`         | GET    | **público** (sólo publicadas) | 5 ✅ |
+| `/api/publicaciones/imagenes/:archivo` | GET | **público** | 5 ✅ |
+| `/api/publicaciones/panel`       | GET    | panel (también los borradores) | 5 ✅ |
+| `/api/publicaciones`             | POST   | panel       | 5 ✅ |
+| `/api/publicaciones/:id`         | PUT    | panel       | 5 ✅ |
+| `/api/publicaciones/:id`         | DELETE | panel       | 5 ✅ |
+| `/api/publicaciones/imagenes`    | POST   | panel       | 5 ✅ |
 
 Las rutas marcadas "panel" exigen una identidad válida de Cloudflare
 Access **y** que el pedido salga del propio sitio (defensa contra CSRF).
@@ -264,6 +272,54 @@ npx wrangler dev --env staging
 Van como archivos nuevos y numerados en `worker/db/cambios/`
 (`0002_…sql`, `0003_…sql`), y además se reflejan en `schema.sql` para que
 ese archivo siga describiendo la base completa.
+
+---
+
+### Las publicaciones (tips, recetas e info nutricional)
+
+Es la pantalla **Publicaciones** del panel. Lo que se carga ahí sale solo
+en la landing, en la sección de tips, y cada nota tiene su propia
+dirección (`/tips/?nota=…`) para poder compartirla por WhatsApp.
+
+Dos cosas que valen la pena saber:
+
+- **Un borrador no sale nunca por las rutas públicas.** No es sólo que no
+  aparezca en el listado: entrar directo al link de un borrador también
+  da 404. Hay tests que lo verifican.
+- **La dirección de la nota sale del título y no cambia más.** Si se
+  corrige el título después de publicarla, el link sigue siendo el mismo,
+  porque puede haber circulado por WhatsApp.
+
+#### Las fotos: el bucket R2
+
+Las fotos **no** van en la base: van a un bucket de Cloudflare R2, y el
+worker las sirve desde `/api/publicaciones/imagenes/…`, o sea desde el
+propio dominio. Eso no es un capricho: la política de seguridad del sitio
+(`img-src 'self'` en `_headers`) sólo permite imágenes del propio
+dominio, así que pegar el link de una foto de Instagram no funcionaría —
+el navegador la bloquearía.
+
+**Hoy el bucket todavía no existe**, y el binding está comentado a
+propósito en `wrangler.jsonc`: un binding que apunta a un bucket
+inexistente hace fallar el deploy entero. Mientras tanto el panel deja
+cargar publicaciones **sin** foto, y si alguien intenta subir una
+contesta explicando qué falta.
+
+Para activarlo, una sola vez:
+
+```bash
+npx wrangler r2 bucket create aume-fotos
+```
+
+```bash
+npx wrangler r2 bucket create aume-fotos-staging
+```
+
+Y después descomentar los dos bloques `r2_buckets` de `wrangler.jsonc`
+(el de producción y el de `env.staging`) y volver a publicar.
+
+El worker acepta JPG, PNG y WEBP de hasta 3 MB, y **le pone él el nombre
+al archivo**: nada de lo que mande el navegador decide dónde se guarda.
 
 ---
 
