@@ -299,27 +299,25 @@ propio dominio. Eso no es un capricho: la política de seguridad del sitio
 dominio, así que pegar el link de una foto de Instagram no funcionaría —
 el navegador la bloquearía.
 
-**Hoy el bucket todavía no existe**, y el binding está comentado a
-propósito en `wrangler.jsonc`: un binding que apunta a un bucket
-inexistente hace fallar el deploy entero. Mientras tanto el panel deja
-cargar publicaciones **sin** foto, y si alguien intenta subir una
-contesta explicando qué falta.
+Los dos buckets ya están creados —`aume-fotos` y `aume-fotos-staging`— y
+los bindings están en `wrangler.jsonc`. Para crearlos hubo que **activar
+R2** una vez desde el panel de Cloudflare (*Storage & databases → R2 →
+Overview*), porque viene desactivado y `wrangler` no puede activarlo solo.
 
-Para activarlo, una sola vez:
-
-```bash
-npx wrangler r2 bucket create aume-fotos
-```
-
-```bash
-npx wrangler r2 bucket create aume-fotos-staging
-```
-
-Y después descomentar los dos bloques `r2_buckets` de `wrangler.jsonc`
-(el de producción y el de `env.staging`) y volver a publicar.
+> ⚠️ **El binding tiene que llamarse `FOTOS`, no como el bucket.** Es la
+> misma trampa que con la base de datos. El asistente de Cloudflare lo
+> escribe como `aume_fotos`, y con ese nombre el worker no lo encuentra:
+> el panel deja de poder subir fotos y contesta que falta el bucket, sin
+> que nada más falle. Si eso pasa, se arregla en `wrangler.jsonc`.
+>
+> Lo mismo vale para el bloque de `env.staging`: **los bindings de un
+> entorno no se heredan del bloque de arriba**. Si staging no tiene su
+> propio `r2_buckets`, se queda sin bucket aunque producción lo tenga.
 
 El worker acepta JPG, PNG y WEBP de hasta 3 MB, y **le pone él el nombre
 al archivo**: nada de lo que mande el navegador decide dónde se guarda.
+Las fotos se sirven con cache de un año, porque cada una tiene su propio
+nombre al azar y nunca cambia.
 
 ---
 

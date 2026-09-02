@@ -339,9 +339,9 @@ archivos a mano.
 
 > **Publicaciones** es la pantalla que le da autonomía a quien maneja las
 > redes: escribe el tip o la receta ahí y aparece solo en la landing. Lo
-> que queda en borrador no lo ve nadie. Las fotos necesitan un paso de
-> configuración que todavía falta hacer una vez — está explicado en
-> [`docs/panel-admin.md`](docs/panel-admin.md).
+> que queda en borrador no lo ve nadie. Las fotos van a un bucket R2 de
+> Cloudflare y las sirve el worker desde el propio dominio — el detalle
+> está en [`docs/panel-admin.md`](docs/panel-admin.md).
 
 **No reemplaza nada de lo de arriba todavía.** Se suma al lado, en carpetas
 nuevas, y la web pública sigue funcionando exactamente igual:
