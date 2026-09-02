@@ -2,257 +2,41 @@
 <html lang="es-AR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>AUMÉ Viandas · Pedí tu menú semanal en Paraná</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AUMÉ Viandas · Paraná</title>
 
-<meta name="description" content="Viandas saludables en Paraná, Entre Ríos. El equilibrio perfecto entre nutrirse y comer rico. Elegí tu menú semanal y pedí por WhatsApp.">
-<meta name="theme-color" content="#D97838">
-<link rel="manifest" href="manifest.json">
+<!-- ============================================================ PROVISORIO
+     Este archivo es un puente, no la landing.
+
+     La pantalla de pedidos se mudó a /pedido/ y acá va a ir la landing.
+     Mientras tanto, quien entre al dominio tiene que terminar en el mismo
+     lugar de siempre: por eso el redireccionamiento.
+
+     La dirección va sin barra inicial y con el nombre del archivo
+     ("pedido/index.html") para que esto también funcione abriendo el archivo
+     con doble clic desde la carpeta: en file:// el navegador no sabe servir
+     el índice de una carpeta, así que "pedido/" a secas no alcanzaría.
+
+     Al escribir la landing, este archivo se reemplaza entero.
+     ==================================================================== -->
+<meta http-equiv="refresh" content="0; url=pedido/index.html">
+<link rel="canonical" href="pedido/index.html">
+<meta name="robots" content="noindex">
+
 <link rel="icon" href="assets/img/favicon-64.png" sizes="64x64" type="image/png">
-<link rel="apple-touch-icon" href="assets/img/icon-192.png">
-
-<!-- Open Graph (para cuando se comparte el link desde Instagram / WhatsApp) -->
-<meta property="og:type" content="website">
-<meta property="og:title" content="AUMÉ Viandas · Menú semanal">
-<meta property="og:description" content="El equilibrio perfecto entre nutrirse y comer rico. Paraná, Entre Ríos.">
-<meta property="og:image" content="assets/img/logo.png">
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Caveat:wght@500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/styles.css">
+<style>
+  body{
+    margin:0; min-height:100vh; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:20px; padding:24px;
+    background:#F9F6F0; color:#2C2C2C; text-align:center;
+    font-family:'Montserrat','Segoe UI',system-ui,sans-serif;
+  }
+  img{ width:150px; height:auto; }
+  a{ color:#C86828; font-weight:600; }
+</style>
 </head>
-
-<body class="tema">
-
-<!-- ============================================================ TOPBAR
-     El logo es lo primero y queda fijo arriba de todo. Debajo, pegado a
-     él, el selector de qué se quiere pedir: entre los dos ocupan poco y
-     dejan el menú a la vista sin scrollear.                          -->
-<header class="topbar">
-  <div class="contenedor topbar__in">
-    <a class="marca" href="#inicio" aria-label="AUMÉ, volver arriba">
-      <img class="marca__img" src="assets/img/logo.png" alt="AUMÉ" width="487" height="320">
-      <span class="marca__tag">viandas</span>
-    </a>
-    <p class="topbar__semana" id="semanaLabel"></p>
-  </div>
-
-  <nav class="modos" aria-label="Qué querés pedir">
-    <div class="contenedor modos__in" id="modos"></div>
-  </nav>
-</header>
-
-<main id="inicio">
-
-  <!-- ==================================================== MODO: POR DÍA -->
-  <section class="vista" id="vistaDia" aria-label="Menú de la semana">
-
-    <!-- Las 4 categorías quedan fijas debajo del logo: cambiar de menú
-         nunca obliga a volver a subir. -->
-    <div class="tabs-wrap">
-      <div class="contenedor">
-        <div class="tabs" role="tablist" aria-label="Tipo de menú" id="tabs"></div>
-      </div>
-    </div>
-
-    <div class="contenedor vista__cuerpo">
-      <p class="tab-desc" id="tabDesc"></p>
-      <div class="dias" id="dias" role="tabpanel" aria-live="polite"></div>
-      <p class="menu__nota" id="semanaNota"></p>
-    </div>
-  </section>
-
-  <!-- =============================================== MODO: PROMO SEMANAL -->
-  <section class="vista" id="vistaPromo" aria-label="Promos semanales" hidden>
-    <div class="contenedor vista__cuerpo">
-      <h2 class="vista__t">Promos semanales</h2>
-      <p class="vista__d" id="promoDesc"></p>
-      <div class="ofertas" id="packs"></div>
-    </div>
-  </section>
-
-  <!-- ================================================ MODO: PLAN MENSUAL -->
-  <section class="vista" id="vistaMensual" aria-label="Plan mensual" hidden>
-    <div class="contenedor vista__cuerpo">
-      <h2 class="vista__t">Plan mensual</h2>
-      <p class="vista__d" id="mensualDesc"></p>
-      <div class="ofertas" id="planMensual"></div>
-    </div>
-  </section>
-
-  <!-- =================================================== MODO: PARA SUMAR -->
-  <section class="vista" id="vistaExtras" aria-label="Postres, yogures y congelados" hidden>
-    <div class="contenedor vista__cuerpo">
-      <h2 class="vista__t">Para sumar</h2>
-      <p class="vista__d">Postres, yogures y congelados. Se agregan a la misma entrega.</p>
-      <div id="extras"></div>
-    </div>
-  </section>
-
-  <!-- ================================================== ENVÍOS / RETIRO -->
-  <section class="seccion logistica" id="retiro">
-    <div class="contenedor">
-      <h2 class="seccion__titulo">Envíos y puntos de retiro</h2>
-
-      <div class="envio-card">
-        <p class="envio-card__t">Envío a domicilio</p>
-        <p class="envio-card__d" id="envioDesc"></p>
-        <span class="envio-card__promo" id="envioPromo"></span>
-      </div>
-
-      <h3 class="logistica__sub">Puntos de retiro</h3>
-      <p class="seccion__bajada">Sin costo adicional. Retirás en el horario que más te sirva.</p>
-      <div class="puntos" id="puntos"></div>
-    </div>
-  </section>
-</main>
-
-<!-- ============================================================ FOOTER -->
-<footer class="pie">
-  <div class="contenedor">
-    <img class="pie__logo" src="assets/img/logo.png" alt="AUMÉ" width="487" height="320">
-    <p class="pie__l">viandas</p>
-    <p class="pie__d" id="pieDatos"></p>
-  </div>
-</footer>
-
-<div class="espaciador"></div>
-
-<!-- ================================================ BARRA FIJA CARRITO
-     Queda fija abajo SIEMPRE, con pedido o sin él: es el único acceso al
-     resumen desde que el botón "Mi pedido" salió de la barra superior. -->
-<div class="barra" id="barra">
-  <div class="barra__in">
-    <div class="barra__info">
-      <p class="barra__n" id="barraN"></p>
-      <p class="barra__t" id="barraT"></p>
-    </div>
-    <button type="button" class="btn btn--primario barra__b" id="btnVerPedido">Ver pedido</button>
-  </div>
-</div>
-
-<!-- ============================================================== VELO -->
-<div class="velo" id="velo" hidden></div>
-
-<!-- ==================================================== PANEL: CARRITO -->
-<section class="panel" id="panelCarrito" role="dialog" aria-modal="true" aria-labelledby="tCarrito" hidden>
-  <header class="panel__cab">
-    <h2 class="panel__t" id="tCarrito">Mi pedido</h2>
-    <button type="button" class="panel__x" data-cerrar aria-label="Cerrar">&#215;</button>
-  </header>
-
-  <div class="panel__cuerpo">
-    <div id="carritoContenido"></div>
-  </div>
-
-  <footer class="panel__pie" id="carritoPie" hidden>
-    <button type="button" class="btn btn--primario btn--bloque" id="btnIrCheckout">
-      Continuar con el pedido
-    </button>
-  </footer>
-</section>
-
-<!-- =================================================== PANEL: CHECKOUT -->
-<section class="panel" id="panelCheckout" role="dialog" aria-modal="true" aria-labelledby="tCheckout" hidden>
-  <header class="panel__cab">
-    <h2 class="panel__t" id="tCheckout">Tus datos</h2>
-    <button type="button" class="panel__x" data-cerrar aria-label="Cerrar">&#215;</button>
-  </header>
-
-  <div class="panel__cuerpo">
-
-    <!-- Resumen breve -->
-    <div class="resumen-mini" id="resumenMini"></div>
-
-    <form id="formPedido" novalidate>
-
-      <div class="campo" id="cNombre">
-        <label class="campo__l" for="fNombre">Nombre y apellido</label>
-        <input class="campo__i" type="text" id="fNombre" name="nombre"
-               autocomplete="name" maxlength="60" placeholder="Ej.: María González">
-        <p class="campo__e">Necesitamos tu nombre para identificar el pedido.</p>
-      </div>
-
-      <div class="campo" id="cTel">
-        <label class="campo__l" for="fTel">Teléfono</label>
-        <input class="campo__i" type="tel" id="fTel" name="telefono"
-               autocomplete="tel" inputmode="tel" maxlength="30" placeholder="Ej.: 343 412 3456">
-        <p class="campo__e">Ingresá un teléfono de contacto válido.</p>
-      </div>
-
-      <div class="campo" id="cModalidad">
-        <span class="campo__l">¿Cómo lo recibís?</span>
-        <div class="ops" id="opsModalidad"></div>
-      </div>
-
-      <!-- Solo si eligió envío -->
-      <div class="campo" id="cDireccion" hidden>
-        <label class="campo__l" for="fDireccion">Dirección de entrega</label>
-        <input class="campo__i" type="text" id="fDireccion" name="direccion"
-               autocomplete="street-address" maxlength="120" placeholder="Calle, número, piso/depto">
-        <p class="campo__ayuda" id="ayudaDireccion"></p>
-        <p class="campo__e">Contanos a qué dirección llevamos las viandas.</p>
-      </div>
-
-      <!-- Solo si eligió envío -->
-      <div class="campo" id="cZona" hidden>
-        <span class="campo__l">Zona de entrega</span>
-        <div class="ops" id="opsZona"></div>
-      </div>
-
-      <!-- Solo si eligió retiro -->
-      <div class="campo" id="cPunto" hidden>
-        <span class="campo__l">Elegí tu punto de retiro</span>
-        <div class="ops" id="opsPunto"></div>
-        <p class="campo__e">Elegí uno de los puntos de retiro.</p>
-      </div>
-
-      <div class="campo" id="cPago">
-        <label class="campo__l" for="fPago">Método de pago</label>
-        <select class="campo__s" id="fPago" name="pago"></select>
-        <p class="campo__e">Elegí cómo vas a abonar.</p>
-      </div>
-
-      <div class="campo">
-        <label class="campo__l" for="fNotas">Aclaraciones <span>(opcional)</span></label>
-        <textarea class="campo__ta" id="fNotas" name="notas"
-                  maxlength="300" placeholder="Alergias, sin cebolla, horario preferido…"></textarea>
-      </div>
-    </form>
-
-    <!-- Plan B: si falla la redirección a WhatsApp -->
-    <div class="planb" id="planB" hidden>
-      <p class="planb__t">¿No se abrió WhatsApp?</p>
-      <p class="planb__d">Copiá el resumen y enviánoslo por el medio que prefieras.</p>
-      <a class="btn btn--verde btn--bloque planb__wa" id="btnAbrirWa"
-         href="#" target="_blank" rel="noopener" hidden>Abrir WhatsApp</a>
-      <pre class="planb__pre" id="planBTexto"></pre>
-      <button type="button" class="btn btn--fantasma btn--bloque" id="btnCopiar">
-        Copiar resumen del pedido
-      </button>
-    </div>
-
-  </div>
-
-  <footer class="panel__pie">
-    <button type="button" class="btn btn--verde btn--bloque" id="btnWhatsapp">
-      Confirmar pedido por WhatsApp
-    </button>
-  </footer>
-</section>
-
-<!-- ============================================================= TOAST -->
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-<!-- ========================================================== SCRIPTS -->
-<!-- 1) Datos editables -->
-<script src="assets/js/data/config.js"></script>
-<script src="assets/js/data/menu.js"></script>
-<!-- 2) Lógica -->
-<script src="assets/js/store.js"></script>
-<script src="assets/js/ui.js"></script>
-<script src="assets/js/checkout.js"></script>
-<script src="assets/js/app.js"></script>
+<body>
+  <img src="assets/img/logo.png" alt="AUMÉ" width="487" height="320">
+  <p>Te estamos llevando al menú. <a href="pedido/index.html">Entrá acá si no pasa solo.</a></p>
 </body>
 </html>

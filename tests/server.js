@@ -43,7 +43,9 @@ const SEGURIDAD = cabecerasDeSeguridad();
 
 http.createServer((req, res) => {
   let rel = decodeURIComponent(req.url.split('?')[0]);
-  if (rel === '/') rel = '/index.html';
+  /* Cualquier carpeta sirve su index.html, igual que hace el hosting: así
+     /pedido/ abre la pantalla de pedidos sin escribir el nombre del archivo. */
+  if (rel.endsWith('/')) rel += 'index.html';
 
   const archivo = path.normalize(path.join(raiz, rel));
   if (!archivo.startsWith(raiz)) { res.writeHead(403).end('prohibido'); return; }

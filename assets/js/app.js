@@ -281,7 +281,7 @@
 
     /* PWA: sólo funciona servido por http(s), en file:// se ignora solo */
     if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
-      navigator.serviceWorker.register('sw.js').catch(function () { /* sin cache offline */ });
+      navigator.serviceWorker.register('/sw.js').catch(function () { /* sin cache offline */ });
     }
   }
 
