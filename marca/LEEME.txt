@@ -1,0 +1,37 @@
+MATERIAL DE MARCA DE AUMÉ
+=========================
+
+Lo que pasó la diseñadora. Es la fuente: si algo del sitio no coincide
+con lo que hay acá, manda esta carpeta.
+
+  logo-original.png      El logo, fondo transparente, 594x387.
+                         Es el mismo archivo que assets/img/logo.png.
+
+  paleta-de-colores.jpeg Los colores de la marca, con el menú al que
+                         corresponde cada uno. Ya están aplicados en
+                         assets/css/styles.css (ver README, punto 6).
+
+  glacial-indifference.rar
+                         La tipografía de la marca, con licencia SIL
+                         Open Font: se puede usar y alojar en el sitio.
+                         TODAVÍA NO ESTÁ APLICADA (ver abajo).
+
+
+LISTO: la tipografía ya está aplicada
+-------------------------------------
+Las dos .otf salieron del .rar y están en assets/fonts/, junto con su
+licencia. Son las que usa todo el sitio y todo el panel. Acá queda sólo
+el .rar original, como respaldo.
+
+
+PENDIENTE: el logo en SVG
+-------------------------
+El logo llegó en PNG. Conviene pedir el SVG original: se ve nítido en
+cualquier tamaño y pesa menos. Cuando llegue, reemplaza a
+assets/img/logo.png y hay que sacarle el width/height fijo al <img>.
+
+
+NADA DE ESTA CARPETA SE PUBLICA
+-------------------------------
+Está listada en .assetsignore. Es material interno de trabajo, no tiene
+por qué quedar descargable desde la web.

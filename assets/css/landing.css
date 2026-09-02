@@ -45,7 +45,7 @@ html{ scroll-padding-top:82px; }
 /* Enlace para saltar el menú con el teclado */
 .saltar{
   position:absolute; left:-9999px; top:0; z-index:100;
-  background:var(--c-clasico); color:var(--blanco);
+  background:var(--c-clasico); color:var(--tinta);
   padding:12px 18px; border-radius:0 0 var(--r-sm) 0; font-weight:600;
 }
 .saltar:focus{ left:0; }
@@ -55,7 +55,7 @@ html{ scroll-padding-top:82px; }
    importante de la barra, y el botón de pedir no compite con él. */
 .cab{
   position:sticky; top:0; z-index:40;
-  background:rgba(249,246,240,.94);
+  background:rgba(255,252,237,.94);
   backdrop-filter:saturate(180%) blur(10px);
   border-bottom:1px solid var(--linea);
 }
@@ -107,7 +107,7 @@ html{ scroll-padding-top:82px; }
   inset-block-start:-30%; inset-inline-end:-14%;
   width:min(660px, 78vw); aspect-ratio:1;
   background:radial-gradient(circle at 50% 50%,
-    var(--c-clasico-suave) 0%, rgba(251,238,227,0) 68%);
+    var(--c-clasico-suave) 0%, rgba(251,241,232,0) 68%);
 }
 .hero__in{ position:relative; z-index:1; }
 .hero__ojo{
@@ -130,7 +130,7 @@ html{ scroll-padding-top:82px; }
 }
 .hero__firma{
   margin-top:30px; font-family:var(--f-script);
-  font-size:1.35rem; color:var(--c-vegetariano);
+  font-size:1.35rem; color:var(--c-vegetariano-dark);
 }
 
 /* ---------------------------------------------------------- 4. CIFRAS */
@@ -153,7 +153,7 @@ html{ scroll-padding-top:82px; }
 .cifra__d{
   margin-top:7px; font-size:.72rem; font-weight:600;
   letter-spacing:.13em; text-transform:uppercase;
-  color:rgba(249,246,240,.7);
+  color:rgba(255,252,237,.7);
 }
 
 /* ------------------------------------------- 5. MENÚ DE ESTA SEMANA */
@@ -265,7 +265,7 @@ html{ scroll-padding-top:82px; }
   background:var(--crema-alt); border-radius:var(--r-md); padding:22px 20px;
 }
 .seccion-l--alt .valor{ background:var(--blanco); }
-.valor__t{ font-size:1.15rem; color:var(--c-vegetariano); }
+.valor__t{ font-size:1.15rem; color:var(--c-vegetariano-dark); }
 .valor__d{ margin-top:9px; font-size:.92rem; color:var(--tinta-60); }
 
 /* ------------------------------------------------------- 10. PARA TU EQUIPO */
@@ -294,7 +294,7 @@ html{ scroll-padding-top:82px; }
 }
 .empresas__dato{
   font-family:var(--f-display); font-size:1.2rem; line-height:1.3;
-  color:var(--c-vegetariano);
+  color:var(--c-vegetariano-dark);
 }
 .empresas__pide{
   margin:16px 0 0; padding:0; list-style:none;
@@ -307,7 +307,7 @@ html{ scroll-padding-top:82px; }
 .empresas__pide li::before{
   content:counter(pide); position:absolute; left:0; top:0;
   width:25px; height:25px; border-radius:50%;
-  background:var(--c-vegetariano-suave); color:var(--c-vegetariano);
+  background:var(--c-vegetariano-suave); color:var(--c-vegetariano-dark);
   font-size:.78rem; font-weight:700;
   display:flex; align-items:center; justify-content:center;
 }
@@ -354,7 +354,7 @@ html{ scroll-padding-top:82px; }
 .envio__promo{
   display:inline-block; margin-top:12px; padding:6px 13px;
   border-radius:var(--r-full); font-size:.78rem; font-weight:600;
-  background:var(--c-vegetariano-suave); color:var(--c-vegetariano);
+  background:var(--c-vegetariano-suave); color:var(--c-vegetariano-dark);
 }
 
 .entregas__sub{ font-size:1.15rem; }
@@ -372,17 +372,20 @@ html{ scroll-padding-top:82px; }
 .punto-l__hs{ margin-top:9px; display:grid; gap:3px; font-size:.82rem; }
 
 /* ------------------------------------------------------------ 13. CIERRE */
+/* El naranja de la marca es claro: el texto va en tinta, no en blanco.
+   En blanco quedaría en 2,7:1 de contraste, ilegible al sol en un
+   celular; en tinta llega a 5,3:1. */
 .cierre{
-  background:var(--c-clasico); color:var(--blanco);
+  background:var(--c-clasico); color:var(--tinta);
   padding-block:clamp(46px, 8vw, 76px); text-align:center;
 }
 .cierre__t{
-  font-size:clamp(1.7rem, 4.6vw, 2.5rem); color:var(--blanco);
+  font-size:clamp(1.7rem, 4.6vw, 2.5rem); color:var(--tinta);
   margin-inline:auto; max-width:18ch; text-wrap:balance;
 }
 .cierre__d{
   margin-top:14px; margin-inline:auto; max-width:44ch;
-  color:rgba(255,255,255,.88);
+  color:rgba(44,44,44,.8);
 }
 .cierre__acciones{
   margin-top:28px; display:flex; flex-wrap:wrap;
@@ -393,10 +396,10 @@ html{ scroll-padding-top:82px; }
 }
 .cierre .btn--primario:hover{ background:var(--crema); }
 .cierre .btn--fantasma{
-  color:var(--blanco); border-color:rgba(255,255,255,.55);
+  color:var(--tinta); border-color:rgba(44,44,44,.4);
 }
 .cierre .btn--fantasma:hover{
-  color:var(--blanco); border-color:var(--blanco);
+  color:var(--tinta); border-color:var(--tinta);
 }
 
 /* --------------------------------------------------------------- 14. PIE */
@@ -424,4 +427,82 @@ html{ scroll-padding-top:82px; }
 @media (prefers-reduced-motion: reduce){
   .forma{ transition:none; }
   .forma:hover{ transform:none; }
+}
+
+/* ------------------------------------------------ 16. TIPS Y RECETAS
+   Lo que carga la nutricionista desde el panel. Las tarjetas se adaptan
+   a que la publicación tenga foto o no: sin foto, el bloque de color de
+   la categoría hace de cabecera y la tarjeta no queda coja. */
+.tips{
+  margin-top:28px; display:grid; gap:16px;
+  grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+}
+.tip{
+  display:flex; flex-direction:column;
+  background:var(--blanco); border:1px solid var(--linea);
+  border-radius:var(--r-md); overflow:hidden;
+  text-decoration:none; color:inherit;
+  transition:border-color .2s ease, transform .15s ease;
+}
+.tip:hover{ border-color:var(--c-clasico); transform:translateY(-2px); }
+.tip__foto{ aspect-ratio:16/10; background:var(--crema-alt); }
+.tip__foto img{ width:100%; height:100%; object-fit:cover; }
+.tip__barra{ height:6px; background:var(--tip-color, var(--c-clasico)); }
+.tip__cuerpo{ padding:17px 18px 20px; display:flex; flex-direction:column; flex:1; }
+.tip__meta{
+  display:flex; flex-wrap:wrap; align-items:center; gap:9px;
+  font-size:.68rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+}
+.tip__tipo{ color:var(--tip-color-texto, var(--c-clasico-dark)); }
+.tip__fecha{ color:var(--tinta-60); font-weight:600; letter-spacing:.04em; }
+.tip__t{ margin-top:9px; font-size:1.12rem; line-height:1.28; }
+.tip__d{ margin-top:8px; font-size:.9rem; color:var(--tinta-60); flex:1 1 auto; }
+.tip__ir{
+  margin-top:15px; font-size:.85rem; font-weight:600;
+  color:var(--c-clasico-dark);
+}
+.tip__ir::after{ content:" →"; }
+
+@media (prefers-reduced-motion: reduce){
+  .tip{ transition:none; }
+  .tip:hover{ transform:none; }
+}
+
+/* ------------------------------------------------------- 17. UNA NOTA
+   La página de una publicación suelta, en /tips/. Ancho de lectura, no
+   de landing: lo único que importa es que el texto se lea cómodo. */
+.nota{ padding-block:clamp(36px, 6vw, 64px); }
+.nota__volver{
+  display:inline-block; font-size:.88rem; font-weight:600;
+  color:var(--c-clasico-dark); text-decoration:none; margin-bottom:22px;
+}
+.nota__volver::before{ content:"← "; }
+.nota__volver:hover{ text-decoration:underline; }
+.nota__meta{
+  display:flex; flex-wrap:wrap; align-items:center; gap:10px;
+  font-size:.7rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--c-clasico-dark); margin-bottom:12px;
+}
+.nota__fecha{ color:var(--tinta-60); font-weight:600; letter-spacing:.04em; }
+.nota__t{
+  font-size:clamp(1.8rem, 5vw, 2.6rem); line-height:1.13;
+  max-width:22ch; text-wrap:balance;
+}
+.nota__copete{
+  margin-top:16px; font-size:1.1rem; color:var(--tinta-60); max-width:60ch;
+}
+.nota__foto{
+  margin-top:28px; border-radius:var(--r-lg); overflow:hidden;
+  background:var(--crema-alt);
+}
+.nota__foto img{ width:100%; height:auto; }
+.nota__cuerpo{ margin-top:28px; max-width:64ch; }
+.nota__cuerpo p{ margin-bottom:18px; font-size:1.02rem; line-height:1.7; }
+.nota__cuerpo p:last-child{ margin-bottom:0; }
+.nota__pie{
+  margin-top:40px; padding-top:26px; border-top:1px solid var(--linea);
+  display:flex; flex-wrap:wrap; gap:12px;
+}
+.nota__estado{
+  padding-block:clamp(48px, 10vw, 90px); text-align:center; color:var(--tinta-60);
 }

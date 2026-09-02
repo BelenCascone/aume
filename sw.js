@@ -4,7 +4,7 @@
    se ve el menú actualizado; si no hay, la web igual abre.
    Al publicar cambios grandes, subí el número de VERSION.
    ===================================================================== */
-var VERSION = 'aume-v6';
+var VERSION = 'aume-v8';
 
 /* La pantalla de pedidos se guarda por sus dos direcciones —'/pedido/' y
    '/pedido/index.html'— porque el cache busca por la dirección pedida, y
@@ -16,7 +16,10 @@ var BASICOS = [
   './manifest.json',
   './assets/css/styles.css',
   './assets/css/landing.css',
+  './assets/fonts/GlacialIndifference-Regular.otf',
+  './assets/fonts/GlacialIndifference-Bold.otf',
   './assets/js/landing.js',
+  './assets/js/nota.js',
   './assets/js/data/config.js',
   './assets/js/data/menu.js',
   './assets/js/store.js',

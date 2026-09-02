@@ -156,9 +156,91 @@ test.describe('Datos del negocio', () => {
   });
 });
 
+
+/* --------------------------------------------------- Tips y recetas */
+
+test.describe('Tips y recetas', () => {
+
+  /* Estos tests corren sin worker, así que /api/publicaciones no
+     contesta. Es justamente el caso que hay que cubrir: la sección no
+     puede quedar como un hueco con un título y nada abajo. */
+
+  test('sin publicaciones, la sección no se muestra', async ({ page }) => {
+    await expect(page.locator('#tips')).toBeHidden();
+  });
+
+  test('con publicaciones, se dibujan las tarjetas y llevan a su nota', async ({ page }) => {
+    await page.evaluate(() => window.AUME_LANDING.pintarTips([
+      { id: 'tres-mitos', titulo: 'Tres mitos de invierno', copete: 'Los de siempre',
+        categoria: 'nutricion', fecha: '2026-08-20', imagen: '', imagenAlt: '' },
+      { id: 'garbanzos', titulo: 'Garbanzos crocantes', copete: 'Para picar',
+        categoria: 'receta', fecha: '2026-08-14', imagen: '', imagenAlt: '' }
+    ]));
+
+    await expect(page.locator('#tips')).toBeVisible();
+    const tarjetas = page.locator('.tip');
+    await expect(tarjetas).toHaveCount(2);
+
+    await expect(tarjetas.first()).toContainText('Tres mitos de invierno');
+    await expect(tarjetas.first()).toContainText('Info nutricional');
+    await expect(tarjetas.nth(1)).toContainText('Receta');
+    await expect(tarjetas.first()).toHaveAttribute('href', 'tips/?nota=tres-mitos');
+  });
+
+  /* El texto de una publicación se escribe con textContent, nunca como
+     HTML: lo que se carga desde el panel se muestra como texto aunque
+     alguien pegue etiquetas. */
+  test('el título de una publicación no puede meter HTML en la página', async ({ page }) => {
+    await page.evaluate(() => window.AUME_LANDING.pintarTips([
+      { id: 'x', titulo: '<img src=x onerror=alert(1)>ojo', copete: '<b>negrita</b>',
+        categoria: 'tip', fecha: '2026-08-20', imagen: '', imagenAlt: '' }
+    ]));
+
+    await expect(page.locator('.tip__t')).toContainText('<img src=x');
+    expect(await page.locator('.tip img').count()).toBe(0);
+    expect(await page.locator('.tip__d b').count()).toBe(0);
+  });
+
+  test('la página de una nota no queda en blanco si la API no contesta', async ({ page }) => {
+    await page.goto('/tips/?nota=lo-que-sea');
+
+    // El logo y el camino de vuelta tienen que estar igual
+    await expect(page.locator('.cab__marca img')).toBeVisible();
+    await expect(page.locator('.cab__cta')).toHaveAttribute('href', /pedido/);
+
+    // Y un mensaje, no una pantalla vacía
+    await expect(page.locator('#estado')).toBeVisible();
+    await expect(page.locator('#estado')).not.toBeEmpty();
+  });
+
+  test('entrar a la nota sin decir cuál lo explica', async ({ page }) => {
+    await page.goto('/tips/');
+    await expect(page.locator('#estado')).toContainText('Volvé a los tips');
+  });
+});
+
 /* ------------------------------------------------------- Publicación */
 
+
 test.describe('Cómo se ve y cómo se sirve', () => {
+
+  test('la tipografía de la marca carga de verdad', async ({ page }) => {
+    /* No alcanza con que el @font-face esté escrito: si la CSP la bloquea
+       o el servidor la manda con el tipo equivocado, el navegador la
+       descarta en silencio y el sitio se ve con la de respaldo. Esto
+       pregunta si la fuente terminó cargada. */
+    await page.evaluate(() => document.fonts.ready);
+    const cargada = await page.evaluate(() =>
+      document.fonts.check('400 16px "Glacial Indifference"')
+    );
+    expect(cargada, 'Glacial Indifference no llegó a cargar').toBe(true);
+
+    /* Y que sea la que el texto usa, no una que quedó cargada al pasar */
+    const usada = await page.evaluate(() =>
+      getComputedStyle(document.querySelector('.hero__d')).fontFamily
+    );
+    expect(usada).toContain('Glacial Indifference');
+  });
 
   test('la página no scrollea en horizontal', async ({ page }) => {
     const ancho = await page.evaluate(() => ({

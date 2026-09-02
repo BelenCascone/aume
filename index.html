@@ -6,7 +6,7 @@
 <title>AUMÉ Viandas · Comida casera y equilibrada en Paraná</title>
 
 <meta name="description" content="Viandas saludables en Paraná, Entre Ríos. Cuatro menús distintos todos los días, envío a domicilio y tres puntos de retiro. Vos ocupate de tu día, nosotros de resolver qué comer.">
-<meta name="theme-color" content="#D97838">
+<meta name="theme-color" content="#DC8D43">
 <link rel="icon" href="assets/img/favicon-64.png" sizes="64x64" type="image/png">
 <link rel="apple-touch-icon" href="assets/img/icon-192.png">
 
@@ -18,7 +18,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Caveat:wght@500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
 
 <!-- styles.css primero: de ahí salen la paleta, las tipografías y los
      botones. La landing NO redefine ni un color de marca, sólo agrega
@@ -37,7 +37,7 @@
 <header class="cab" id="cab">
   <div class="env cab__in">
     <a class="cab__marca" href="#inicio" aria-label="AUMÉ, ir al principio">
-      <img src="assets/img/logo.png" alt="AUMÉ" width="487" height="320">
+      <img src="assets/img/logo.png" alt="AUMÉ" width="594" height="387">
       <span class="cab__tag">viandas</span>
     </a>
 
@@ -45,6 +45,7 @@
       <a href="#menu">Menú</a>
       <a href="#como">Cómo funciona</a>
       <a href="#empresas">Empresas</a>
+      <a href="#tips">Tips</a>
       <a href="#nosotros">Nosotros</a>
       <a href="#entregas">Dónde llega</a>
     </nav>
@@ -275,7 +276,25 @@
     </div>
   </section>
 
-  <!-- ========================================================== 9. QUIÉNES SOMOS -->
+
+  <!-- ================================================= 9. TIPS Y RECETAS
+       Lo que carga la nutricionista desde el panel. Si todavía no hay
+       ninguna publicación, la sección entera no se dibuja: es mejor que
+       no esté a que esté vacía. -->
+  <section class="seccion-l" id="tips" hidden>
+    <div class="env">
+      <p class="ojo">Para leer</p>
+      <h2 class="t2">Tips, recetas e info nutricional</h2>
+      <p class="baj">
+        Lo que compartimos en Instagram, acá ordenado y sin que se pierda
+        entre las historias.
+      </p>
+
+      <div class="tips" id="tips-lista"></div>
+    </div>
+  </section>
+
+  <!-- ========================================================= 10. QUIÉNES SOMOS -->
   <section class="seccion-l" id="nosotros">
     <div class="env nosotros">
       <div class="nosotros__foto">
@@ -301,7 +320,7 @@
     </div>
   </section>
 
-  <!-- ======================================================= 10. DÓNDE Y CÓMO LLEGA -->
+  <!-- ======================================================= 11. DÓNDE Y CÓMO LLEGA -->
   <section class="seccion-l seccion-l--alt" id="entregas">
     <div class="env">
       <p class="ojo">Dónde y cómo llega</p>
@@ -318,7 +337,7 @@
     </div>
   </section>
 
-  <!-- =============================================================== 11. CIERRE -->
+  <!-- =============================================================== 12. CIERRE -->
   <section class="cierre">
     <div class="env cierre__in">
       <h2 class="cierre__t">¿Empezamos esta semana?</h2>
@@ -338,7 +357,7 @@
 <footer class="pie-l">
   <div class="env pie-l__in">
     <div class="pie-l__marca">
-      <img src="assets/img/logo.png" alt="AUMÉ" width="487" height="320">
+      <img src="assets/img/logo.png" alt="AUMÉ" width="594" height="387">
       <p class="pie-l__tag">viandas</p>
     </div>
     <div class="pie-l__datos" id="pieDatos"></div>
@@ -346,6 +365,7 @@
       <a href="pedido/index.html">Pedir</a>
       <a href="#menu">Menú de la semana</a>
       <a href="#empresas">Empresas</a>
+      <a href="#tips">Tips y recetas</a>
       <a href="#entregas">Puntos de retiro</a>
     </nav>
   </div>

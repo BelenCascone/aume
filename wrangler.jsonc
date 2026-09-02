@@ -43,6 +43,34 @@
     "ACCESS_AUD": ""            // el "Application Audience (AUD) Tag"
   },
 
+
+  // -------------------------------------------------------------------
+  // FOTOS DE LAS PUBLICACIONES (R2)
+  //
+  // Las fotos de los tips y las recetas no van en la base: van a un
+  // bucket R2 y el worker las sirve desde /api/publicaciones/imagenes/,
+  // o sea desde el propio dominio, que es lo único que permite la
+  // política de seguridad del sitio (img-src 'self').
+  //
+  // ⚠️ ESTÁ COMENTADO A PROPÓSITO. Un binding que apunta a un bucket que
+  //    todavía no existe hace fallar el deploy entero. Mientras esto
+  //    esté comentado, el panel deja cargar publicaciones SIN foto y, si
+  //    alguien intenta subir una, contesta explicando qué falta.
+  //
+  // Para activarlo, una sola vez:
+  //
+  //   npx wrangler r2 bucket create aume-fotos
+  //   npx wrangler r2 bucket create aume-fotos-staging
+  //
+  // y después descomentar este bloque acá abajo y el de env.staging.
+  //
+  // "r2_buckets": [
+  //   {
+  //     "binding": "FOTOS",
+  //     "bucket_name": "aume-fotos"
+  //   }
+  // ],
+
   // Base de producción. Creada con: npx wrangler d1 create aume-produccion
   //
   // ⚠️ EL "binding" TIENE QUE LLAMARSE "DB", NO COMO LA BASE.
@@ -87,6 +115,15 @@
         "ACCESS_TEAM_DOMAIN": "",
         "ACCESS_AUD": ""
       },
+
+
+      // Ver la nota del bloque r2_buckets de producción, más arriba.
+      // "r2_buckets": [
+      //   {
+      //     "binding": "FOTOS",
+      //     "bucket_name": "aume-fotos-staging"
+      //   }
+      // ],
 
       // Base de prueba, separada de producción.
       // Creada con: npx wrangler d1 create aume-staging

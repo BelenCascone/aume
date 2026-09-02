@@ -18,6 +18,7 @@ El sitio tiene dos pantallas y cada una vive en su dirección:
 |---|---|
 | `/` | La landing: la presentación de AUMÉ. Es lo que ve alguien que llega desde Instagram. |
 | `/pedido/` | La pantalla de pedidos: el menú, el carrito y el mensaje de WhatsApp. Es lo que había antes en la portada y funciona exactamente igual. |
+| `/tips/?nota=…` | Una publicación sola, para poder compartir el link por WhatsApp. |
 
 Los **textos de la landing** están escritos en `index.html` y se editan ahí
 mismo. Los **datos** —el menú de la semana, los cuatro menús, las zonas de
@@ -166,6 +167,8 @@ aume/
 ├── index.html                  La landing (la portada del sitio)
 ├── pedido/
 │   └── index.html              Estructura de la pantalla de pedidos
+├── tips/
+│   └── index.html              Una publicación suelta (/tips/?nota=…)
 ├── manifest.json               Datos de la PWA (nombre, colores, ícono)
 ├── sw.js                       Cache offline (sólo en sitio publicado)
 ├── _headers                    Cabeceras de seguridad del hosting
@@ -175,6 +178,7 @@ aume/
 │   ├── css/
 │   │   ├── styles.css          Estilos + paleta de marca en variables CSS
 │   │   └── landing.css         Sólo la landing (usa la paleta de styles.css)
+│   ├── fonts/                  Glacial Indifference + su licencia
 │   ├── img/                    logo.png + íconos (ya generados)
 │   │   └── landing/            Marcadores de lugar de las fotos ⚠️
 │   └── js/
@@ -185,7 +189,8 @@ aume/
 │       ├── ui.js               Dibujado de menú, carrito y paneles
 │       ├── checkout.js         Formulario y mensaje de WhatsApp
 │       ├── app.js              Arranque y eventos
-│       └── landing.js          Dibuja la landing con los mismos datos
+│       ├── landing.js          Dibuja la landing con los mismos datos
+│       └── nota.js             Dibuja una publicación suelta
 │
 ├── package.json                Sólo para correr los tests
 ├── playwright.config.js        Config de los tests
@@ -194,16 +199,50 @@ aume/
 
 ### Paleta (definida en `:root` de `styles.css`)
 
-| Uso | Color |
-|---|---|
-| Marca / Menú Clásico | `#D97838` · `#C86828` |
-| Menú Vegetariano / Puntos de retiro | `#3E7A5E` · `#4A8B6C` |
-| Menú Proteico | `#9B7AA2` |
-| Menú Ensaladas | `#5B9B97` |
-| Fondo crema · Blanco · Texto | `#F9F6F0` · `#FFFFFF` · `#2C2C2C` |
+Son los colores que pasó la diseñadora, sin retocar:
 
-Tipografías: **Playfair Display** (títulos), **Caveat** (días y detalles
-manuscritos), **Montserrat** (textos).
+| Uso | Color de marca |
+|---|---|
+| Menú Clásico | `#DC8D43` |
+| Menú Vegetariano | `#4B936A` |
+| Menú Proteico | `#AD94B4` |
+| Menú Ensaladas | `#6EA6A4` |
+| Fondo crema · Blanco · Texto | `#FFFCED` · `#FFFFFF` · `#2C2C2C` |
+
+Al lado de cada uno, en `styles.css`, hay una variante `-dark`
+(`--c-clasico-dark`, etc.). **No son colores nuevos de la marca**: los
+cuatro colores son claros y ninguno llega al contraste mínimo para usarse
+como texto sobre el crema. La regla es simple:
+
+> **el color de marca pinta, la variante oscura escribe.**
+
+El punto de color de un menú, su borde y su fondo suave usan el color tal
+cual. El texto usa la variante oscura. Por lo mismo, el botón principal
+lleva el naranja de la marca con el texto en tinta (se lee al doble que en
+blanco), y el botón verde usa la variante oscura para que el blanco entre.
+
+### Tipografías
+
+| Dónde | Cuál |
+|---|---|
+| Textos, botones, formularios y todo el panel | **Glacial Indifference**, la tipografía de la marca |
+| Títulos | **Playfair Display** |
+| Días del menú y detalles manuscritos | **Caveat** |
+
+Glacial Indifference vive en **`assets/fonts/`** y se sirve desde el
+propio sitio, no desde Google: es la de la marca y no queremos que
+dependa de un servicio de afuera. Su licencia (SIL Open Font, que permite
+exactamente esto) está al lado, en el mismo directorio, y tiene que
+seguir ahí.
+
+> Si algún día no se ve, lo primero para mirar son dos líneas: `font-src
+> 'self'` en `_headers` y el tipo `.otf` en `tests/server.js`. Sin
+> cualquiera de las dos, el navegador descarta la fuente **sin avisar** y
+> el sitio se ve con la de respaldo. Hay un test que lo verifica.
+
+El material original que pasó la diseñadora —el logo, la paleta y la
+tipografía— está en la carpeta **`marca/`**, con su propio `LEEME.txt`.
+Esa carpeta no se publica.
 
 ---
 
@@ -294,8 +333,15 @@ sueltos: `npm` sólo se usa para correr los tests.
 
 ## 10. Panel de administración (en construcción)
 
-Panel privado para cargar el menú, editar los precios, anotar los pedidos y
-mirar las estadísticas, sin tener que editar archivos a mano.
+Panel privado para cargar el menú, editar los precios, anotar los pedidos,
+**publicar tips y recetas** y mirar las estadísticas, sin tener que editar
+archivos a mano.
+
+> **Publicaciones** es la pantalla que le da autonomía a quien maneja las
+> redes: escribe el tip o la receta ahí y aparece solo en la landing. Lo
+> que queda en borrador no lo ve nadie. Las fotos necesitan un paso de
+> configuración que todavía falta hacer una vez — está explicado en
+> [`docs/panel-admin.md`](docs/panel-admin.md).
 
 **No reemplaza nada de lo de arriba todavía.** Se suma al lado, en carpetas
 nuevas, y la web pública sigue funcionando exactamente igual:
@@ -338,11 +384,17 @@ Los menús, los precios y los pedidos viven en una base **Cloudflare D1**. El
 esquema está en `worker/db/schema.sql` y los datos iniciales (copiados de
 `config.js` y `menu.js`) en `worker/db/semilla.sql`.
 
-> Si la base **ya existe**, hay que correrle el cambio que agrega las promos,
-> el plan mensual y los productos como líneas del pedido:
+> Si la base **ya existe**, hay que correrle los cambios que le faltan.
+> El de las promos, el plan mensual y los productos como líneas del pedido:
 >
 > ```bash
 > npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0004_lineas_pedido.sql
+> ```
+>
+> Y el de las publicaciones:
+>
+> ```bash
+> npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0005_publicaciones.sql
 > ```
 >
 > Las bases nuevas ya salen con eso desde `schema.sql`. Hay un entorno de

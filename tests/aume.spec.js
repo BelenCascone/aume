@@ -53,11 +53,14 @@ test.describe('Identidad de marca', () => {
   });
 
   test('cada categoría pinta su color de marca', async ({ page }) => {
+    /* Los cuatro colores que pasó la diseñadora, tal cual. Van escritos
+       acá para que un cambio de paleta tenga que ser una decisión y no
+       algo que se filtre sin que nadie lo mire. */
     const esperado = {
-      clasico: 'rgb(217, 120, 56)',
-      vegetariano: 'rgb(62, 122, 94)',
-      proteico: 'rgb(155, 122, 162)',
-      ensalada: 'rgb(91, 155, 151)'
+      clasico: 'rgb(220, 141, 67)',      // #DC8D43
+      vegetariano: 'rgb(75, 147, 106)',  // #4B936A
+      proteico: 'rgb(173, 148, 180)',    // #AD94B4
+      ensalada: 'rgb(110, 166, 164)'     // #6EA6A4
     };
 
     for (const cat of Object.keys(esperado)) {
@@ -105,7 +108,7 @@ test('cada menú se distingue por su color aunque no esté elegido', async ({ pa
 
   /* Y ninguna se queda con el gris de las líneas (#E8E0D4) */
   for (const c of sinElegir) {
-    expect(c.borde, c.cat + ' sigue gris').not.toBe('rgb(232, 224, 212)');
+    expect(c.borde, c.cat + ' sigue gris').not.toBe('rgb(232, 227, 208)');
   }
 });
 

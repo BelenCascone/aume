@@ -7,7 +7,7 @@
 # No hace falta tocarlo para actualizar el menú ni los precios.
 
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; form-action 'none'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; form-action 'none'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
@@ -23,5 +23,10 @@
 # form-action 'none' es seguro: el formulario del pedido nunca se envía al
 # servidor, lo arma JavaScript y va a WhatsApp.
 #
-# fonts.googleapis.com y fonts.gstatic.com son las tipografías. Si algún día
-# se descargan a assets/fonts/, se pueden borrar de acá las dos líneas.
+# font-src 'self' es Glacial Indifference, la tipografía de la marca, que vive
+# en assets/fonts/ y se sirve desde el propio dominio. Sin esto el navegador la
+# bloquea y el sitio se ve con la tipografía de respaldo.
+#
+# fonts.googleapis.com y fonts.gstatic.com siguen siendo Playfair Display y
+# Caveat. Si algún día también se descargan a assets/fonts/, se pueden borrar
+# de acá las dos líneas y de los <link> de cada página.

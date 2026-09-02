@@ -283,6 +283,64 @@
     });
   }
 
+
+  /* ---------------------------------------------------- Publicaciones
+
+     Los tips, las recetas y la info nutricional que carga la
+     nutricionista desde el panel. Es lo único de la landing que NO tiene
+     respaldo en un archivo: si no hay nada publicado o la API no
+     contesta, la sección entera no se dibuja. Preferimos que no esté a
+     que esté vacía. */
+
+  var TIPOS = {
+    tip:       { nombre: 'Tip',              color: 'var(--c-clasico)',     texto: 'var(--c-clasico-dark)' },
+    receta:    { nombre: 'Receta',           color: 'var(--c-vegetariano)', texto: 'var(--c-vegetariano-dark)' },
+    nutricion: { nombre: 'Info nutricional', color: 'var(--c-proteico)',    texto: 'var(--c-proteico-dark)' }
+  };
+
+  function fechaLinda(iso) {
+    if (!iso || iso.length < 10) return '';
+    var meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun',
+                 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    var mes = meses[Number(iso.slice(5, 7)) - 1] || '';
+    return Number(iso.slice(8, 10)) + ' ' + mes + ' ' + iso.slice(0, 4);
+  }
+
+  function pintarTips(publicaciones) {
+    var seccion = el('tips');
+    var caja = el('tips-lista');
+    if (!seccion || !caja) return;
+
+    if (!publicaciones || !publicaciones.length) {
+      seccion.hidden = true;
+      return;
+    }
+
+    caja.innerHTML = publicaciones.map(function (p) {
+      var tipo = TIPOS[p.categoria] || TIPOS.tip;
+      var cabecera = p.imagen
+        ? '<div class="tip__foto"><img src="' + esc(p.imagen) + '" alt="' +
+          esc(p.imagenAlt || '') + '" loading="lazy"></div>'
+        : '<div class="tip__barra"></div>';
+
+      return '<a class="tip" href="tips/?nota=' + encodeURIComponent(p.id) + '" ' +
+               'style="--tip-color:' + tipo.color + ';--tip-color-texto:' + tipo.texto + '">' +
+               cabecera +
+               '<div class="tip__cuerpo">' +
+                 '<p class="tip__meta">' +
+                   '<span class="tip__tipo">' + esc(tipo.nombre) + '</span>' +
+                   '<span class="tip__fecha">' + esc(fechaLinda(p.fecha)) + '</span>' +
+                 '</p>' +
+                 '<h3 class="tip__t">' + esc(p.titulo) + '</h3>' +
+                 (p.copete ? '<p class="tip__d">' + esc(p.copete) + '</p>' : '') +
+                 '<span class="tip__ir">Leer</span>' +
+               '</div>' +
+             '</a>';
+    }).join('');
+
+    seccion.hidden = false;
+  }
+
   function pintarTodo() {
     pintarCifras();
     pintarSemana();
@@ -299,7 +357,11 @@
      la página se vea completa enseguida, y de nuevo cuando contesta la
      API. Si la API no contesta, la primera pasada ya dejó todo bien. */
 
-  var promesas = Promise.all([traer('/api/precios'), traer('/api/menus')]);
+  var promesas = Promise.all([
+    traer('/api/precios'),
+    traer('/api/menus'),
+    traer('/api/publicaciones?limite=6')
+  ]);
 
   function iniciar() {
     pintarTodo();
@@ -308,6 +370,9 @@
       aplicarPrecios(r[0]);
       aplicarMenu(r[1]);
       pintarTodo();
+      /* Las publicaciones sólo existen en la base, así que se dibujan
+         cuando llegan y no en la primera pasada. */
+      pintarTips(r[2] && r[2].publicaciones);
     });
   }
 
@@ -317,7 +382,9 @@
     iniciar();
   }
 
-  /* Para los tests */
-  global.AUME_LANDING = { pintarTodo: pintarTodo };
+  /* Para los tests. pintarTips va acá porque es lo único que depende
+     de la base y no tiene respaldo en un archivo: sin exponerlo, la
+     única forma de probar las tarjetas sería levantar el worker. */
+  global.AUME_LANDING = { pintarTodo: pintarTodo, pintarTips: pintarTips };
 
 })(window);

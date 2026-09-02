@@ -61,7 +61,7 @@ const api = {
 
 /* ---------------------------------------------------------- Arranque */
 
-const modulos = ['sql-limites.mjs', 'sql-datos.mjs', 'tiempo.mjs', 'api.mjs', 'precios.mjs', 'menus.mjs', 'pedidos.mjs', 'estadisticas.mjs'];
+const modulos = ['sql-limites.mjs', 'sql-datos.mjs', 'tiempo.mjs', 'api.mjs', 'precios.mjs', 'menus.mjs', 'pedidos.mjs', 'estadisticas.mjs', 'publicaciones.mjs'];
 
 for (const archivo of modulos) {
   const url = pathToFileURL(path.join(import.meta.dirname, archivo)).href;

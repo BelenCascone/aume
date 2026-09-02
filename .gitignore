@@ -7,3 +7,6 @@ playwright-report/
 
 # Material comercial interno, no forma parte de la web
 AUME-propuesta-comercial.pdf
+
+# Copia local que arma "npx skills" para Claude Code. Apunta a .agents/skills/.
+.claude/skills/

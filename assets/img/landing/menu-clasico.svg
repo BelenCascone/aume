@@ -2,15 +2,15 @@
      Se reemplaza por la foto de una vianda del menu Clasico cuando llegue el material.
      Ver README, punto 5. -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-hidden="true">
-  <rect width="800" height="600" fill="#FBEEE3"/>
-  <circle cx="400" cy="300" r="292" fill="#D97838" opacity=".18"/>
+  <rect width="800" height="600" fill="#FBF1E8"/>
+  <circle cx="400" cy="300" r="292" fill="#DC8D43" opacity=".18"/>
   <circle cx="400" cy="300" r="268" fill="#FFFFFF"/>
-  <circle cx="400" cy="300" r="268" fill="none" stroke="#D97838" stroke-width="4" opacity=".3"/>
-  <circle cx="400" cy="300" r="226" fill="none" stroke="#D97838" stroke-width="2" opacity=".2"/>
-  <rect x="212" y="176" width="270" height="186" rx="34" fill="#D97838" opacity=".85"/>
+  <circle cx="400" cy="300" r="268" fill="none" stroke="#DC8D43" stroke-width="4" opacity=".3"/>
+  <circle cx="400" cy="300" r="226" fill="none" stroke="#DC8D43" stroke-width="2" opacity=".2"/>
+  <rect x="212" y="176" width="270" height="186" rx="34" fill="#DC8D43" opacity=".85"/>
   <rect x="238" y="202" width="218" height="134" rx="24" fill="#FFFFFF" opacity=".22"/>
-  <circle cx="546" cy="226" r="52" fill="#D97838" opacity=".5"/>
-  <circle cx="588" cy="322" r="42" fill="#D97838" opacity=".5"/>
-  <circle cx="524" cy="340" r="34" fill="#D97838" opacity=".5"/>
-  <rect x="212" y="398" width="376" height="62" rx="31" fill="#D97838" opacity=".3"/>
+  <circle cx="546" cy="226" r="52" fill="#DC8D43" opacity=".5"/>
+  <circle cx="588" cy="322" r="42" fill="#DC8D43" opacity=".5"/>
+  <circle cx="524" cy="340" r="34" fill="#DC8D43" opacity=".5"/>
+  <rect x="212" y="398" width="376" height="62" rx="31" fill="#DC8D43" opacity=".3"/>
 </svg>

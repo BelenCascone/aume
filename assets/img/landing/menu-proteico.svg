@@ -2,18 +2,18 @@
      Se reemplaza por la foto de una vianda del menu Proteico cuando llegue el material.
      Ver README, punto 5. -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-hidden="true">
-  <rect width="800" height="600" fill="#F1EAF3"/>
-  <circle cx="400" cy="300" r="292" fill="#9B7AA2" opacity=".18"/>
+  <rect width="800" height="600" fill="#F5F2F6"/>
+  <circle cx="400" cy="300" r="292" fill="#AD94B4" opacity=".18"/>
   <circle cx="400" cy="300" r="268" fill="#FFFFFF"/>
-  <circle cx="400" cy="300" r="268" fill="none" stroke="#9B7AA2" stroke-width="4" opacity=".3"/>
-  <circle cx="400" cy="300" r="226" fill="none" stroke="#9B7AA2" stroke-width="2" opacity=".2"/>
-  <rect x="196" y="170" width="268" height="180" rx="42" fill="#9B7AA2" opacity=".82"/>
+  <circle cx="400" cy="300" r="268" fill="none" stroke="#AD94B4" stroke-width="4" opacity=".3"/>
+  <circle cx="400" cy="300" r="226" fill="none" stroke="#AD94B4" stroke-width="2" opacity=".2"/>
+  <rect x="196" y="170" width="268" height="180" rx="42" fill="#AD94B4" opacity=".82"/>
   <path d="M236 232 h188 M236 268 h188 M236 304 h188" stroke="#FFFFFF" stroke-width="9" opacity=".32" stroke-linecap="round"/>
-  <circle cx="556" cy="268" r="94" fill="#9B7AA2" opacity=".4"/>
-  <circle cx="224" cy="418" r="21" fill="#9B7AA2" opacity=".62"/>
-  <circle cx="296" cy="432" r="21" fill="#9B7AA2" opacity=".62"/>
-  <circle cx="368" cy="418" r="21" fill="#9B7AA2" opacity=".62"/>
-  <circle cx="440" cy="432" r="21" fill="#9B7AA2" opacity=".62"/>
-  <circle cx="512" cy="418" r="21" fill="#9B7AA2" opacity=".62"/>
-  <circle cx="584" cy="432" r="21" fill="#9B7AA2" opacity=".62"/>
+  <circle cx="556" cy="268" r="94" fill="#AD94B4" opacity=".4"/>
+  <circle cx="224" cy="418" r="21" fill="#AD94B4" opacity=".62"/>
+  <circle cx="296" cy="432" r="21" fill="#AD94B4" opacity=".62"/>
+  <circle cx="368" cy="418" r="21" fill="#AD94B4" opacity=".62"/>
+  <circle cx="440" cy="432" r="21" fill="#AD94B4" opacity=".62"/>
+  <circle cx="512" cy="418" r="21" fill="#AD94B4" opacity=".62"/>
+  <circle cx="584" cy="432" r="21" fill="#AD94B4" opacity=".62"/>
 </svg>
