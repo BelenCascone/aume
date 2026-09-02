@@ -160,6 +160,24 @@ test.describe('Datos del negocio', () => {
 
 test.describe('Cómo se ve y cómo se sirve', () => {
 
+  test('la tipografía de la marca carga de verdad', async ({ page }) => {
+    /* No alcanza con que el @font-face esté escrito: si la CSP la bloquea
+       o el servidor la manda con el tipo equivocado, el navegador la
+       descarta en silencio y el sitio se ve con la de respaldo. Esto
+       pregunta si la fuente terminó cargada. */
+    await page.evaluate(() => document.fonts.ready);
+    const cargada = await page.evaluate(() =>
+      document.fonts.check('400 16px "Glacial Indifference"')
+    );
+    expect(cargada, 'Glacial Indifference no llegó a cargar').toBe(true);
+
+    /* Y que sea la que el texto usa, no una que quedó cargada al pasar */
+    const usada = await page.evaluate(() =>
+      getComputedStyle(document.querySelector('.hero__d')).fontFamily
+    );
+    expect(usada).toContain('Glacial Indifference');
+  });
+
   test('la página no scrollea en horizontal', async ({ page }) => {
     const ancho = await page.evaluate(() => ({
       doc: document.documentElement.scrollWidth,

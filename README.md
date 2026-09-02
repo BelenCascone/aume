@@ -175,6 +175,7 @@ aume/
 │   ├── css/
 │   │   ├── styles.css          Estilos + paleta de marca en variables CSS
 │   │   └── landing.css         Sólo la landing (usa la paleta de styles.css)
+│   ├── fonts/                  Glacial Indifference + su licencia
 │   ├── img/                    logo.png + íconos (ya generados)
 │   │   └── landing/            Marcadores de lugar de las fotos ⚠️
 │   └── js/
@@ -216,15 +217,24 @@ cual. El texto usa la variante oscura. Por lo mismo, el botón principal
 lleva el naranja de la marca con el texto en tinta (se lee al doble que en
 blanco), y el botón verde usa la variante oscura para que el blanco entre.
 
-Tipografías: **Playfair Display** (títulos), **Caveat** (días y detalles
-manuscritos), **Montserrat** (textos).
+### Tipografías
 
-> ⚠️ Falta pasar el sitio a **Glacial Indifference**, la tipografía de la
-> marca. Está en `marca/glacial-indifference.rar`, con licencia SIL Open
-> Font (se puede usar y alojar en el sitio sin problema). Para aplicarla
-> hay que descomprimir ese archivo y dejar
-> `GlacialIndifference-Regular.otf` y `GlacialIndifference-Bold.otf` en
-> `assets/fonts/`.
+| Dónde | Cuál |
+|---|---|
+| Textos, botones, formularios y todo el panel | **Glacial Indifference**, la tipografía de la marca |
+| Títulos | **Playfair Display** |
+| Días del menú y detalles manuscritos | **Caveat** |
+
+Glacial Indifference vive en **`assets/fonts/`** y se sirve desde el
+propio sitio, no desde Google: es la de la marca y no queremos que
+dependa de un servicio de afuera. Su licencia (SIL Open Font, que permite
+exactamente esto) está al lado, en el mismo directorio, y tiene que
+seguir ahí.
+
+> Si algún día no se ve, lo primero para mirar son dos líneas: `font-src
+> 'self'` en `_headers` y el tipo `.otf` en `tests/server.js`. Sin
+> cualquiera de las dos, el navegador descarta la fuente **sin avisar** y
+> el sitio se ve con la de respaldo. Hay un test que lo verifica.
 
 El material original que pasó la diseñadora —el logo, la paleta y la
 tipografía— está en la carpeta **`marca/`**, con su propio `LEEME.txt`.

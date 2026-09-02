@@ -10,6 +10,30 @@
    La idea es que elegir no obligue a subir y bajar.
    ===================================================================== */
 
+/* -------------------------------------------------- 0. TIPOGRAFÍA DE MARCA
+   Glacial Indifference, la tipografía de AUMÉ. Va alojada en el propio
+   sitio y no en Google Fonts: es la de la marca, así que no queremos que
+   dependa de que un servicio de afuera esté disponible. La licencia es
+   SIL Open Font (assets/fonts/LICENCIA-SIL-Open-Font.txt), que permite
+   justamente esto.
+
+   font-display:swap = mientras la fuente baja, el texto se lee igual con
+   la de respaldo. Nadie se queda mirando una pantalla en blanco. */
+@font-face{
+  font-family:'Glacial Indifference';
+  src:url('../fonts/GlacialIndifference-Regular.otf') format('opentype');
+  font-weight:400;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:'Glacial Indifference';
+  src:url('../fonts/GlacialIndifference-Bold.otf') format('opentype');
+  font-weight:700;
+  font-style:normal;
+  font-display:swap;
+}
+
 /* ---------------------------------------------------------------- 1. TOKENS */
 :root{
   /* PALETA DE MARCA
@@ -54,10 +78,12 @@
   --exito:      #42815D;
   --alerta:     #C0552F;
 
-  /* Tipografías */
+  /* Tipografías.
+     El cuerpo va en Glacial Indifference, la de la marca. Los títulos
+     siguen en Playfair y los detalles manuscritos en Caveat. */
   --f-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
   --f-script:  'Caveat', 'Segoe Script', cursive;
-  --f-body:    'Montserrat', 'Inter', -apple-system, 'Segoe UI', sans-serif;
+  --f-body:    'Glacial Indifference', 'Century Gothic', 'Futura', -apple-system, 'Segoe UI', sans-serif;
 
   /* Escala */
   --r-sm: 10px;

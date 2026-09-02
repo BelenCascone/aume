@@ -14,6 +14,10 @@ const tipos = {
   '.json': 'application/manifest+json; charset=utf-8',
   '.png' : 'image/png',
   '.svg' : 'image/svg+xml',
+  /* Sin el tipo correcto, X-Content-Type-Options: nosniff hace que el
+     navegador descarte la tipografía y el sitio se vea con la de respaldo. */
+  '.otf' : 'font/otf',
+  '.woff2': 'font/woff2',
   '.txt' : 'text/plain; charset=utf-8'
 };
 

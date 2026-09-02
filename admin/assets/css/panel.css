@@ -8,6 +8,19 @@
    está en shell.css. Los nombres de clase de las dos hojas no se
    pisan: está verificado.
    ===================================================================== */
+/* La tipografía de la marca, igual que en la web pública. La ruta va
+   absoluta porque este archivo lo cargan páginas de /admin/. */
+@font-face{
+  font-family:'Glacial Indifference';
+  src:url('/assets/fonts/GlacialIndifference-Regular.otf') format('opentype');
+  font-weight:400; font-style:normal; font-display:swap;
+}
+@font-face{
+  font-family:'Glacial Indifference';
+  src:url('/assets/fonts/GlacialIndifference-Bold.otf') format('opentype');
+  font-weight:700; font-style:normal; font-display:swap;
+}
+
 :root{
   --c-clasico:#DC8D43; --c-clasico-dark:#9E6630; --c-clasico-suave:#FBF1E8;
   --c-vegetariano:#4B936A; --c-vegetariano-dark:#42815D; --c-vegetariano-suave:#E9F2ED;
@@ -18,7 +31,7 @@
   --exito:#42815D; --alerta:#C0552F;
   --f-display:'Playfair Display',Georgia,serif;
   --f-script:'Caveat','Segoe Script',cursive;
-  --f-body:'Montserrat','Inter',-apple-system,'Segoe UI',sans-serif;
+  --f-body:'Glacial Indifference','Century Gothic','Futura',-apple-system,'Segoe UI',sans-serif;
   --r-sm:10px; --r-md:16px;
   --sombra:0 1px 2px rgba(44,44,44,.06),0 2px 8px rgba(44,44,44,.05);
 }

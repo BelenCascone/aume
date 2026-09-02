@@ -17,11 +17,11 @@ con lo que hay acá, manda esta carpeta.
                          TODAVÍA NO ESTÁ APLICADA (ver abajo).
 
 
-PENDIENTE: aplicar la tipografía
---------------------------------
-Adentro del .rar están GlacialIndifference-Regular.otf y
-GlacialIndifference-Bold.otf. Para poder usarlas hay que descomprimirlas
-y dejarlas en assets/fonts/. Hoy el sitio usa Montserrat en su lugar.
+LISTO: la tipografía ya está aplicada
+-------------------------------------
+Las dos .otf salieron del .rar y están en assets/fonts/, junto con su
+licencia. Son las que usa todo el sitio y todo el panel. Acá queda sólo
+el .rar original, como respaldo.
 
 
 PENDIENTE: el logo en SVG
