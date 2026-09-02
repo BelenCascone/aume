@@ -44,6 +44,9 @@ VALUES (3, 'Postres y yogures como productos sin precio');
 INSERT OR IGNORE INTO esquema_version (version, descripcion)
 VALUES (4, 'Promos, plan mensual y productos como líneas del pedido');
 
+INSERT OR IGNORE INTO esquema_version (version, descripcion)
+VALUES (5, 'Publicaciones: tips, recetas e info nutricional');
+
 
 -- =====================================================================
 -- CATÁLOGO  (lo que hoy vive en assets/js/data/config.js)
@@ -310,3 +313,32 @@ CREATE TABLE IF NOT EXISTS pedido_items (
 
 CREATE INDEX IF NOT EXISTS idx_items_pedido    ON pedido_items (pedido_id);
 CREATE INDEX IF NOT EXISTS idx_items_categoria ON pedido_items (categoria_id);
+
+
+-- =====================================================================
+-- PUBLICACIONES  (tips, recetas e info nutricional de la landing)
+-- ---------------------------------------------------------------------
+-- Las carga quien maneja las redes desde /admin/publicaciones/ y salen
+-- solas en la landing. La imagen NO se guarda acá: en `imagen` va el
+-- nombre del archivo dentro del bucket R2, y el worker lo sirve desde
+-- /api/publicaciones/imagenes/<archivo>.
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS publicaciones (
+  id             TEXT    PRIMARY KEY,   -- 'tres-mitos-de-invierno'
+  titulo         TEXT    NOT NULL,
+  copete         TEXT    NOT NULL DEFAULT '',
+  cuerpo         TEXT    NOT NULL DEFAULT '',
+  categoria      TEXT    NOT NULL DEFAULT 'tip'
+                 CHECK (categoria IN ('tip', 'receta', 'nutricion')),
+  imagen         TEXT    NOT NULL DEFAULT '',
+  imagen_alt     TEXT    NOT NULL DEFAULT '',
+  -- Mientras está en borrador NO sale nunca en la respuesta pública.
+  estado         TEXT    NOT NULL DEFAULT 'borrador'
+                 CHECK (estado IN ('borrador', 'publicado')),
+  fecha          TEXT    NOT NULL,      -- 'YYYY-MM-DD', la que se muestra
+  creado_en      TEXT    NOT NULL DEFAULT (datetime('now')),
+  actualizado_en TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_publicaciones_estado
+  ON publicaciones (estado, fecha DESC);
