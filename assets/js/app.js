@@ -148,6 +148,28 @@
     UI.toast(linea.titulo + (linea.detalle ? ' · ' + linea.detalle : '') + ' agregado');
   }
 
+  /* --------------------------------------------- Entrar por una dirección
+
+     La landing linkea cada forma de pedir con su propia dirección
+     (/pedido/#promos, #mensual, #sumar), para que "Ver las promos" abra
+     las promos y no el menú del día. Se lee una sola vez, al arrancar:
+     después manda el estado del carrito, como siempre.
+
+     Una dirección desconocida no hace nada: se entra por el menú del día,
+     que es lo que pasaba antes de que esto existiera.                     */
+
+  var MODO_POR_DIRECCION = {
+    '#menu':    'dia',
+    '#promos':  'promo',
+    '#mensual': 'mensual',
+    '#sumar':   'extras'
+  };
+
+  function abrirModoDeLaDireccion() {
+    var modo = MODO_POR_DIRECCION[global.location.hash];
+    if (modo) Store.setModo(modo);
+  }
+
   /* ----------------------------------------------------------- Eventos */
 
   function conectarEventos() {
@@ -261,6 +283,7 @@
     }
 
     Store.restaurar();
+    abrirModoDeLaDireccion();
 
     UI.pintarEstaticos();
     Checkout.montar();

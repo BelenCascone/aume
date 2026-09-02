@@ -16,8 +16,13 @@ El sitio tiene dos pantallas y cada una vive en su dirección:
 
 | Dirección | Qué es |
 |---|---|
-| `/` | La landing: la presentación de AUMÉ. **Todavía no está escrita**, así que por ahora es un puente que lleva derecho al menú. |
+| `/` | La landing: la presentación de AUMÉ. Es lo que ve alguien que llega desde Instagram. |
 | `/pedido/` | La pantalla de pedidos: el menú, el carrito y el mensaje de WhatsApp. Es lo que había antes en la portada y funciona exactamente igual. |
+
+Los **textos de la landing** están escritos en `index.html` y se editan ahí
+mismo. Los **datos** —el menú de la semana, los cuatro menús, las zonas de
+envío y los puntos de retiro— no: esos salen de los mismos archivos de
+siempre (y del panel), así que se actualizan solos en las dos pantallas.
 
 ---
 
@@ -126,13 +131,39 @@ marca (`#F9F6F0`).
 Si algún día cambia el logo, reemplazá `logo.png` (fondo transparente, alto
 300 px o más) y regenerá los cuadrados con el mismo criterio.
 
+### ⚠️ Las fotos de la landing todavía son dibujos
+
+En `assets/img/landing/` hay **cinco marcadores de lugar**: no son fotos de
+AUMÉ, son dibujos hechos con los colores de la marca para que la página no
+quede con huecos hasta que llegue el material.
+
+| Archivo | Qué foto va ahí |
+|---|---|
+| `menu-clasico.svg` | Una vianda del menú Clásico |
+| `menu-vegetariano.svg` | Una vianda del menú Vegetariano |
+| `menu-proteico.svg` | Una vianda del menú Proteico |
+| `menu-ensalada.svg` | Una vianda del menú Ensaladas |
+| `cocina.svg` | La cocina o el equipo (es la apaisada, va en "Quiénes somos") |
+
+**Cómo se reemplazan:** guardá la foto en esa misma carpeta y cambiá el
+nombre del archivo donde aparece. Los cuatro menús se nombran en
+`assets/js/landing.js` (buscá `FOTO_POR_CATEGORIA`); la de la cocina, en
+`index.html` (buscá `cocina.svg`).
+
+Las cuatro de los menús se ven recortadas en un rectángulo apaisado, así que
+conviene que el plato esté centrado. La de la cocina se ve entera y es más
+ancha que alta.
+
+> La portada **no lleva foto a propósito**: mientras no haya material, se
+> apoya en la tipografía y en el color de marca.
+
 ---
 
 ## 6. Estructura del proyecto
 
 ```
 aume/
-├── index.html                  Puente a /pedido/ (acá va a ir la landing)
+├── index.html                  La landing (la portada del sitio)
 ├── pedido/
 │   └── index.html              Estructura de la pantalla de pedidos
 ├── manifest.json               Datos de la PWA (nombre, colores, ícono)
@@ -141,8 +172,11 @@ aume/
 ├── .assetsignore               Qué NO se publica
 ├── wrangler.jsonc              Deploy en Cloudflare
 ├── assets/
-│   ├── css/styles.css          Estilos + paleta de marca en variables CSS
+│   ├── css/
+│   │   ├── styles.css          Estilos + paleta de marca en variables CSS
+│   │   └── landing.css         Sólo la landing (usa la paleta de styles.css)
 │   ├── img/                    logo.png + íconos (ya generados)
+│   │   └── landing/            Marcadores de lugar de las fotos ⚠️
 │   └── js/
 │       ├── data/
 │       │   ├── config.js       ← negocio: precios, envíos, packs, puntos
@@ -150,7 +184,8 @@ aume/
 │       ├── store.js            Carrito, totales y reglas de envío
 │       ├── ui.js               Dibujado de menú, carrito y paneles
 │       ├── checkout.js         Formulario y mensaje de WhatsApp
-│       └── app.js              Arranque y eventos
+│       ├── app.js              Arranque y eventos
+│       └── landing.js          Dibuja la landing con los mismos datos
 │
 ├── package.json                Sólo para correr los tests
 ├── playwright.config.js        Config de los tests

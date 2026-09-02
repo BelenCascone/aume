@@ -141,19 +141,6 @@ test.describe('Responsive', () => {
 
 /* -------------------------------------------------------- Publicación */
 
-test.describe('Direcciones del sitio', () => {
-
-  /* PROVISORIO: mientras no exista la landing, la raíz es un puente que
-     lleva a la pantalla de pedidos, para que nadie que entre al dominio
-     quede en la nada. Cuando la landing esté escrita, esta prueba se
-     reemplaza por "la landing tiene un botón que lleva a /pedido/". */
-  test('entrar a la raíz termina en la pantalla de pedidos', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForURL(/\/pedido\/(index\.html)?$/);
-    await expect(page.locator('#dias')).toBeVisible();
-  });
-});
-
 test.describe('Cabeceras de seguridad', () => {
 
   test('el sitio se sirve con la CSP del archivo _headers', async ({ page }) => {

@@ -1,0 +1,427 @@
+/* =====================================================================
+   AUMÉ · Estilos de la landing  (assets/css/landing.css)
+
+   Se carga DESPUÉS de styles.css y depende de él: la paleta, las
+   tipografías y los botones salen de ahí. Acá no se define ni un color
+   de marca nuevo, sólo se usan las variables de :root.
+
+   Por qué no reutiliza .contenedor: el contenedor de la pantalla de
+   pedidos mide 620px porque está pensado para una mano en el celular.
+   La landing necesita más ancho para las grillas, así que tiene el suyo
+   (.env) y deja el otro intacto.
+   ===================================================================== */
+
+/* ------------------------------------------------------------- 1. BASE */
+
+/* styles.css deja aire para lo que queda fijo arriba en la pantalla de
+   pedidos, que es más alto que la cabecera de acá. Como este archivo lo
+   carga sólo la landing, alcanza con pisar el valor. */
+html{ scroll-padding-top:82px; }
+
+.env{
+  width:100%; max-width:1080px;
+  margin-inline:auto; padding-inline:22px;
+}
+
+.landing .ojo{
+  font-size:.7rem; font-weight:700; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--c-clasico-dark);
+  margin-bottom:10px;
+}
+.landing .t2{
+  font-size:clamp(1.6rem, 4vw, 2.3rem);
+  line-height:1.15; max-width:20ch; text-wrap:balance;
+}
+.landing .baj{
+  margin-top:12px; color:var(--tinta-60);
+  max-width:56ch; font-size:1rem;
+}
+.landing .p{ margin-top:14px; max-width:60ch; }
+.landing .p strong{ font-weight:700; }
+
+.seccion-l{ padding-block:clamp(48px, 8vw, 84px); }
+.seccion-l--alt{ background:var(--crema-alt); }
+
+/* Enlace para saltar el menú con el teclado */
+.saltar{
+  position:absolute; left:-9999px; top:0; z-index:100;
+  background:var(--c-clasico); color:var(--blanco);
+  padding:12px 18px; border-radius:0 0 var(--r-sm) 0; font-weight:600;
+}
+.saltar:focus{ left:0; }
+
+/* --------------------------------------------------------- 2. CABECERA
+   El logo queda fijo arriba y visible todo el scroll: es lo más
+   importante de la barra, y el botón de pedir no compite con él. */
+.cab{
+  position:sticky; top:0; z-index:40;
+  background:rgba(249,246,240,.94);
+  backdrop-filter:saturate(180%) blur(10px);
+  border-bottom:1px solid var(--linea);
+}
+.cab__in{
+  display:flex; align-items:center; gap:16px;
+  min-height:68px;
+}
+.cab__marca{
+  display:flex; align-items:center; gap:9px;
+  text-decoration:none; color:inherit; flex:0 0 auto;
+}
+.cab__marca img{ height:40px; width:auto; }
+.cab__tag{
+  font-family:var(--f-script); font-size:1.05rem;
+  color:var(--tinta-60); line-height:1; margin-top:7px;
+}
+.cab__nav{
+  display:flex; gap:22px; margin-inline:auto;
+  font-size:.9rem; font-weight:500;
+}
+.cab__nav a{
+  color:var(--tinta); text-decoration:none;
+  padding-block:6px; border-bottom:2px solid transparent;
+}
+.cab__nav a:hover{ color:var(--c-clasico-dark); border-bottom-color:var(--c-clasico); }
+.cab__cta{ flex:0 0 auto; min-height:44px; padding:11px 20px; font-size:.9rem; }
+
+/* En celular no entran los enlaces: queda el logo y el botón de pedir,
+   que es lo único que hay que poder tocar sin pensar. */
+@media (max-width:860px){
+  .cab__nav{ display:none; }
+  .cab__cta{ margin-inline-start:auto; }
+}
+@media (max-width:400px){
+  .cab__cta{ padding:11px 15px; font-size:.85rem; }
+  .cab__tag{ display:none; }
+}
+
+/* --------------------------------------------------------- 3. PORTADA
+   Tipográfica a propósito: hasta que llegue el material fotográfico, la
+   portada se apoya en Playfair y en el color de marca. La mancha de
+   color de atrás evita que quede un bloque de texto suelto. */
+.hero{
+  position:relative; overflow:hidden;
+  padding-block:clamp(56px, 11vw, 116px);
+}
+.hero::before{
+  content:""; position:absolute; z-index:0;
+  inset-block-start:-30%; inset-inline-end:-14%;
+  width:min(660px, 78vw); aspect-ratio:1;
+  background:radial-gradient(circle at 50% 50%,
+    var(--c-clasico-suave) 0%, rgba(251,238,227,0) 68%);
+}
+.hero__in{ position:relative; z-index:1; }
+.hero__ojo{
+  font-size:.74rem; font-weight:700; letter-spacing:.15em;
+  text-transform:uppercase; color:var(--c-clasico-dark); margin-bottom:20px;
+}
+.hero__t{
+  font-size:clamp(2.1rem, 6.4vw, 4rem);
+  line-height:1.07; max-width:17ch; text-wrap:balance;
+}
+.hero__t em{
+  font-style:italic; color:var(--c-clasico-dark);
+}
+.hero__d{
+  margin-top:22px; max-width:52ch;
+  font-size:clamp(1rem, 2.2vw, 1.12rem); color:var(--tinta-60);
+}
+.hero__acciones{
+  display:flex; flex-wrap:wrap; gap:12px; margin-top:30px;
+}
+.hero__firma{
+  margin-top:30px; font-family:var(--f-script);
+  font-size:1.35rem; color:var(--c-vegetariano);
+}
+
+/* ---------------------------------------------------------- 4. CIFRAS */
+.cifras{
+  background:var(--tinta); color:var(--crema);
+  padding-block:26px;
+}
+.cifras__in{
+  display:grid; gap:22px 14px;
+  grid-template-columns:repeat(2, minmax(0,1fr));
+  text-align:center;
+}
+@media (min-width:760px){
+  .cifras__in{ grid-template-columns:repeat(4, minmax(0,1fr)); }
+}
+.cifra__n{
+  font-family:var(--f-display); font-size:1.9rem; line-height:1;
+  color:var(--blanco);
+}
+.cifra__d{
+  margin-top:7px; font-size:.72rem; font-weight:600;
+  letter-spacing:.13em; text-transform:uppercase;
+  color:rgba(249,246,240,.7);
+}
+
+/* ------------------------------------------- 5. MENÚ DE ESTA SEMANA */
+/* 188px es el ancho mínimo que deja entrar los cinco días en una fila
+   en escritorio; más abajo se van acomodando solos. */
+.semana{
+  margin-top:28px;
+  display:grid; gap:14px;
+  grid-template-columns:repeat(auto-fit, minmax(188px, 1fr));
+}
+.dia{
+  background:var(--blanco); border:1px solid var(--linea);
+  border-radius:var(--r-md); padding:16px 17px;
+}
+.dia__t{
+  font-family:var(--f-script); font-size:1.5rem;
+  color:var(--c-clasico-dark); line-height:1;
+}
+.dia__lista{ margin-top:12px; display:grid; gap:11px; }
+.dia__plato{ display:grid; grid-template-columns:auto minmax(0,1fr); gap:9px; }
+.dia__punto{
+  width:9px; height:9px; border-radius:50%; margin-top:6px;
+  background:var(--c-clasico);
+}
+.dia__cat{
+  font-size:.63rem; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--tinta-60);
+}
+.dia__nombre{ font-size:.87rem; line-height:1.35; margin-top:2px; }
+.dia--vacio .dia__nombre{ color:var(--tinta-60); font-style:italic; }
+
+.nota-semana{
+  margin-top:20px; font-size:.88rem; color:var(--tinta-60);
+}
+.cierre-bloque{ margin-top:26px; }
+
+/* ------------------------------------------------- 6. LOS CUATRO MENÚS */
+.tipos{
+  margin-top:28px; display:grid; gap:16px;
+  grid-template-columns:repeat(auto-fit, minmax(230px, 1fr));
+}
+.tipo{
+  background:var(--blanco); border:1px solid var(--linea);
+  border-radius:var(--r-md); overflow:hidden;
+  display:flex; flex-direction:column;
+}
+.tipo__foto{ aspect-ratio:4/3; background:var(--crema-alt); }
+.tipo__foto img{ width:100%; height:100%; object-fit:cover; }
+.tipo__cuerpo{ padding:16px 17px 19px; }
+.tipo__t{
+  font-size:1.15rem; display:flex; align-items:center; gap:9px;
+}
+.tipo__t::before{
+  content:""; width:11px; height:11px; border-radius:50%;
+  background:var(--tipo-color, var(--c-clasico)); flex:0 0 auto;
+}
+.tipo__d{ margin-top:8px; font-size:.9rem; color:var(--tinta-60); }
+
+.fija{
+  margin-top:22px; padding:15px 18px;
+  background:var(--c-vegetariano-suave); border-radius:var(--r-md);
+  font-size:.92rem; color:var(--tinta);
+}
+.fija strong{ font-weight:700; }
+
+/* ------------------------------------------------------- 7. CÓMO FUNCIONA */
+.pasos{
+  margin-top:30px; padding:0; list-style:none;
+  display:grid; gap:20px;
+  grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));
+}
+.paso{
+  border-top:2px solid var(--c-clasico); padding-top:16px;
+}
+.paso__n{
+  font-size:.7rem; font-weight:700; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--c-clasico-dark);
+}
+.paso__t{ margin-top:7px; font-size:1.2rem; }
+.paso__d{ margin-top:9px; font-size:.92rem; color:var(--tinta-60); }
+
+/* ------------------------------------------------------ 8. FORMAS DE PEDIR */
+.formas{
+  margin-top:28px; display:grid; gap:14px;
+  grid-template-columns:repeat(auto-fit, minmax(235px, 1fr));
+}
+.forma{
+  display:flex; flex-direction:column;
+  background:var(--blanco); border:1px solid var(--linea);
+  border-radius:var(--r-md); padding:20px 19px;
+  text-decoration:none; color:inherit;
+  transition:border-color .2s ease, transform .15s ease;
+}
+.forma:hover{ border-color:var(--c-clasico); transform:translateY(-2px); }
+.forma__t{ font-size:1.2rem; }
+.forma__d{ margin-top:9px; font-size:.9rem; color:var(--tinta-60); flex:1 1 auto; }
+.forma__ir{
+  margin-top:16px; font-size:.86rem; font-weight:600;
+  color:var(--c-clasico-dark);
+}
+.forma__ir::after{ content:" →"; }
+
+/* ------------------------------------------------------ 9. POR QUÉ CONVIENE */
+.valores{
+  margin-top:30px; display:grid; gap:18px;
+  grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+}
+.valor{
+  background:var(--crema-alt); border-radius:var(--r-md); padding:22px 20px;
+}
+.seccion-l--alt .valor{ background:var(--blanco); }
+.valor__t{ font-size:1.15rem; color:var(--c-vegetariano); }
+.valor__d{ margin-top:9px; font-size:.92rem; color:var(--tinta-60); }
+
+/* ------------------------------------------------------- 10. PARA TU EQUIPO */
+.seccion-l--empresas{ background:var(--c-vegetariano-suave); }
+.empresas{
+  display:grid; gap:26px;
+  grid-template-columns:minmax(0,1fr);
+}
+@media (min-width:900px){
+  .empresas{ grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr); align-items:center; }
+}
+.empresas__lista{
+  margin-top:18px; padding:0; list-style:none; display:grid; gap:10px;
+  font-size:.94rem;
+}
+.empresas__lista li{ padding-left:24px; position:relative; }
+.empresas__lista li::before{
+  content:""; position:absolute; left:0; top:9px;
+  width:9px; height:9px; border-radius:50%;
+  border:2px solid var(--c-vegetariano);
+}
+.empresas__cta{ margin-top:24px; }
+.empresas__marco{
+  background:var(--blanco); border:1px solid var(--linea);
+  border-radius:var(--r-lg); padding:30px 28px;
+}
+.empresas__dato{
+  font-family:var(--f-display); font-size:1.2rem; line-height:1.3;
+  color:var(--c-vegetariano);
+}
+.empresas__pide{
+  margin:16px 0 0; padding:0; list-style:none;
+  counter-reset:pide; display:grid; gap:11px;
+}
+.empresas__pide li{
+  counter-increment:pide; position:relative; padding-left:36px;
+  font-size:.95rem; padding-block:2px;
+}
+.empresas__pide li::before{
+  content:counter(pide); position:absolute; left:0; top:0;
+  width:25px; height:25px; border-radius:50%;
+  background:var(--c-vegetariano-suave); color:var(--c-vegetariano);
+  font-size:.78rem; font-weight:700;
+  display:flex; align-items:center; justify-content:center;
+}
+.empresas__pie{
+  margin-top:18px; padding-top:15px; border-top:1px solid var(--linea);
+  font-size:.86rem; color:var(--tinta-60);
+}
+
+/* -------------------------------------------------------- 11. QUIÉNES SOMOS */
+.nosotros{
+  display:grid; gap:28px;
+  grid-template-columns:minmax(0,1fr);
+}
+@media (min-width:900px){
+  .nosotros{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; }
+}
+.nosotros__foto{
+  border-radius:var(--r-lg); overflow:hidden; background:var(--crema-alt);
+}
+.nosotros__foto img{ width:100%; height:auto; }
+
+/* ----------------------------------------------------- 12. DÓNDE Y CÓMO LLEGA */
+.entregas{
+  margin-top:28px; display:grid; gap:24px;
+  grid-template-columns:minmax(0,1fr);
+}
+@media (min-width:900px){
+  .entregas{ grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr); align-items:start; }
+}
+.envio{
+  background:var(--blanco); border:1px solid var(--linea);
+  border-radius:var(--r-md); padding:22px 20px;
+}
+.envio__t{ font-size:1.15rem; }
+.envio__zonas{ margin-top:14px; display:grid; gap:9px; }
+.envio__zona{
+  display:flex; justify-content:space-between; gap:12px;
+  font-size:.92rem; padding-block:7px;
+  border-bottom:1px dashed var(--linea);
+}
+.envio__zona:last-child{ border-bottom:0; }
+.envio__costo{ font-weight:700; color:var(--c-clasico-dark); }
+.envio__nota{ margin-top:14px; font-size:.85rem; color:var(--tinta-60); }
+.envio__promo{
+  display:inline-block; margin-top:12px; padding:6px 13px;
+  border-radius:var(--r-full); font-size:.78rem; font-weight:600;
+  background:var(--c-vegetariano-suave); color:var(--c-vegetariano);
+}
+
+.entregas__sub{ font-size:1.15rem; }
+.puntos-l__lista{
+  margin-top:16px; display:grid; gap:12px;
+  grid-template-columns:repeat(auto-fit, minmax(215px, 1fr));
+}
+.punto-l{
+  background:var(--blanco); border:1px solid var(--linea);
+  border-left:3px solid var(--c-vegetariano);
+  border-radius:var(--r-sm); padding:15px 16px;
+}
+.punto-l__t{ font-size:1rem; }
+.punto-l__dir{ margin-top:5px; font-size:.88rem; color:var(--tinta-60); }
+.punto-l__hs{ margin-top:9px; display:grid; gap:3px; font-size:.82rem; }
+
+/* ------------------------------------------------------------ 13. CIERRE */
+.cierre{
+  background:var(--c-clasico); color:var(--blanco);
+  padding-block:clamp(46px, 8vw, 76px); text-align:center;
+}
+.cierre__t{
+  font-size:clamp(1.7rem, 4.6vw, 2.5rem); color:var(--blanco);
+  margin-inline:auto; max-width:18ch; text-wrap:balance;
+}
+.cierre__d{
+  margin-top:14px; margin-inline:auto; max-width:44ch;
+  color:rgba(255,255,255,.88);
+}
+.cierre__acciones{
+  margin-top:28px; display:flex; flex-wrap:wrap;
+  gap:12px; justify-content:center;
+}
+.cierre .btn--primario{
+  background:var(--blanco); color:var(--c-clasico-dark);
+}
+.cierre .btn--primario:hover{ background:var(--crema); }
+.cierre .btn--fantasma{
+  color:var(--blanco); border-color:rgba(255,255,255,.55);
+}
+.cierre .btn--fantasma:hover{
+  color:var(--blanco); border-color:var(--blanco);
+}
+
+/* --------------------------------------------------------------- 14. PIE */
+.pie-l{ background:var(--crema-alt); padding-block:40px; }
+.pie-l__in{
+  display:grid; gap:26px;
+  grid-template-columns:minmax(0,1fr);
+  align-items:start;
+}
+@media (min-width:820px){
+  .pie-l__in{ grid-template-columns:auto minmax(0,1fr) auto; gap:40px; }
+}
+.pie-l__marca img{ height:52px; width:auto; }
+.pie-l__tag{
+  font-family:var(--f-script); font-size:1.15rem;
+  color:var(--tinta-60); margin-top:2px;
+}
+.pie-l__datos{ font-size:.88rem; color:var(--tinta-60); display:grid; gap:6px; }
+.pie-l__datos a{ color:var(--c-clasico-dark); }
+.pie-l__nav{ display:grid; gap:8px; font-size:.88rem; }
+.pie-l__nav a{ color:var(--tinta); text-decoration:none; }
+.pie-l__nav a:hover{ color:var(--c-clasico-dark); text-decoration:underline; }
+
+/* ------------------------------------------------------- 15. MOVIMIENTO */
+@media (prefers-reduced-motion: reduce){
+  .forma{ transition:none; }
+  .forma:hover{ transform:none; }
+}

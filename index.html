@@ -2,41 +2,360 @@
 <html lang="es-AR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AUMÉ Viandas · Paraná</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AUMÉ Viandas · Comida casera y equilibrada en Paraná</title>
 
-<!-- ============================================================ PROVISORIO
-     Este archivo es un puente, no la landing.
-
-     La pantalla de pedidos se mudó a /pedido/ y acá va a ir la landing.
-     Mientras tanto, quien entre al dominio tiene que terminar en el mismo
-     lugar de siempre: por eso el redireccionamiento.
-
-     La dirección va sin barra inicial y con el nombre del archivo
-     ("pedido/index.html") para que esto también funcione abriendo el archivo
-     con doble clic desde la carpeta: en file:// el navegador no sabe servir
-     el índice de una carpeta, así que "pedido/" a secas no alcanzaría.
-
-     Al escribir la landing, este archivo se reemplaza entero.
-     ==================================================================== -->
-<meta http-equiv="refresh" content="0; url=pedido/index.html">
-<link rel="canonical" href="pedido/index.html">
-<meta name="robots" content="noindex">
-
+<meta name="description" content="Viandas saludables en Paraná, Entre Ríos. Cuatro menús distintos todos los días, envío a domicilio y tres puntos de retiro. Vos ocupate de tu día, nosotros de resolver qué comer.">
+<meta name="theme-color" content="#D97838">
 <link rel="icon" href="assets/img/favicon-64.png" sizes="64x64" type="image/png">
-<style>
-  body{
-    margin:0; min-height:100vh; display:flex; flex-direction:column;
-    align-items:center; justify-content:center; gap:20px; padding:24px;
-    background:#F9F6F0; color:#2C2C2C; text-align:center;
-    font-family:'Montserrat','Segoe UI',system-ui,sans-serif;
-  }
-  img{ width:150px; height:auto; }
-  a{ color:#C86828; font-weight:600; }
-</style>
+<link rel="apple-touch-icon" href="assets/img/icon-192.png">
+
+<!-- Open Graph (para cuando se comparte el link desde Instagram / WhatsApp) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="AUMÉ Viandas · Paraná">
+<meta property="og:description" content="El equilibrio perfecto entre nutrirse y comer rico. Cuatro menús distintos todos los días.">
+<meta property="og:image" content="assets/img/logo.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Caveat:wght@500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- styles.css primero: de ahí salen la paleta, las tipografías y los
+     botones. La landing NO redefine ni un color de marca, sólo agrega
+     lo suyo encima. -->
+<link rel="stylesheet" href="assets/css/styles.css">
+<link rel="stylesheet" href="assets/css/landing.css">
 </head>
-<body>
-  <img src="assets/img/logo.png" alt="AUMÉ" width="487" height="320">
-  <p>Te estamos llevando al menú. <a href="pedido/index.html">Entrá acá si no pasa solo.</a></p>
+
+<body class="landing">
+
+<a class="saltar" href="#contenido">Saltar al contenido</a>
+
+<!-- ============================================================ CABECERA
+     El logo va primero y queda fijo mientras se scrollea, igual que en la
+     pantalla de pedidos. El botón de pedir nunca se va de la pantalla. -->
+<header class="cab" id="cab">
+  <div class="env cab__in">
+    <a class="cab__marca" href="#inicio" aria-label="AUMÉ, ir al principio">
+      <img src="assets/img/logo.png" alt="AUMÉ" width="487" height="320">
+      <span class="cab__tag">viandas</span>
+    </a>
+
+    <nav class="cab__nav" aria-label="Secciones">
+      <a href="#menu">Menú</a>
+      <a href="#como">Cómo funciona</a>
+      <a href="#empresas">Empresas</a>
+      <a href="#nosotros">Nosotros</a>
+      <a href="#entregas">Dónde llega</a>
+    </nav>
+
+    <a class="btn btn--primario cab__cta" href="pedido/index.html">Pedir mi vianda</a>
+  </div>
+</header>
+
+<main id="contenido">
+
+  <!-- =============================================================== 1. PORTADA
+       Portada tipográfica: sin foto. Se apoya en Playfair y en el color
+       de marca hasta que llegue el material fotográfico. -->
+  <section class="hero" id="inicio">
+    <div class="env hero__in">
+      <p class="hero__ojo">Viandas saludables · Paraná, Entre Ríos</p>
+      <h1 class="hero__t">
+        Vos ocupate de tu día.<br>
+        <em>Nosotros, de resolver qué comer.</em>
+      </h1>
+      <p class="hero__d">
+        Comida casera, equilibrada y rica, lista para llevar. Elegís el menú de la
+        semana y te lo llevamos a tu casa o a tu trabajo, o lo retirás por donde
+        te quede cerca.
+      </p>
+      <div class="hero__acciones">
+        <a class="btn btn--primario" href="pedido/index.html">Pedir mi vianda</a>
+        <a class="btn btn--fantasma" href="#menu">Ver el menú de esta semana</a>
+      </div>
+      <p class="hero__firma">Aurea Mediocritas — la justa medida entre dos extremos.</p>
+    </div>
+  </section>
+
+  <!-- ================================================================ 2. CIFRAS
+       Sólo datos que se pueden verificar contra config.js / la base: nada
+       de números inventados. El JS los vuelve a escribir con lo que
+       responda la API. -->
+  <section class="cifras" aria-label="AUMÉ en números">
+    <div class="env cifras__in" id="cifras"></div>
+  </section>
+
+  <!-- ================================================== 3. MENÚ DE ESTA SEMANA -->
+  <section class="seccion-l" id="menu">
+    <div class="env">
+      <p class="ojo">El menú</p>
+      <h2 class="t2">Lo que se come esta semana</h2>
+      <p class="baj" id="semanaLabel">Cargando el menú de la semana…</p>
+
+      <div class="semana" id="semana"></div>
+
+      <p class="nota-semana" id="semanaNota"></p>
+      <div class="cierre-bloque">
+        <a class="btn btn--primario" href="pedido/index.html#menu">Pedir del menú de esta semana</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== 4. LOS CUATRO MENÚS -->
+  <section class="seccion-l seccion-l--alt" id="nuestros-menus">
+    <div class="env">
+      <p class="ojo">Los menús</p>
+      <h2 class="t2">Cuatro menús distintos, todos los días</h2>
+      <p class="baj">
+        Elegís el que va con vos, y podés cambiar de menú cuando quieras. Todos se
+        cocinan el mismo día, con ingredientes frescos.
+      </p>
+
+      <div class="tipos" id="tipos"></div>
+
+      <p class="fija" id="fija"></p>
+    </div>
+  </section>
+
+  <!-- ========================================================= 5. CÓMO FUNCIONA -->
+  <section class="seccion-l" id="como">
+    <div class="env">
+      <p class="ojo">Cómo funciona</p>
+      <h2 class="t2">Tres pasos y listo</h2>
+
+      <ol class="pasos">
+        <li class="paso">
+          <p class="paso__n">Paso 1</p>
+          <h3 class="paso__t">Elegí tu menú</h3>
+          <p class="paso__d">
+            Mirá el menú de la semana y elegí entre los cuatro tipos, en porción de
+            350gr o XL de 500gr. Podés pedir un día suelto, una semana entera o el
+            plan del mes.
+          </p>
+        </li>
+        <li class="paso">
+          <p class="paso__n">Paso 2</p>
+          <h3 class="paso__t">Confirmá por WhatsApp</h3>
+          <p class="paso__d">
+            Armás el pedido en la web y se envía por WhatsApp con todo escrito: qué
+            pediste, cuánto es y cómo lo recibís. No hay que explicar nada dos veces.
+          </p>
+        </li>
+        <li class="paso">
+          <p class="paso__n">Paso 3</p>
+          <h3 class="paso__t">Recibilo o retiralo</h3>
+          <p class="paso__d">
+            Te lo llevamos a tu casa o a tu trabajo, o lo retirás sin costo por
+            alguno de los tres puntos de retiro, en el horario que más te sirva.
+          </p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ======================================================= 6. FORMAS DE PEDIR
+       Cada tarjeta entra directo a su forma de pedir dentro de /pedido/. -->
+  <section class="seccion-l seccion-l--alt" id="formas">
+    <div class="env">
+      <p class="ojo">Formas de pedir</p>
+      <h2 class="t2">Como te sirva a vos</h2>
+      <p class="baj">
+        Todo va al mismo pedido y a la misma entrega, así que se pueden combinar.
+      </p>
+
+      <div class="formas">
+        <a class="forma" href="pedido/index.html#menu">
+          <h3 class="forma__t">Por día</h3>
+          <p class="forma__d">
+            Una vianda del día que quieras, en 350gr o XL de 500gr. Ideal para
+            probar o para los días sueltos.
+          </p>
+          <span class="forma__ir">Elegir por día</span>
+        </a>
+        <a class="forma" href="pedido/index.html#promos">
+          <h3 class="forma__t">Promos semanales</h3>
+          <p class="forma__d">
+            Packs de 3, 4 o 5 días. Salen más baratos que el día suelto y llevan el
+            envío bonificado.
+          </p>
+          <span class="forma__ir">Ver las promos</span>
+        </a>
+        <a class="forma" href="pedido/index.html#mensual">
+          <h3 class="forma__t">Plan mensual</h3>
+          <p class="forma__d">
+            Todos los almuerzos del mes resueltos de una vez, con el mejor precio
+            por vianda.
+          </p>
+          <span class="forma__ir">Ver el plan del mes</span>
+        </a>
+        <a class="forma" href="pedido/index.html#sumar">
+          <h3 class="forma__t">Para sumar</h3>
+          <p class="forma__d">
+            Postres, yogures y congelados por unidad, para tener siempre algo
+            resuelto en la heladera.
+          </p>
+          <span class="forma__ir">Ver para sumar</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================== 7. POR QUÉ CONVIENE -->
+  <section class="seccion-l" id="conviene">
+    <div class="env">
+      <p class="ojo">Por qué conviene</p>
+      <h2 class="t2">El costo real de no planificar</h2>
+      <p class="baj">
+        No es sólo el ticket del súper: es el tiempo que perdés pensando qué
+        cocinar, el gas de una sola porción y la verdura que termina en el tacho.
+      </p>
+
+      <div class="valores">
+        <div class="valor">
+          <h3 class="valor__t">Ahorrás dinero</h3>
+          <p class="valor__d">
+            Se termina el picoteo de las cinco de la tarde y la compra impulsiva
+            del camino a casa.
+          </p>
+        </div>
+        <div class="valor">
+          <h3 class="valor__t">Ahorrás tiempo</h3>
+          <p class="valor__d">
+            Del freezer al plato en minutos. Ni cocinar, ni pensar el menú, ni
+            lavar la olla grande.
+          </p>
+        </div>
+        <div class="valor">
+          <h3 class="valor__t">Comés mejor</h3>
+          <p class="valor__d">
+            Comida real y equilibrada todos los días, sin resignar sabor y sin
+            desperdiciar nada.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================== 8. PARA TU EQUIPO
+       El formulario de cotización llega en una etapa siguiente. Hasta
+       entonces la consulta sale por WhatsApp, con el mensaje ya escrito. -->
+  <section class="seccion-l seccion-l--empresas" id="empresas">
+    <div class="env empresas">
+      <div class="empresas__texto">
+        <p class="ojo">Para tu equipo</p>
+        <h2 class="t2">El almuerzo de la oficina, resuelto</h2>
+        <p class="baj">
+          Si sos varios en el trabajo, armamos un plan a la medida del equipo: los
+          menús que cada uno prefiera, entrega en el horario del almuerzo y una
+          sola coordinación por semana.
+        </p>
+        <ul class="empresas__lista">
+          <li>Planes semanales y mensuales</li>
+          <li>Menús distintos para cada persona, en la misma entrega</li>
+          <li>Opciones vegetarianas y de alto contenido proteico</li>
+          <li>Entrega en tu oficina, al mediodía</li>
+        </ul>
+        <a class="btn btn--verde empresas__cta" id="ctaEmpresas" href="#" target="_blank" rel="noopener">
+          Pedir una propuesta por WhatsApp
+        </a>
+      </div>
+      <!-- Cuando exista el formulario de cotización va acá, en lugar de
+           esta lista. Mientras tanto adelanta qué vamos a preguntar, para
+           que la consulta por WhatsApp llegue con los datos puestos. -->
+      <div class="empresas__marco">
+        <p class="empresas__dato">Para armarte la propuesta necesitamos saber</p>
+        <ol class="empresas__pide">
+          <li>Cuántas personas son</li>
+          <li>Dónde queda la oficina</li>
+          <li>Qué días de la semana</li>
+        </ol>
+        <p class="empresas__pie">Te la mandamos armada, sin compromiso.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================== 9. QUIÉNES SOMOS -->
+  <section class="seccion-l" id="nosotros">
+    <div class="env nosotros">
+      <div class="nosotros__foto">
+        <!-- MARCADOR: reemplazar por una foto real de la cocina o del equipo -->
+        <img src="assets/img/landing/cocina.svg" alt="" width="1200" height="600">
+      </div>
+      <div class="nosotros__texto">
+        <p class="ojo">Quiénes somos</p>
+        <h2 class="t2">El nombre lo dice todo</h2>
+        <p class="p">
+          <strong>AUMÉ</strong> viene de <em>Aurea Mediocritas</em>, una expresión
+          latina que alude a alcanzar un deseado punto medio entre dos extremos.
+          Esa es la idea: ni la dieta que no se disfruta, ni la comida que no
+          alimenta. La justa medida.
+        </p>
+        <p class="p">
+          Cocinamos en Paraná, con recetas caseras e ingredientes frescos, para que
+          comer bien no dependa de tener tiempo. Cada vianda se prepara pensando en
+          que sea rica, variada y suficiente: cuidarse no debería significar
+          resignar sabor.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================= 10. DÓNDE Y CÓMO LLEGA -->
+  <section class="seccion-l seccion-l--alt" id="entregas">
+    <div class="env">
+      <p class="ojo">Dónde y cómo llega</p>
+      <h2 class="t2">Te lo llevamos o lo retirás</h2>
+
+      <div class="entregas">
+        <div class="envio" id="envio"></div>
+        <div class="puntos-l">
+          <h3 class="entregas__sub">Puntos de retiro</h3>
+          <p class="baj">Sin costo adicional. Retirás en el horario que más te sirva.</p>
+          <div class="puntos-l__lista" id="puntos"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =============================================================== 11. CIERRE -->
+  <section class="cierre">
+    <div class="env cierre__in">
+      <h2 class="cierre__t">¿Empezamos esta semana?</h2>
+      <p class="cierre__d">
+        Armá tu pedido en un minuto. Lo confirmás por WhatsApp y listo.
+      </p>
+      <div class="cierre__acciones">
+        <a class="btn btn--primario" href="pedido/index.html">Pedir mi vianda</a>
+        <a class="btn btn--fantasma" id="ctaWhatsapp" href="#" target="_blank" rel="noopener">Escribirnos por WhatsApp</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ================================================================= PIE -->
+<footer class="pie-l">
+  <div class="env pie-l__in">
+    <div class="pie-l__marca">
+      <img src="assets/img/logo.png" alt="AUMÉ" width="487" height="320">
+      <p class="pie-l__tag">viandas</p>
+    </div>
+    <div class="pie-l__datos" id="pieDatos"></div>
+    <nav class="pie-l__nav" aria-label="Secciones del pie">
+      <a href="pedido/index.html">Pedir</a>
+      <a href="#menu">Menú de la semana</a>
+      <a href="#empresas">Empresas</a>
+      <a href="#entregas">Puntos de retiro</a>
+    </nav>
+  </div>
+</footer>
+
+<!-- ============================================================ SCRIPTS
+     Los mismos archivos de datos que usa la pantalla de pedidos: si la
+     API no contesta, la landing igual se dibuja con estos valores. -->
+<script src="assets/js/data/config.js"></script>
+<script src="assets/js/data/menu.js"></script>
+<script src="assets/js/landing.js"></script>
 </body>
 </html>
