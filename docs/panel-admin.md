@@ -220,6 +220,14 @@ productos, además de viandas:
 npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0004_lineas_pedido.sql
 ```
 
+Y el 0005 y el 0006, que suman las tablas de las publicaciones (tips,
+recetas e info nutricional) y la de las cotizaciones de empresas:
+
+```bash
+npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0005_publicaciones.sql
+npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0006_cotizaciones.sql
+```
+
 Los dos archivos se pueden correr **todas las veces que haga falta**:
 `schema.sql` usa `CREATE TABLE IF NOT EXISTS` y `semilla.sql` usa
 `INSERT OR IGNORE`, así que no pisan nada que ya hayas editado desde el
@@ -524,6 +532,34 @@ npx wrangler deploy
 ```
 
 Va al dominio real. Antes de esto tiene que estar hecho el paso 4.
+
+### Mientras el sitio viva en `*.workers.dev`
+
+Hoy producción está en `https://aume.cascone814.workers.dev`, sin dominio
+propio todavía, y eso deja al panel **cerrado en producción**. No es un
+error que se pueda arreglar publicando de nuevo: la aplicación de Access
+del paso 4 se crea sobre un **dominio de la cuenta**, con `Path: admin`,
+y un `workers.dev` no es un dominio de la cuenta — es de Cloudflare.
+
+Cloudflare sí deja proteger un Worker entero desde *Workers & Pages → tu
+worker → Settings → Domains & Routes → Enable Cloudflare Access*, y eso
+alcanza a la dirección `workers.dev`. **Pero es todo o nada**: le pondría
+login también a la landing pública, que es justo lo contrario de lo que
+queremos. Por eso no lo usamos.
+
+Así que, hasta que haya dominio propio:
+
+- La **landing pública anda normal** en producción. No pasa por el
+  worker, no depende de Access y no depende de la base.
+- El **panel se trabaja en staging** (`npx wrangler deploy --env staging`,
+  o `npx wrangler dev --env staging`), donde entra con identidad
+  simulada. Ojo: staging tiene **su propia base**, así que lo que cargues
+  ahí no aparece en producción.
+- El 503 del panel en producción **queda a propósito**. Es la señal de
+  que falta el paso 4, no algo para tapar.
+
+Cuando el dominio esté agregado a Cloudflare, se sigue el paso 4 tal
+cual está escrito y el panel de producción se abre solo.
 
 ---
 

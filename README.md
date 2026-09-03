@@ -383,6 +383,12 @@ en `wrangler.jsonc` (`ACCESS_AUD` y `ACCESS_TEAM_DOMAIN`).
 > ⚠️ Mientras esas dos variables estén vacías en producción, la API del panel
 > responde 503 **a propósito**: es preferible que se rompa a la vista antes de
 > que quede abierta sin que nadie se entere. La landing no se ve afectada.
+>
+> Eso es exactamente lo que pasa hoy: producción vive en un `workers.dev`,
+> que no es un dominio de la cuenta y por lo tanto no admite una aplicación
+> de Access con `Path: admin`. Hasta que haya dominio propio, el panel se
+> trabaja en staging. Está explicado en `docs/panel-admin.md`, en
+> "Mientras el sitio viva en `*.workers.dev`".
 
 ### Base de datos
 
