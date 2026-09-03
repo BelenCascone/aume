@@ -168,5 +168,37 @@ export async function correr(t) {
   t.igual('devuelve ceros, no nulls', r.d.totales.plata, 0);
   t.igual('y no inventa un crecimiento', r.d.crecimiento, null);
 
+  /* --- Packs, plan mensual y extras ---------------------------------
+     Un pack no elige plato por plato: elige un tipo de menú, y eso va
+     en `preferencia`, con `categoria_id` vacía. Si el tablero agrupa
+     por `categoria_id` a secas, todos esos pedidos caen en una barra
+     sin nombre, que además queda entre las más altas porque los packs
+     son una parte grande de la venta.
+
+     Los extras (postres, congelados) sí quedan afuera a propósito: no
+     son viandas y no van en un gráfico que se llama "viandas por
+     categoría". Tampoco tienen tamaño. */
+  const linea = (pid, tipo, pref, cat, tam, cant, sub) => {
+    db.prepare('INSERT INTO pedido_items (pedido_id, tipo, ref_id, preferencia, dia_id, ' +
+      'categoria_id, tamano_id, cantidad, precio_unitario, subtotal) VALUES (?,?,?,?,?,?,?,?,?,?)')
+      .run(pid, tipo, '', pref, '', cat, tam, cant, sub / cant, sub);
+  };
+
+  const pPack = alta('2026-09-21', '2026-W39', 1, 'app', '3434000555', 'Eli', 'envio', 45000, 1);
+  linea(pPack, 'pack', 'proteico', '', 'estandar', 1, 45000);
+  const pExtra = alta('2026-09-22', '2026-W39', 2, 'app', '3434000666', 'Fer', 'retiro', 13000, 1);
+  linea(pExtra, 'extra', '', '', '', 1, 13000);
+
+  r = await pedir('?desde=2026-09-21&hasta=2026-09-30');
+  t.ok('ninguna categoría sale sin nombre',
+    !r.d.porTipo.some((x) => !x.id),
+    'porTipo devolvió: ' + JSON.stringify(r.d.porTipo));
+  t.igual('el pack cuenta en el menú que eligió', r.d.porTipo[0].id, 'proteico');
+  t.igual('con su vianda', r.d.porTipo[0].viandas, 1);
+  t.igual('y el extra no entra como vianda', r.d.porTipo.length, 1);
+  t.ok('ningún tamaño sale sin nombre',
+    !r.d.porTamano.some((x) => !x.id),
+    'porTamano devolvió: ' + JSON.stringify(r.d.porTamano));
+
   db.close();
 }

@@ -43,6 +43,23 @@ function filas(r) { return (r && r.results) || []; }
    Contarlos infla la recaudación y ensucia todas las decisiones. */
 const VIVOS = "estado != 'cancelado'";
 
+/* La categoría con la que cuenta cada línea del pedido.
+
+   Un pack o el plan mensual no eligen plato por plato: eligen un tipo de
+   menú, y eso viaja en `preferencia`, no en `categoria_id`. Sin este
+   COALESCE caen todas en una categoría vacía y el tablero dibuja una
+   barra sin nombre — que además queda entre las más altas, porque los
+   packs son una parte grande de la venta.
+
+   Los extras (postres, congelados) quedan con la expresión en vacío y se
+   descartan en el WHERE: no son viandas y no van en un gráfico que se
+   llama "viandas por categoría".
+
+   Se escribe entera en el GROUP BY, y no como `GROUP BY id`: `id` es una
+   columna real de las dos tablas del JOIN, así que SQLite la resuelve
+   contra la tabla y no contra el alias, y la consulta falla. */
+const CATEGORIA = "COALESCE(NULLIF(i.categoria_id, ''), i.preferencia)";
+
 async function tablero(ctx) {
   const q = ctx.url.searchParams;
   const hoy = fechaLocal();
@@ -75,11 +92,15 @@ async function tablero(ctx) {
     db.prepare('SELECT canal, COUNT(*) AS pedidos, COALESCE(SUM(cantidad),0) AS viandas, ' +
       'COALESCE(SUM(total),0) AS plata FROM pedidos ' + wP + ' GROUP BY canal').bind(...p),
 
-    db.prepare('SELECT i.categoria_id AS id, SUM(i.cantidad) AS viandas, SUM(i.subtotal) AS plata ' +
-      'FROM pedido_items i ' + wI + ' GROUP BY i.categoria_id ORDER BY viandas DESC, id').bind(...p),
+    db.prepare('SELECT ' + CATEGORIA + ' AS id, ' +
+      'SUM(i.cantidad) AS viandas, SUM(i.subtotal) AS plata ' +
+      'FROM pedido_items i ' + wI + ' AND ' + CATEGORIA + " != '' " +
+      'GROUP BY ' + CATEGORIA + ' ORDER BY viandas DESC, id').bind(...p),
 
+    /* Mismo motivo: los extras no tienen tamaño y ensuciarían la barra. */
     db.prepare('SELECT i.tamano_id AS id, SUM(i.cantidad) AS viandas, SUM(i.subtotal) AS plata ' +
-      'FROM pedido_items i ' + wI + ' GROUP BY i.tamano_id ORDER BY viandas DESC, id').bind(...p),
+      'FROM pedido_items i ' + wI + " AND i.tamano_id != '' " +
+      'GROUP BY i.tamano_id ORDER BY viandas DESC, id').bind(...p),
 
     db.prepare('SELECT modalidad AS id, COUNT(*) AS pedidos, COALESCE(SUM(total),0) AS plata ' +
       'FROM pedidos ' + wP + ' GROUP BY modalidad').bind(...p),
@@ -108,10 +129,13 @@ async function tablero(ctx) {
       'GROUP BY telefono_norm ORDER BY pedidos DESC, plata DESC, tel').bind(...p),
 
     /* Qué categoría pide más cada cliente. Viene ordenada de mayor a
-       menor, así que la primera fila de cada teléfono es la favorita. */
-    db.prepare('SELECT p.telefono_norm AS tel, i.categoria_id AS cat, ' +
+       menor, así que la primera fila de cada teléfono es la favorita.
+       Usa la misma CATEGORIA que el gráfico: quien compra siempre packs
+       igual tiene un menú preferido, y sin eso su favorita salía vacía. */
+    db.prepare('SELECT p.telefono_norm AS tel, ' + CATEGORIA + ' AS cat, ' +
       'SUM(i.cantidad) AS viandas FROM pedido_items i ' + wI +
-      " AND p.telefono_norm != '' GROUP BY p.telefono_norm, i.categoria_id " +
+      " AND p.telefono_norm != '' AND " + CATEGORIA + " != '' " +
+      'GROUP BY p.telefono_norm, ' + CATEGORIA + ' ' +
       'ORDER BY tel, viandas DESC, cat').bind(...p)
   ]);
 
