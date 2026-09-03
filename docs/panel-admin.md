@@ -561,6 +561,82 @@ Así que, hasta que haya dominio propio:
 Cuando el dominio esté agregado a Cloudflare, se sigue el paso 4 tal
 cual está escrito y el panel de producción se abre solo.
 
+### Llenar staging con datos de demo
+
+Una base recién sembrada tiene el catálogo y el menú de la semana, pero
+**ni un solo pedido**. Con eso el panel no se puede mostrar: las
+estadísticas dan todas cero, la tabla de pedidos aparece vacía y no se
+entiende para qué sirve ninguna pantalla.
+
+Para eso está `worker/db/demo.sql`: carga un mes de movimiento inventado
+—pedidos, clientas que repiten, consultas de empresas, publicaciones y
+menús— para poder mostrar el panel funcionando.
+
+```bash
+npx wrangler d1 execute aume-staging --remote --file=worker/db/demo.sql
+```
+
+> ⚠️ **Esto va sólo a staging.** No hay nada que lo impida por código: si
+> se corre contra `aume-produccion`, mete 170 pedidos falsos en la base
+> de verdad y ensucia las estadísticas reales para siempre. Mirá dos
+> veces el nombre de la base antes de dar Enter.
+
+Se puede correr **todas las veces que haga falta**: arranca borrando lo
+que dejó la corrida anterior, así no se acumulan pedidos repetidos.
+
+Para dejar la base limpia otra vez:
+
+```bash
+npx wrangler d1 execute aume-staging --remote --file=worker/db/demo-borrar.sql
+```
+
+#### Las fechas se pudren: hay que regenerarlo
+
+`demo.sql` **no se edita a mano**: lo escribe `worker/db/generar-demo.mjs`,
+y las fechas salen relativas al día en que se generó. Una semana después,
+el tablero muestra "Hoy" vacío y los últimos días en cero — justo lo
+contrario de lo que se quiere mostrar.
+
+**Antes de una demo, regeneralo:**
+
+```bash
+node worker/db/generar-demo.mjs > worker/db/demo.sql
+```
+
+Y volvé a aplicarlo con el comando de arriba. Con la misma fecha de
+referencia sale siempre el mismo archivo, así que regenerar dos veces el
+mismo día no cambia nada.
+
+#### Qué trae, y por qué está armado así
+
+Los números no son al azar: cada cosa está puesta para que una pantalla
+del panel tenga algo que mostrar.
+
+| Qué | Para qué |
+|---|---|
+| ~170 pedidos en 35 días, creciendo semana a semana | El panel de "¿estamos creciendo?" con una serie plana no se entiende |
+| Unas pocas clientas que repiten mucho y una cola larga de una sola compra | Es lo que hace que "quiénes repiten" y "para reconquistar" digan algo |
+| Pedidos cancelados | Para poder mostrar que **no** suman a la recaudación |
+| Mezcla de web y WhatsApp | Contesta "¿la web sirve o todo sigue entrando por WhatsApp?" |
+| Packs, plan mensual y extras | Son los que no pagan envío, y los que más se olvidan al probar |
+| 3 cotizaciones sin responder | Es lo que hace aparecer la chapa en la portada del panel |
+| 2 publicaciones en borrador | Para mostrar que un borrador **no** sale en la landing |
+| Un lunes marcado como feriado | Es el único día que se publica sin ningún plato |
+| Menús de la semana que viene, y la siguiente en borrador | Para que la landing tenga menú vivo durante la demo |
+
+Dos advertencias para cuando lo estés mostrando:
+
+- **La semana en curso siempre se ve más baja que la anterior**, porque
+  está a medio terminar. No es una caída.
+- **Las publicaciones van sin foto.** Las fotos viven en el bucket R2 y
+  se suben desde el panel, no desde un `.sql`. Si querés que en la demo
+  tengan imagen, subilas a mano desde `/admin/publicaciones/`.
+
+Nada de lo que carga es real: los nombres son inventados, los teléfonos
+usan el prefijo `555` —que no existe en Argentina— y los mails van a
+`.test`, que es un dominio reservado. No le puede sonar el teléfono ni
+llegarle un mail a nadie por accidente.
+
 ---
 
 ## 4. Cloudflare Access — 👉 esto lo configurás vos a mano
