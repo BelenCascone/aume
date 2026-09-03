@@ -21,6 +21,9 @@
 
 <link rel="stylesheet" href="../assets/css/styles.css">
 <link rel="stylesheet" href="../assets/css/landing.css">
+
+<!-- Mismo criterio que en la landing: en el <head> y sin defer. -->
+<script src="../assets/js/movimiento.js"></script>
 </head>
 
 <body class="landing">
@@ -50,7 +53,7 @@
 <main id="contenido">
   <!-- El contenido lo escribe assets/js/nota.js con lo que devuelva la
        API. Mientras tanto, un cartel: nunca una pantalla en blanco. -->
-  <article class="env nota" id="nota" hidden></article>
+  <article class="env nota rev" id="nota" hidden></article>
 
   <p class="env nota__estado" id="estado">Buscando la publicación…</p>
 </main>
