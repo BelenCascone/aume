@@ -190,7 +190,8 @@ aume/
 │       ├── checkout.js         Formulario y mensaje de WhatsApp
 │       ├── app.js              Arranque y eventos
 │       ├── landing.js          Dibuja la landing con los mismos datos
-│       └── nota.js             Dibuja una publicación suelta
+│       ├── nota.js             Dibuja una publicación suelta
+│       └── cotizacion.js       El formulario de empresas
 │
 ├── package.json                Sólo para correr los tests
 ├── playwright.config.js        Config de los tests
@@ -239,6 +240,11 @@ seguir ahí.
 > 'self'` en `_headers` y el tipo `.otf` en `tests/server.js`. Sin
 > cualquiera de las dos, el navegador descarta la fuente **sin avisar** y
 > el sitio se ve con la de respaldo. Hay un test que lo verifica.
+
+> Un detalle de la tipografía: **no trae los signos `¿` ni `¡`**. El
+> navegador los toma de la tipografía de respaldo y en pantalla no se
+> nota, así que no hay nada que arreglar — pero conviene saberlo antes de
+> pensar que algo está roto. Los acentos y la ñ sí están.
 
 El material original que pasó la diseñadora —el logo, la paleta y la
 tipografía— está en la carpeta **`marca/`**, con su propio `LEEME.txt`.
@@ -339,9 +345,9 @@ archivos a mano.
 
 > **Publicaciones** es la pantalla que le da autonomía a quien maneja las
 > redes: escribe el tip o la receta ahí y aparece solo en la landing. Lo
-> que queda en borrador no lo ve nadie. Las fotos necesitan un paso de
-> configuración que todavía falta hacer una vez — está explicado en
-> [`docs/panel-admin.md`](docs/panel-admin.md).
+> que queda en borrador no lo ve nadie. Las fotos van a un bucket R2 de
+> Cloudflare y las sirve el worker desde el propio dominio — el detalle
+> está en [`docs/panel-admin.md`](docs/panel-admin.md).
 
 **No reemplaza nada de lo de arriba todavía.** Se suma al lado, en carpetas
 nuevas, y la web pública sigue funcionando exactamente igual:
@@ -391,10 +397,16 @@ esquema está en `worker/db/schema.sql` y los datos iniciales (copiados de
 > npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0004_lineas_pedido.sql
 > ```
 >
-> Y el de las publicaciones:
+> El de las publicaciones:
 >
 > ```bash
 > npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0005_publicaciones.sql
+> ```
+>
+> Y el de las cotizaciones de empresas:
+>
+> ```bash
+> npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0006_cotizaciones.sql
 > ```
 >
 > Las bases nuevas ya salen con eso desde `schema.sql`. Hay un entorno de

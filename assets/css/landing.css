@@ -506,3 +506,192 @@ html{ scroll-padding-top:82px; }
 .nota__estado{
   padding-block:clamp(48px, 10vw, 90px); text-align:center; color:var(--tinta-60);
 }
+
+/* --------------------------------------- 18. FORMULARIO DE COTIZACIÓN
+   El único formulario del sitio. Campos grandes y con el label siempre
+   visible: se completa desde el celular y con una mano. */
+.campo-l{ margin-top:14px; }
+.campo-l__l{
+  display:block; font-size:.82rem; font-weight:600; margin-bottom:6px;
+}
+.campo-l__l span{ font-weight:400; color:var(--tinta-60); }
+.campo-l__i,
+.campo-l__ta{
+  width:100%; padding:12px 14px;
+  border:1.5px solid var(--linea); border-radius:var(--r-sm);
+  background:var(--blanco); color:var(--tinta);
+  font-family:inherit; font-size:16px;   /* 16px evita el zoom en iOS */
+}
+.campo-l__ta{ resize:vertical; min-height:76px; line-height:1.5; }
+.campo-l__i:focus-visible,
+.campo-l__ta:focus-visible{ outline:2px solid var(--c-vegetariano); outline-offset:1px; }
+.campo-l__i[aria-invalid="true"]{ border-color:var(--alerta); }
+.campo-l--par{ display:grid; gap:12px; grid-template-columns:1fr 1fr; }
+@media (max-width:420px){ .campo-l--par{ grid-template-columns:1fr; } }
+.campo-l__ayuda{ margin-top:7px; font-size:.8rem; color:var(--tinta-60); }
+
+.cot-aviso{
+  margin-top:16px; padding:13px 15px; border-radius:var(--r-sm);
+  font-size:.9rem; border-left:3px solid var(--alerta);
+  background:#FBEDE7; color:var(--tinta);
+}
+.cot-aviso--bien{
+  border-left-color:var(--c-vegetariano);
+  background:var(--c-vegetariano-suave);
+}
+.cot-aviso__t{ font-weight:700; margin-bottom:4px; }
+.cot-aviso ul{ margin:6px 0 0; padding-left:18px; }
+.cot-aviso li{ margin-top:3px; }
+
+#formCotizacion .btn{ margin-top:18px; }
+.empresas__cta{ margin-top:18px; }
+
+/* =====================================================================
+   19. MOVIMIENTO DE LA LANDING
+
+   UNA SOLA IDEA, REPETIDA
+   ---------------------------------------------------------------------
+   AUMÉ viene de "Aurea Mediocritas": la justa medida entre dos extremos.
+   El movimiento de la página dice eso mismo. Nada entra deslizándose
+   desde un costado: todo SE ASIENTA, como el fiel de una balanza que
+   encuentra su punto, y la raya que abre cada sección se dibuja desde
+   el centro hacia los dos lados, que es exactamente cómo se equilibra
+   una balanza.
+
+   Esa raya es lo único "nuevo" que se agrega al diseño, y es a
+   propósito: es la firma de la página. Todo lo demás es la misma
+   página, que ahora aparece en vez de estar.
+
+   CÓMO ESTÁ ARMADO (y por qué así)
+   ---------------------------------------------------------------------
+   1. La clase .mov la pone un script de dos líneas en el <head>, antes
+      de que se dibuje nada. Sin JavaScript —o con "menos movimiento"
+      pedido en el sistema— la clase nunca aparece y la página se ve
+      completa desde el primer momento. Nada queda invisible esperando
+      una animación que no va a ocurrir.
+
+   2. Los contenedores que se revelan llevan .rev escrito en el HTML, no
+      puesto por JS. Si se pusiera por JS habría un parpadeo: la página
+      se vería, y recién después se escondería para animarse.
+
+   3. Se usan TRANSICIONES y no @keyframes. La landing se dibuja dos
+      veces (primero con los archivos, después con lo que contesta la
+      API): con keyframes, las tarjetas del menú se animarían de nuevo
+      en la segunda pasada. Con transiciones, lo que se agrega adentro
+      de un bloque ya revelado nace directamente en su lugar.
+   ===================================================================== */
+
+/* --------------------------------------------------- Aparecer */
+.mov .rev > *{
+  opacity:0; transform:translateY(16px);
+}
+.mov .rev--on > *{
+  opacity:1; transform:none;
+  transition:opacity .55s var(--e-asentar), transform .55s var(--e-asentar);
+}
+
+/* La escalera: cada hijo entra apenas después del anterior. 70ms es lo
+   que se lee como "uno después de otro" sin que haya que esperar. */
+.mov .rev--on > *:nth-child(2){ transition-delay:.07s; }
+.mov .rev--on > *:nth-child(3){ transition-delay:.14s; }
+.mov .rev--on > *:nth-child(4){ transition-delay:.21s; }
+.mov .rev--on > *:nth-child(5){ transition-delay:.28s; }
+.mov .rev--on > *:nth-child(n+6){ transition-delay:.35s; }
+
+/* -------------------------------------- La raya de la justa medida
+   Abre cada sección debajo del volanta. Existe siempre; lo que cambia
+   con el movimiento es que se dibuja desde el centro en vez de estar
+   dibujada de entrada. */
+.landing .ojo::after,
+.hero__ojo::after{
+  content:""; display:block;
+  width:46px; height:1px; margin-top:10px;
+  background:var(--c-clasico);
+}
+.mov .rev .ojo::after,
+.mov .rev .hero__ojo::after{
+  transform:scaleX(0); transform-origin:50% 50%;
+}
+.mov .rev--on .ojo::after,
+.mov .rev--on .hero__ojo::after{
+  transform:scaleX(1);
+  transition:transform .7s var(--e-asentar) .15s;
+}
+
+/* Los tres pasos ya tenían su raya arriba: se dibuja igual que las
+   otras, con un retraso distinto cada una para que se lean en orden. */
+.paso{ position:relative; border-top:0; }
+.paso::before{
+  content:""; position:absolute; inset-block-start:0; inset-inline:0;
+  height:2px; background:var(--c-clasico);
+}
+.mov .rev .paso::before{ transform:scaleX(0); transform-origin:50% 50%; }
+.mov .rev--on .paso::before{
+  transform:scaleX(1);
+  transition:transform .6s var(--e-asentar) .3s;
+}
+.mov .rev--on .paso:nth-child(2)::before{ transition-delay:.42s; }
+.mov .rev--on .paso:nth-child(3)::before{ transition-delay:.54s; }
+
+/* ------------------------------------------------------- La portada
+   No espera al scroll: es lo primero que se ve. Entra en orden de
+   lectura y cierra con la firma manuscrita, que es la frase que explica
+   el nombre de la marca. Por eso llega última y sola. */
+.mov .hero__in.rev--on > *:nth-child(2){ transition-delay:.10s; }
+.mov .hero__in.rev--on > *:nth-child(3){ transition-delay:.22s; }
+.mov .hero__in.rev--on > *:nth-child(4){ transition-delay:.34s; }
+.mov .hero__in.rev--on > *:nth-child(5){
+  transition-delay:.52s;
+  transition-duration:.8s;
+}
+
+/* --------------------------------------------------- La cabecera
+   Al scrollear, la barra se despega del contenido con una sombra. El
+   logo no se toca: es lo más importante de la barra y mantiene su
+   tamaño siempre. */
+.cab{ transition:box-shadow .3s ease; }
+.cab--scroll{ box-shadow:0 6px 20px rgba(44,44,44,.07); }
+
+/* Los enlaces del menú subrayan desde el centro, como la raya de las
+   secciones. Es el mismo gesto, en chiquito. */
+.cab__nav a{ position:relative; border-bottom-color:transparent; }
+.cab__nav a::after{
+  content:""; position:absolute; inset-inline:0; inset-block-end:-2px;
+  height:2px; background:var(--c-clasico);
+  transform:scaleX(0); transform-origin:50% 50%;
+  transition:transform .25s var(--e-asentar);
+}
+.cab__nav a:hover::after,
+.cab__nav a:focus-visible::after{ transform:scaleX(1); }
+.cab__nav a:hover{ border-bottom-color:transparent; }
+
+/* ------------------------------------------------ Manos encima
+   Las tarjetas que se pueden tocar se levantan apenas y se apoyan en su
+   sombra. Las del menú de la semana no llevan a ningún lado, así que
+   sólo se iluminan: levantar algo que no se puede tocar miente. */
+.forma,.tip{
+  transition:border-color .2s ease, transform .25s var(--e-asentar),
+             box-shadow .25s ease;
+}
+.forma:hover,.tip:hover{ transform:translateY(-3px); box-shadow:var(--sombra-md); }
+
+.semana .dia{ transition:border-color .25s ease, box-shadow .25s ease; }
+.semana .dia:hover{ border-color:var(--c-clasico); box-shadow:var(--sombra-sm); }
+
+.btn{ will-change:auto; }
+.hero__acciones .btn--primario,
+.cierre__acciones .btn--primario{
+  transition:transform .2s var(--e-asentar), background .2s ease, box-shadow .2s ease;
+}
+.hero__acciones .btn--primario:hover,
+.cierre__acciones .btn--primario:hover{ transform:translateY(-2px); }
+
+/* ------------------------------------------------------ Sin movimiento
+   Ya está cubierto de dos maneras (el script no pone .mov, y styles.css
+   apaga las transiciones), pero esto lo deja explícito acá también. */
+@media (prefers-reduced-motion: reduce){
+  .mov .rev > *{ opacity:1; transform:none; }
+  .mov .rev .ojo::after,
+  .mov .rev .hero__ojo::after,
+  .mov .rev .paso::before{ transform:none; }
+}

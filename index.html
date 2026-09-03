@@ -25,6 +25,11 @@
      lo suyo encima. -->
 <link rel="stylesheet" href="assets/css/styles.css">
 <link rel="stylesheet" href="assets/css/landing.css">
+
+<!-- El movimiento va acá arriba y sin defer a propósito: marca la página
+     antes del primer dibujado, así nada aparece y se esconde. Sin JS, o
+     con "menos movimiento" pedido en el sistema, no hace nada. -->
+<script src="assets/js/movimiento.js"></script>
 </head>
 
 <body class="landing">
@@ -60,7 +65,7 @@
        Portada tipográfica: sin foto. Se apoya en Playfair y en el color
        de marca hasta que llegue el material fotográfico. -->
   <section class="hero" id="inicio">
-    <div class="env hero__in">
+    <div class="env hero__in rev">
       <p class="hero__ojo">Viandas saludables · Paraná, Entre Ríos</p>
       <h1 class="hero__t">
         Vos ocupate de tu día.<br>
@@ -84,12 +89,12 @@
        de números inventados. El JS los vuelve a escribir con lo que
        responda la API. -->
   <section class="cifras" aria-label="AUMÉ en números">
-    <div class="env cifras__in" id="cifras"></div>
+    <div class="env cifras__in rev" id="cifras"></div>
   </section>
 
   <!-- ================================================== 3. MENÚ DE ESTA SEMANA -->
   <section class="seccion-l" id="menu">
-    <div class="env">
+    <div class="env rev">
       <p class="ojo">El menú</p>
       <h2 class="t2">Lo que se come esta semana</h2>
       <p class="baj" id="semanaLabel">Cargando el menú de la semana…</p>
@@ -105,7 +110,7 @@
 
   <!-- ===================================================== 4. LOS CUATRO MENÚS -->
   <section class="seccion-l seccion-l--alt" id="nuestros-menus">
-    <div class="env">
+    <div class="env rev">
       <p class="ojo">Los menús</p>
       <h2 class="t2">Cuatro menús distintos, todos los días</h2>
       <p class="baj">
@@ -121,7 +126,7 @@
 
   <!-- ========================================================= 5. CÓMO FUNCIONA -->
   <section class="seccion-l" id="como">
-    <div class="env">
+    <div class="env rev">
       <p class="ojo">Cómo funciona</p>
       <h2 class="t2">Tres pasos y listo</h2>
 
@@ -158,7 +163,7 @@
   <!-- ======================================================= 6. FORMAS DE PEDIR
        Cada tarjeta entra directo a su forma de pedir dentro de /pedido/. -->
   <section class="seccion-l seccion-l--alt" id="formas">
-    <div class="env">
+    <div class="env rev">
       <p class="ojo">Formas de pedir</p>
       <h2 class="t2">Como te sirva a vos</h2>
       <p class="baj">
@@ -204,7 +209,7 @@
 
   <!-- ======================================================== 7. POR QUÉ CONVIENE -->
   <section class="seccion-l" id="conviene">
-    <div class="env">
+    <div class="env rev">
       <p class="ojo">Por qué conviene</p>
       <h2 class="t2">El costo real de no planificar</h2>
       <p class="baj">
@@ -242,7 +247,7 @@
        El formulario de cotización llega en una etapa siguiente. Hasta
        entonces la consulta sale por WhatsApp, con el mensaje ya escrito. -->
   <section class="seccion-l seccion-l--empresas" id="empresas">
-    <div class="env empresas">
+    <div class="env empresas rev">
       <div class="empresas__texto">
         <p class="ojo">Para tu equipo</p>
         <h2 class="t2">El almuerzo de la oficina, resuelto</h2>
@@ -257,21 +262,77 @@
           <li>Opciones vegetarianas y de alto contenido proteico</li>
           <li>Entrega en tu oficina, al mediodía</li>
         </ul>
-        <a class="btn btn--verde empresas__cta" id="ctaEmpresas" href="#" target="_blank" rel="noopener">
-          Pedir una propuesta por WhatsApp
+        <a class="btn btn--fantasma empresas__cta" id="ctaEmpresas" href="#" target="_blank" rel="noopener">
+          O escribinos por WhatsApp
         </a>
       </div>
-      <!-- Cuando exista el formulario de cotización va acá, en lugar de
-           esta lista. Mientras tanto adelanta qué vamos a preguntar, para
-           que la consulta por WhatsApp llegue con los datos puestos. -->
+      <!-- El único formulario del sitio. Se manda con fetch, no con un
+           envío de HTML común: así `form-action 'none'` de la política de
+           seguridad puede quedarse como está. -->
       <div class="empresas__marco">
-        <p class="empresas__dato">Para armarte la propuesta necesitamos saber</p>
-        <ol class="empresas__pide">
-          <li>Cuántas personas son</li>
-          <li>Dónde queda la oficina</li>
-          <li>Qué días de la semana</li>
-        </ol>
-        <p class="empresas__pie">Te la mandamos armada, sin compromiso.</p>
+        <form id="formCotizacion" novalidate>
+          <p class="empresas__dato">Pedí tu propuesta</p>
+
+          <div class="campo-l">
+            <label class="campo-l__l" for="cContacto">Tu nombre</label>
+            <input class="campo-l__i" type="text" id="cContacto" name="contacto"
+                   autocomplete="name" maxlength="80" required>
+          </div>
+
+          <div class="campo-l">
+            <label class="campo-l__l" for="cEmpresa">Empresa <span>(opcional)</span></label>
+            <input class="campo-l__i" type="text" id="cEmpresa" name="empresa"
+                   autocomplete="organization" maxlength="120">
+          </div>
+
+          <div class="campo-l campo-l--par">
+            <div>
+              <label class="campo-l__l" for="cEmail">Mail</label>
+              <input class="campo-l__i" type="email" id="cEmail" name="email"
+                     autocomplete="email" maxlength="120">
+            </div>
+            <div>
+              <label class="campo-l__l" for="cTelefono">Teléfono</label>
+              <input class="campo-l__i" type="tel" id="cTelefono" name="telefono"
+                     autocomplete="tel" inputmode="tel" maxlength="40">
+            </div>
+          </div>
+          <p class="campo-l__ayuda">Con uno de los dos alcanza.</p>
+
+          <div class="campo-l campo-l--par">
+            <div>
+              <label class="campo-l__l" for="cPersonas">¿Cuántos son?</label>
+              <input class="campo-l__i" type="number" id="cPersonas" name="personas"
+                     inputmode="numeric" min="1" max="2000">
+            </div>
+            <div>
+              <label class="campo-l__l" for="cDias">¿Qué días?</label>
+              <input class="campo-l__i" type="text" id="cDias" name="dias"
+                     maxlength="80" placeholder="Ej.: lunes a viernes">
+            </div>
+          </div>
+
+          <div class="campo-l">
+            <label class="campo-l__l" for="cZona">¿Dónde queda la oficina?</label>
+            <input class="campo-l__i" type="text" id="cZona" name="zona"
+                   maxlength="120" placeholder="Barrio o dirección">
+          </div>
+
+          <div class="campo-l">
+            <label class="campo-l__l" for="cMensaje">Algo más <span>(opcional)</span></label>
+            <textarea class="campo-l__ta" id="cMensaje" name="mensaje" rows="3"
+                      maxlength="1000" placeholder="Restricciones alimentarias, horarios…"></textarea>
+          </div>
+
+          <button type="submit" class="btn btn--verde btn--bloque" id="cEnviar">
+            Pedir la propuesta
+          </button>
+          <p class="campo-l__ayuda">Te contestamos por el medio que nos dejes.</p>
+        </form>
+
+        <!-- Fuera del formulario a propósito: al enviarse bien, el
+             formulario se vacía y el aviso tiene que sobrevivir. -->
+        <div id="cAviso" class="cot-aviso" hidden></div>
       </div>
     </div>
   </section>
@@ -282,7 +343,7 @@
        ninguna publicación, la sección entera no se dibuja: es mejor que
        no esté a que esté vacía. -->
   <section class="seccion-l" id="tips" hidden>
-    <div class="env">
+    <div class="env rev">
       <p class="ojo">Para leer</p>
       <h2 class="t2">Tips, recetas e info nutricional</h2>
       <p class="baj">
@@ -296,7 +357,7 @@
 
   <!-- ========================================================= 10. QUIÉNES SOMOS -->
   <section class="seccion-l" id="nosotros">
-    <div class="env nosotros">
+    <div class="env nosotros rev">
       <div class="nosotros__foto">
         <!-- MARCADOR: reemplazar por una foto real de la cocina o del equipo -->
         <img src="assets/img/landing/cocina.svg" alt="" width="1200" height="600">
@@ -322,7 +383,7 @@
 
   <!-- ======================================================= 11. DÓNDE Y CÓMO LLEGA -->
   <section class="seccion-l seccion-l--alt" id="entregas">
-    <div class="env">
+    <div class="env rev">
       <p class="ojo">Dónde y cómo llega</p>
       <h2 class="t2">Te lo llevamos o lo retirás</h2>
 
@@ -339,7 +400,7 @@
 
   <!-- =============================================================== 12. CIERRE -->
   <section class="cierre">
-    <div class="env cierre__in">
+    <div class="env cierre__in rev">
       <h2 class="cierre__t">¿Empezamos esta semana?</h2>
       <p class="cierre__d">
         Armá tu pedido en un minuto. Lo confirmás por WhatsApp y listo.
@@ -377,5 +438,6 @@
 <script src="assets/js/data/config.js"></script>
 <script src="assets/js/data/menu.js"></script>
 <script src="assets/js/landing.js"></script>
+<script src="assets/js/cotizacion.js"></script>
 </body>
 </html>

@@ -95,6 +95,21 @@
   --sombra-md: 0 4px 14px rgba(44,44,44,.08);
   --sombra-lg: 0 -8px 32px rgba(44,44,44,.16);
 
+  /* MOVIMIENTO
+     ------------------------------------------------------------------
+     Una sola idea, la misma en la landing y en la pantalla de pedidos:
+     nada entra deslizándose desde lejos, todo se ASIENTA, como el fiel
+     de una balanza que encuentra su punto. Es lo que dice el nombre de
+     la marca (Aurea Mediocritas, la justa medida), y es lo que hace que
+     el movimiento se sienta de AUMÉ y no de cualquier sitio.
+
+     --e-asentar: frena rápido y apoya. Para lo que aparece.
+     --e-rebote:  se pasa un poquito y vuelve. Sólo para el "listo, lo
+                  agregué": es el único lugar donde el movimiento puede
+                  celebrar algo. */
+  --e-asentar: cubic-bezier(.22,.75,.28,1);
+  --e-rebote:  cubic-bezier(.34,1.45,.5,1);
+
   --ancho: 620px;           /* contenedor mobile-first */
   --barra-h: 76px;          /* alto de la barra inferior del pedido */
 
@@ -581,7 +596,15 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
   border:1.5px solid var(--linea); background:var(--blanco);
   transition:border-color .2s ease;
 }
+/* El borde naranja marca el campo activo con el mouse. Con el teclado
+   hace falta además el anillo: un borde de 1,5px es lo único que
+   separaba a quien navega con Tab de perderse en el formulario, que es
+   justo la pantalla donde se cierra el pedido. El formulario de la
+   landing ya lo hacía así; esto los deja iguales. */
 .campo__i:focus,.campo__s:focus,.campo__ta:focus{ outline:none; border-color:var(--c-clasico); }
+.campo__i:focus-visible,.campo__s:focus-visible,.campo__ta:focus-visible{
+  outline:2px solid var(--c-clasico); outline-offset:1px;
+}
 .campo__ta{ resize:vertical; min-height:74px; }
 .campo__s{
   appearance:none; -webkit-appearance:none;
@@ -678,7 +701,53 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
 .pie__a{ color:var(--c-clasico); text-decoration:none; font-weight:600; }
 .pie__a:hover{ text-decoration:underline; }
 
-/* ---------------------------------------------------- 17. DESKTOP+ */
+/* ------------------------------------------- 17. AGREGAR AL PEDIDO
+   Qué pasa cuando alguien toca "+".
+
+   El punto de color es el signo de AUMÉ: identifica cada menú en las
+   pestañas, en la tarjeta del día y en la landing. Así que lo que viaja
+   hasta el pedido es ese mismo punto, del color del menú que se está
+   pidiendo. No hace falta explicarlo: se ve de dónde salió y adónde fue.
+
+   Son tres tiempos encadenados, no tres efectos sueltos:
+     1. el punto sale del botón y cae en "Ver pedido"  (JS, .vuela)
+     2. la barra de abajo acusa recibo                 (.barra--suma)
+     3. el contador queda en su número nuevo           (.stepper--suma)
+
+   Todo dura menos de medio segundo: es un acuse de recibo, no una
+   animación que haya que esperar para seguir pidiendo. */
+
+/* El punto que viaja. Lo crea y lo mueve ui.js con la API de
+   animaciones del navegador; acá sólo vive su forma. */
+.vuela{
+  position:fixed; z-index:90; pointer-events:none;
+  width:18px; height:18px; border-radius:50%;
+  box-shadow:var(--sombra-sm);
+}
+
+/* La barra acusa recibo: el total crece apenas y el borde de arriba se
+   pinta del color del menú mientras dura. */
+.barra{ transition:border-top-color .3s ease; }
+.barra--suma{ border-top-color:var(--c-activo, var(--c-clasico)); }
+.barra__t{ transition:transform .28s var(--e-rebote); transform-origin:left center; }
+.barra--suma .barra__t{ transform:scale(1.07); }
+
+/* El contador recién nacido (de "350gr $X" a "− 1 +") se asienta */
+.stepper--nuevo{ animation:asentar .3s var(--e-asentar); }
+@keyframes asentar{
+  from{ opacity:0; transform:scale(.94); }
+  to  { opacity:1; transform:scale(1); }
+}
+
+/* Y el número, cuando ya venía contando, marca el cambio */
+.stepper--suma .stepper__n{ animation:contar .32s var(--e-rebote); }
+@keyframes contar{
+  0%  { transform:scale(1); }
+  45% { transform:scale(1.3); }
+  100%{ transform:scale(1); }
+}
+
+/* ---------------------------------------------------- 18. DESKTOP+ */
 @media (min-width:640px){
   :root{ --h-marca:60px; --h-modos:48px; --h-tabs:56px; }
   .marca__img{ height:44px; }

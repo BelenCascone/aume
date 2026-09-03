@@ -220,6 +220,78 @@
     }
   }
 
+  /* ------------------------------------------------ Consultas de empresas
+
+     Se piden aparte del resto de la portada: si esto falla, los KPIs y
+     los pedidos tienen que seguir viéndose igual. */
+
+  var ESTADOS = { nueva: 'Nueva', contactada: 'Contactada', cerrada: 'Cerrada' };
+
+  function fechaCorta(iso) {
+    if (!iso) return '';
+    var f = String(iso).slice(0, 10).split('-');
+    return f[2] + '/' + f[1];
+  }
+
+  async function cargarCotizaciones() {
+    var cuerpo = el('cotizaciones');
+    if (!cuerpo) return;
+
+    var datos;
+    try {
+      datos = await Panel.pedir('/api/cotizaciones');
+    } catch (e) {
+      return;   /* el aviso general ya lo muestra cargar() */
+    }
+
+    var lista = datos.cotizaciones || [];
+    if (!lista.length) return;   /* sin consultas, el bloque no aparece */
+
+    el('bloqueCotizaciones').hidden = false;
+
+    if (datos.nuevas) {
+      var chapa = el('cotNuevas');
+      chapa.textContent = datos.nuevas + (datos.nuevas === 1 ? ' sin responder' : ' sin responder');
+      chapa.hidden = false;
+    }
+
+    cuerpo.innerHTML = lista.map(function (c) {
+      var contacto = [c.email, c.telefono].filter(Boolean).join(' · ');
+      var opciones = Object.keys(ESTADOS).map(function (k) {
+        return '<option value="' + k + '"' + (c.estado === k ? ' selected' : '') + '>' +
+               ESTADOS[k] + '</option>';
+      }).join('');
+
+      return '<tr>' +
+        '<td>' + Panel.esc(fechaCorta(c.creadaEn)) + '</td>' +
+        '<td><strong>' + Panel.esc(c.empresa || '—') + '</strong>' +
+          (c.zona ? '<br><span class="meta">' + Panel.esc(c.zona) + '</span>' : '') +
+        '</td>' +
+        '<td>' + Panel.esc(c.contacto) +
+          (contacto ? '<br><span class="meta">' + Panel.esc(contacto) + '</span>' : '') +
+          (c.mensaje ? '<br><span class="meta">' + Panel.esc(c.mensaje) + '</span>' : '') +
+        '</td>' +
+        '<td>' + Panel.esc(c.personas || '—') +
+          (c.dias ? '<br><span class="meta">' + Panel.esc(c.dias) + '</span>' : '') +
+        '</td>' +
+        '<td><select class="status-select" data-cot="' + c.id + '">' + opciones + '</select></td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  async function cambiarEstado(id, estado, select) {
+    select.disabled = true;
+    try {
+      await Panel.pedir('/api/cotizaciones/' + id, { metodo: 'PATCH', cuerpo: { estado: estado } });
+      Panel.toast('Consulta marcada como ' + ESTADOS[estado].toLowerCase());
+      await cargarCotizaciones();
+    } catch (e) {
+      Panel.mostrarError(el('aviso'), e);
+    } finally {
+      select.disabled = false;
+    }
+  }
+
   function arrancar() {
     document.querySelectorAll('.range-tab').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -232,8 +304,17 @@
       });
     });
 
+    var tabla = el('cotizaciones');
+    if (tabla) {
+      tabla.addEventListener('change', function (e) {
+        var select = e.target.closest('[data-cot]');
+        if (select) cambiarEstado(select.dataset.cot, select.value, select);
+      });
+    }
+
     escalonar(Array.prototype.slice.call(document.querySelectorAll('.modulo')), 120);
     cargar('hoy');
+    cargarCotizaciones();
   }
 
   document.addEventListener('DOMContentLoaded', arrancar);

@@ -1,140 +1,127 @@
 {
-  // =====================================================================
-  // AUMÉ · configuración de Cloudflare
-  // ---------------------------------------------------------------------
-  // Lo de arriba (sin "env") es PRODUCCIÓN: es lo que ve el cliente.
-  // Abajo, en "env.staging", hay una copia entera del sitio con su propia
-  // base de datos, para probar sin tocar nada real.
-  //
-  //   Probar en tu compu:      npx wrangler dev --env staging
-  //   Publicar a staging:      npx wrangler deploy --env staging
-  //   Publicar a producción:   npx wrangler deploy
-  //
-  // Paso a paso completo (crear las bases, Cloudflare Access, etc.):
-  // docs/panel-admin.md
-  // =====================================================================
-
-  "name": "aume",
-  "compatibility_date": "2026-08-30",
-
-  // El worker atiende /api/*. Todo lo demás (index.html, assets/, admin/)
-  // lo sirven los archivos estáticos, que siguen teniendo prioridad.
-  "main": "worker/index.js",
-
-  "assets": {
-    "directory": "./",
-    "binding": "ASSETS"
-  },
-
-  "observability": {
-    "enabled": true
-  },
-
-  "vars": {
-    "AUME_ENTORNO": "produccion",
-
-    // Cloudflare Access. Se completan una sola vez, a mano, cuando esté
-    // creada la aplicación en el dashboard (ver docs/panel-admin.md).
-    //
-    // ⚠️ En producción, mientras estén vacías, la API del panel responde
-    //    503 a propósito: preferimos que se rompa a la vista antes que
-    //    quedar abierta sin que nadie se entere.
-    "ACCESS_TEAM_DOMAIN": "",   // ej.: "aume.cloudflareaccess.com"
-    "ACCESS_AUD": ""            // el "Application Audience (AUD) Tag"
-  },
-
-
-  // -------------------------------------------------------------------
-  // FOTOS DE LAS PUBLICACIONES (R2)
-  //
-  // Las fotos de los tips y las recetas no van en la base: van a un
-  // bucket R2 y el worker las sirve desde /api/publicaciones/imagenes/,
-  // o sea desde el propio dominio, que es lo único que permite la
-  // política de seguridad del sitio (img-src 'self').
-  //
-  // ⚠️ ESTÁ COMENTADO A PROPÓSITO. Un binding que apunta a un bucket que
-  //    todavía no existe hace fallar el deploy entero. Mientras esto
-  //    esté comentado, el panel deja cargar publicaciones SIN foto y, si
-  //    alguien intenta subir una, contesta explicando qué falta.
-  //
-  // Para activarlo, una sola vez:
-  //
-  //   npx wrangler r2 bucket create aume-fotos
-  //   npx wrangler r2 bucket create aume-fotos-staging
-  //
-  // y después descomentar este bloque acá abajo y el de env.staging.
-  //
-  // "r2_buckets": [
-  //   {
-  //     "binding": "FOTOS",
-  //     "bucket_name": "aume-fotos"
-  //   }
-  // ],
-
-  // Base de producción. Creada con: npx wrangler d1 create aume-produccion
-  //
-  // ⚠️ EL "binding" TIENE QUE LLAMARSE "DB", NO COMO LA BASE.
-  // El código del worker la busca por ese nombre (env.DB, en
-  // worker/index.js). Si el dashboard de Cloudflare regenera este
-  // archivo lo suele renombrar a "aume_produccion", y ahí el panel
-  // entero deja de funcionar: la API empieza a responder 503 diciendo
-  // que falta el binding "DB". Si eso pasa, se arregla acá.
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "aume-produccion",
-      "database_id": "3fec9051-f953-4230-b7b3-89a6ac4dab69",
-      // Que `wrangler dev` use la base de Cloudflare y no una local.
-      "remote": true
-    }
-  ],
-
-  // -------------------------------------------------------------------
-  // STAGING: mismo código, worker aparte y base aparte.
-  // Queda en aume-staging.<tu-subdominio>.workers.dev
-  // -------------------------------------------------------------------
-  "env": {
-    "staging": {
-      "name": "aume-staging",
-      "main": "worker/index.js",
-
-      "assets": {
-        "directory": "./",
-        "binding": "ASSETS"
-      },
-
-      "observability": {
-        "enabled": true
-      },
-
-      "vars": {
-        // Con AUME_ENTORNO distinto de "produccion" y sin Access
-        // configurado, el worker deja pasar al panel con una identidad
-        // simulada. Es lo que permite trabajar en local con `wrangler dev`.
-        "AUME_ENTORNO": "staging",
-        "ACCESS_TEAM_DOMAIN": "",
-        "ACCESS_AUD": ""
-      },
-
-
-      // Ver la nota del bloque r2_buckets de producción, más arriba.
-      // "r2_buckets": [
-      //   {
-      //     "binding": "FOTOS",
-      //     "bucket_name": "aume-fotos-staging"
-      //   }
-      // ],
-
-      // Base de prueba, separada de producción.
-      // Creada con: npx wrangler d1 create aume-staging
-      "d1_databases": [
-        {
-          "binding": "DB",
-          "database_name": "aume-staging",
-          "database_id": "68212180-4240-4e47-bd67-a542a3468591",
-          "remote": true
-        }
-      ]
-    }
-  }
+	// =====================================================================
+	// AUMÉ · configuración de Cloudflare
+	// ---------------------------------------------------------------------
+	// Lo de arriba (sin "env") es PRODUCCIÓN: es lo que ve el cliente.
+	// Abajo, en "env.staging", hay una copia entera del sitio con su propia
+	// base de datos, para probar sin tocar nada real.
+	//
+	//   Probar en tu compu:      npx wrangler dev --env staging
+	//   Publicar a staging:      npx wrangler deploy --env staging
+	//   Publicar a producción:   npx wrangler deploy
+	//
+	// Paso a paso completo (crear las bases, Cloudflare Access, etc.):
+	// docs/panel-admin.md
+	// =====================================================================
+	"name": "aume",
+	"compatibility_date": "2026-08-30",
+	// El worker atiende /api/*. Todo lo demás (index.html, assets/, admin/)
+	// lo sirven los archivos estáticos, que siguen teniendo prioridad.
+	"main": "worker/index.js",
+	"assets": {
+		"directory": "./",
+		"binding": "ASSETS"
+	},
+	"observability": {
+		"enabled": true
+	},
+	"vars": {
+		"AUME_ENTORNO": "produccion",
+		// Cloudflare Access. Se completan una sola vez, a mano, cuando esté
+		// creada la aplicación en el dashboard (ver docs/panel-admin.md).
+		//
+		// ⚠️ En producción, mientras estén vacías, la API del panel responde
+		//    503 a propósito: preferimos que se rompa a la vista antes que
+		//    quedar abierta sin que nadie se entere.
+		"ACCESS_TEAM_DOMAIN": "", // ej.: "aume.cloudflareaccess.com"
+		"ACCESS_AUD": "" // el "Application Audience (AUD) Tag"
+	},
+	// -------------------------------------------------------------------
+	// FOTOS DE LAS PUBLICACIONES (R2)
+	//
+	// Las fotos de los tips y las recetas no van en la base: van a un
+	// bucket R2 y el worker las sirve desde /api/publicaciones/imagenes/,
+	// o sea desde el propio dominio, que es lo único que permite la
+	// política de seguridad del sitio (img-src 'self').
+	//
+	// Los dos buckets ya están creados:
+	//   npx wrangler r2 bucket create aume-fotos
+	//   npx wrangler r2 bucket create aume-fotos-staging
+	//
+	// ⚠️ EL "binding" TIENE QUE LLAMARSE "FOTOS", NO COMO EL BUCKET.
+	// Es la misma trampa que con la base: el código lo busca por ese
+	// nombre (env.FOTOS, en worker/rutas/publicaciones.js). El asistente
+	// de Cloudflare lo escribe como "aume_fotos", y con ese nombre el
+	// panel deja de poder subir fotos y contesta que falta el bucket.
+	"r2_buckets": [
+		{
+			"binding": "FOTOS",
+			"bucket_name": "aume-fotos",
+			// Que `wrangler dev` use el bucket de Cloudflare, no uno local.
+			"remote": true
+		}
+	],
+	// Base de producción. Creada con: npx wrangler d1 create aume-produccion
+	//
+	// ⚠️ EL "binding" TIENE QUE LLAMARSE "DB", NO COMO LA BASE.
+	// El código del worker la busca por ese nombre (env.DB, en
+	// worker/index.js). Si el dashboard de Cloudflare regenera este
+	// archivo lo suele renombrar a "aume_produccion", y ahí el panel
+	// entero deja de funcionar: la API empieza a responder 503 diciendo
+	// que falta el binding "DB". Si eso pasa, se arregla acá.
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "aume-produccion",
+			"database_id": "3fec9051-f953-4230-b7b3-89a6ac4dab69",
+			// Que `wrangler dev` use la base de Cloudflare y no una local.
+			"remote": true
+		}
+	],
+	// -------------------------------------------------------------------
+	// STAGING: mismo código, worker aparte y base aparte.
+	// Queda en aume-staging.<tu-subdominio>.workers.dev
+	// -------------------------------------------------------------------
+	"env": {
+		"staging": {
+			"name": "aume-staging",
+			"main": "worker/index.js",
+			"assets": {
+				"directory": "./",
+				"binding": "ASSETS"
+			},
+			"observability": {
+				"enabled": true
+			},
+			"vars": {
+				// Con AUME_ENTORNO distinto de "produccion" y sin Access
+				// configurado, el worker deja pasar al panel con una identidad
+				// simulada. Es lo que permite trabajar en local con `wrangler dev`.
+				"AUME_ENTORNO": "staging",
+				"ACCESS_TEAM_DOMAIN": "",
+				"ACCESS_AUD": ""
+			},
+			// Su propio bucket, con el MISMO nombre de binding que en
+			// producción: el código es el mismo, lo que cambia es a dónde
+			// apunta. Un entorno no hereda los bindings del bloque de
+			// arriba, así que si esto no está, staging se queda sin bucket.
+			"r2_buckets": [
+				{
+					"binding": "FOTOS",
+					"bucket_name": "aume-fotos-staging",
+					"remote": true
+				}
+			],
+			// Base de prueba, separada de producción.
+			// Creada con: npx wrangler d1 create aume-staging
+			"d1_databases": [
+				{
+					"binding": "DB",
+					"database_name": "aume-staging",
+					"database_id": "68212180-4240-4e47-bd67-a542a3468591",
+					"remote": true
+				}
+			]
+		}
+	}
 }

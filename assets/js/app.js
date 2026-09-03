@@ -134,9 +134,27 @@
 
     var delta = b.dataset.accion === 'mas' ? 1 : -1;
     var restaurar = recuperarFoco(contenedor, b);
+    var clave = b.dataset.clave;
 
-    Store.sumarClave(b.dataset.clave, delta);
+    /* Todo lo que necesita el movimiento se mide ANTES de sumar: al
+       sumar se repinta la vista entera y este botón deja de existir.
+       El color sale del precio del propio botón, que ya viene pintado
+       del color del menú (o del de la Ensalada César, o del de los
+       productos): así el punto que vuela es siempre el del menú que se
+       está pidiendo. */
+    var eraCero = delta > 0 && Store.cantidadDeClave(clave) === 0;
+    var caja  = delta > 0 ? b.getBoundingClientRect() : null;
+    var pinta = b.querySelector('.tamano__p') || b;
+    var color = delta > 0 && global.getComputedStyle
+      ? global.getComputedStyle(pinta).color : '';
+
+    Store.sumarClave(clave, delta);
     if (restaurar) restaurar();
+
+    if (delta > 0) {
+      UI.marcarContador(contenedor, clave, eraCero);
+      UI.volarAlPedido(caja, color);
+    }
 
     return { boton: b, delta: delta };
   }

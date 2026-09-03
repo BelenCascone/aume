@@ -62,6 +62,9 @@ mostraría un código en vez del nombre del local.
 | `/api/publicaciones/:id`         | PUT    | panel       | 5 ✅ |
 | `/api/publicaciones/:id`         | DELETE | panel       | 5 ✅ |
 | `/api/publicaciones/imagenes`    | POST   | panel       | 5 ✅ |
+| `/api/cotizaciones`              | POST   | **público** (formulario de la landing) | 6 ✅ |
+| `/api/cotizaciones`              | GET    | panel       | 6 ✅ |
+| `/api/cotizaciones/:id`          | PATCH  | panel       | 6 ✅ |
 
 Las rutas marcadas "panel" exigen una identidad válida de Cloudflare
 Access **y** que el pedido salga del propio sitio (defensa contra CSRF).
@@ -299,27 +302,56 @@ propio dominio. Eso no es un capricho: la política de seguridad del sitio
 dominio, así que pegar el link de una foto de Instagram no funcionaría —
 el navegador la bloquearía.
 
-**Hoy el bucket todavía no existe**, y el binding está comentado a
-propósito en `wrangler.jsonc`: un binding que apunta a un bucket
-inexistente hace fallar el deploy entero. Mientras tanto el panel deja
-cargar publicaciones **sin** foto, y si alguien intenta subir una
-contesta explicando qué falta.
+Los dos buckets ya están creados —`aume-fotos` y `aume-fotos-staging`— y
+los bindings están en `wrangler.jsonc`. Para crearlos hubo que **activar
+R2** una vez desde el panel de Cloudflare (*Storage & databases → R2 →
+Overview*), porque viene desactivado y `wrangler` no puede activarlo solo.
 
-Para activarlo, una sola vez:
-
-```bash
-npx wrangler r2 bucket create aume-fotos
-```
-
-```bash
-npx wrangler r2 bucket create aume-fotos-staging
-```
-
-Y después descomentar los dos bloques `r2_buckets` de `wrangler.jsonc`
-(el de producción y el de `env.staging`) y volver a publicar.
+> ⚠️ **El binding tiene que llamarse `FOTOS`, no como el bucket.** Es la
+> misma trampa que con la base de datos. El asistente de Cloudflare lo
+> escribe como `aume_fotos`, y con ese nombre el worker no lo encuentra:
+> el panel deja de poder subir fotos y contesta que falta el bucket, sin
+> que nada más falle. Si eso pasa, se arregla en `wrangler.jsonc`.
+>
+> Lo mismo vale para el bloque de `env.staging`: **los bindings de un
+> entorno no se heredan del bloque de arriba**. Si staging no tiene su
+> propio `r2_buckets`, se queda sin bucket aunque producción lo tenga.
 
 El worker acepta JPG, PNG y WEBP de hasta 3 MB, y **le pone él el nombre
 al archivo**: nada de lo que mande el navegador decide dónde se guarda.
+Las fotos se sirven con cache de un año, porque cada una tiene su propio
+nombre al azar y nunca cambia.
+
+---
+
+### Las cotizaciones de empresas
+
+El formulario del bloque "Para tu equipo" de la landing. Lo que llega se
+guarda en la base y **aparece en la portada del panel**, arriba de "Ir
+a", con una chapa que dice cuántas están sin responder. Desde ahí se
+marca cada una como *contactada* o *cerrada*.
+
+Va en la portada a propósito: lo que importa es no dejar a nadie
+esperando. Si hay una consulta nueva, tiene que verse al entrar.
+
+Tres cosas que conviene saber:
+
+- **Recibir es público; leer, no.** La ruta que recibe la puede llamar
+  cualquiera, porque es un formulario abierto. La que lista las
+  cotizaciones exige identidad de Access: son datos de contacto de gente
+  que confió en que iban a AUMÉ y a nadie más.
+- **Hay un freno de envíos**: hasta 3 consultas del mismo origen cada 15
+  minutos. Un formulario público sin freno se llena de basura en una
+  semana. Pasado el límite, el mensaje ofrece WhatsApp en vez de dejar a
+  la persona colgada.
+- **La dirección de quien envía se guarda hasheada**, no en claro.
+  Alcanza para contar cuántas vinieron del mismo lado y no guarda la
+  dirección de nadie.
+
+El formulario se manda con `fetch` y no con un envío de HTML común. Eso
+permite tenerlo **sin tocar** `form-action 'none'` de la política de
+seguridad, que sigue protegiendo contra formularios inyectados que
+apunten a otro sitio. Hay un test que verifica que esa regla siga puesta.
 
 ---
 

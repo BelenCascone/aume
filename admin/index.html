@@ -101,6 +101,27 @@
         </div>
       </section>
 
+      <!-- Las consultas de empresas que llegan por el formulario de la
+           landing. Van en la portada porque lo que importa es no dejar a
+           nadie esperando: si hay una nueva, tiene que verse al entrar. -->
+      <section class="section-block" id="bloqueCotizaciones" hidden>
+        <div class="row-between" style="margin-bottom:4px">
+          <h2 class="h3-like">Consultas de empresas</h2>
+          <span class="badge badge-nuevo" id="cotNuevas" hidden></span>
+        </div>
+        <div class="card table-wrap">
+          <table class="ds-table">
+            <thead>
+              <tr>
+                <th>Fecha</th><th>Empresa</th><th>Contacto</th>
+                <th>Cuántos</th><th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="cotizaciones"></tbody>
+          </table>
+        </div>
+      </section>
+
       <section class="section-block">
         <p class="eyebrow">Ir a</p>
         <div class="modulos">

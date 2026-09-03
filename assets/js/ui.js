@@ -37,6 +37,93 @@
     toastTimer = setTimeout(function () { t.classList.remove('toast--on'); }, 2200);
   }
 
+  /* -------------------------------------------- Movimiento al agregar
+
+     Tocar "+" tiene que sentirse como poner algo adentro de una bolsa.
+     El punto de color del menú —el mismo que identifica a cada menú en
+     las pestañas y en la tarjeta del día— sale del botón que se tocó,
+     cae en "Ver pedido", la barra de abajo acusa recibo y el contador
+     queda en su número nuevo.
+
+     Es un acuse de recibo, no un espectáculo: dura menos de medio
+     segundo y no bloquea nada. Si el navegador no tiene la API de
+     animaciones, o la persona pidió menos movimiento en su sistema, el
+     vuelo no ocurre y el resto funciona exactamente igual. */
+
+  function sinMovimiento() {
+    return !!(global.matchMedia &&
+              global.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
+
+  var timerBarra = null;
+
+  function acusarRecibo() {
+    var barra = el('barra');
+    if (!barra) return;
+    barra.classList.add('barra--suma');
+    clearTimeout(timerBarra);
+    timerBarra = setTimeout(function () {
+      barra.classList.remove('barra--suma');
+    }, 420);
+  }
+
+  /* `caja` es el rectángulo del botón tomado ANTES de repintar: para
+     cuando esto corre, el botón que se tocó ya no está en la página
+     (la vista se volvió a dibujar entera). */
+  function volarAlPedido(caja, color) {
+    var destino = el('btnVerPedido');
+
+    /* Con un panel abierto la barra queda tapada: el número que cambia
+       adentro del panel ya es aviso suficiente. */
+    if (panelAbierto) return;
+
+    if (!caja || !destino || sinMovimiento() ||
+        typeof document.body.animate !== 'function') { acusarRecibo(); return; }
+
+    var fin = destino.getBoundingClientRect();
+    var punto = document.createElement('span');
+    punto.className = 'vuela';
+    punto.style.background = color || '#DC8D43';
+    punto.style.left = (caja.left + caja.width / 2 - 9) + 'px';
+    punto.style.top  = (caja.top + caja.height / 2 - 9) + 'px';
+    document.body.appendChild(punto);
+
+    var dx = (fin.left + fin.width / 2) - (caja.left + caja.width / 2);
+    var dy = (fin.top + fin.height / 2) - (caja.top + caja.height / 2);
+
+    /* El punto no viaja en línea recta: sube un poco y después cae. Una
+       recta se lee como un archivo que se mueve; el arco, como algo que
+       se guarda. */
+    var vuelo = punto.animate([
+      { transform: 'translate(0,0) scale(1)', opacity: 1 },
+      { transform: 'translate(' + (dx * 0.5) + 'px,' + (dy * 0.35 - 46) + 'px) scale(1.3)',
+        opacity: 1, offset: 0.55 },
+      { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(.3)', opacity: .2 }
+    ], { duration: 520, easing: 'cubic-bezier(.3,.05,.3,1)', fill: 'forwards' });
+
+    var listo = false;
+    function aterrizar() {
+      if (listo) return;
+      listo = true;
+      if (punto.parentNode) punto.parentNode.removeChild(punto);
+      acusarRecibo();
+    }
+    vuelo.onfinish = aterrizar;
+    /* Si la pestaña se va a segundo plano, onfinish puede no llegar */
+    setTimeout(aterrizar, 1000);
+  }
+
+  /* Después de repintar, el control de esa clave es un nodo nuevo. Se lo
+     marca acá para que la animación corra sólo en el que cambió y no en
+     los otros cuatro días de la pantalla. */
+  function marcarContador(contenedor, clave, eraCero) {
+    if (!contenedor || sinMovimiento()) return;
+    var b = contenedor.querySelector('[data-accion="mas"][data-clave="' + clave + '"]');
+    var paso = b && b.closest ? b.closest('.stepper') : null;
+    if (!paso) return;
+    paso.classList.add(eraCero ? 'stepper--nuevo' : 'stepper--suma');
+  }
+
   /* ---------------------------------------------- Paneles (bottom sheet) */
 
   var panelAbierto = null;
@@ -785,6 +872,8 @@
     esc: esc,
     plural: plural,
     toast: toast,
+    volarAlPedido: volarAlPedido,
+    marcarContador: marcarContador,
     abrirPanel: abrirPanel,
     cerrarPanel: cerrarPanel,
     panelActivo: function () { return panelAbierto; },
