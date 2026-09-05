@@ -29,6 +29,14 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
+  /* La "é" minúscula de Glacial Indifference en negrita viene rota de
+     fábrica (se ve en "César", acá en la nota de la opción fija): se
+     escribe esa sola letra en peso normal, que sí la dibuja bien. Ver
+     la misma explicación, más larga, en assets/css/styles.css. */
+  function arreglarE(t) {
+    return esc(t).replace(/é/g, '<span class="e-arreglada">é<\/span>');
+  }
+
   var fmt = new Intl.NumberFormat('es-AR', {
     style: 'currency', currency: 'ARS',
     minimumFractionDigits: 0, maximumFractionDigits: 0
@@ -97,18 +105,24 @@
 
   /* --------------------------------------------------------- Dibujado */
 
-  /* Sólo números que se pueden verificar contra los datos del negocio.
-     Si mañana hay un punto de retiro más, este bloque lo dice solo. */
+  /* Casi todo acá se puede verificar contra los datos del negocio (si
+     mañana hay un punto de retiro más, este bloque lo dice solo); las
+     últimas dos son la excepción: viandas por día y años de trayectoria
+     no salen de contar nada, son datos de marca que se actualizan a
+     mano en CFG.marca cada tanto. */
   function pintarCifras() {
     var caja = el('cifras');
     if (!caja) return;
 
+    var marca = CFG.marca || {};
     var cifras = [
       { n: (CFG.categorias || []).length, d: 'menús distintos por día' },
       { n: (CFG.dias || []).length,       d: 'días de la semana' },
       { n: (CFG.tamanos || []).length,    d: 'tamaños de porción' },
       { n: (CFG.puntosRetiro || []).length, d: 'puntos de retiro' }
     ];
+    if (marca.viandasPorDia) cifras.push({ n: '+' + marca.viandasPorDia, d: 'viandas por día' });
+    if (marca.anios)         cifras.push({ n: '+' + marca.anios,         d: 'años de trayectoria' });
 
     caja.innerHTML = cifras.map(function (c) {
       return '<div class="cifra">' +
@@ -125,8 +139,11 @@
     var etiqueta = el('semanaLabel');
     if (etiqueta) etiqueta.textContent = MENU.semana || '';
 
-    var nota = el('semanaNota');
-    if (nota) nota.textContent = MENU.nota || '';
+    /* El aviso de "se reciben hasta el domingo a las 20:00" es útil
+       adentro del pedido, mientras alguien está eligiendo; acá, de
+       sólo pasar a mirar el menú, suena a límite/oferta y puede
+       confundir. Por eso la landing no lo escribe, aunque el dato
+       siga viviendo en MENU.nota para /pedido/. */
 
     var cats     = CFG.categorias || [];
     var platos   = MENU.platos    || {};
@@ -197,7 +214,7 @@
 
     var fija = el('fija');
     if (fija && CFG.extraFijo && CFG.extraFijo.nombre) {
-      fija.innerHTML = 'Además, la <strong>' + esc(CFG.extraFijo.nombre) + '</strong> está ' +
+      fija.innerHTML = 'Además, la <strong>' + arreglarE(CFG.extraFijo.nombre) + '</strong> está ' +
                        'disponible todos los días, elijas el menú que elijas.';
     }
   }
@@ -266,11 +283,10 @@
     caja.innerHTML = filas.join('');
   }
 
-  /* Los dos botones que abren WhatsApp con el mensaje ya escrito. Si no
-     hay número configurado se ocultan, en vez de llevar a ningún lado. */
+  /* El botón que abre WhatsApp con el mensaje ya escrito. Si no hay
+     número configurado se oculta, en vez de llevar a ningún lado. */
   function pintarBotonesWhatsapp() {
     var pares = [
-      { id: 'ctaEmpresas', texto: 'Hola AUMÉ, quería una propuesta de viandas para mi equipo de trabajo.' },
       { id: 'ctaWhatsapp', texto: 'Hola AUMÉ, quería hacerles una consulta.' }
     ];
 
@@ -306,6 +322,31 @@
     return Number(iso.slice(8, 10)) + ' ' + mes + ' ' + iso.slice(0, 4);
   }
 
+  /* Una tarjeta de publicación. La usan tanto la grilla de "Tips y
+     recetas" como el adelanto de la última nota más arriba: es la
+     misma tarjeta en los dos lados, sólo cambia dónde aparece. */
+  function tarjetaTip(p) {
+    var tipo = TIPOS[p.categoria] || TIPOS.tip;
+    var cabecera = p.imagen
+      ? '<div class="tip__foto"><img src="' + esc(p.imagen) + '" alt="' +
+        esc(p.imagenAlt || '') + '" loading="lazy"></div>'
+      : '<div class="tip__barra"></div>';
+
+    return '<a class="tip" href="tips/?nota=' + encodeURIComponent(p.id) + '" ' +
+             'style="--tip-color:' + tipo.color + ';--tip-color-texto:' + tipo.texto + '">' +
+             cabecera +
+             '<div class="tip__cuerpo">' +
+               '<p class="tip__meta">' +
+                 '<span class="tip__tipo">' + esc(tipo.nombre) + '</span>' +
+                 '<span class="tip__fecha">' + esc(fechaLinda(p.fecha)) + '</span>' +
+               '</p>' +
+               '<h3 class="tip__t">' + esc(p.titulo) + '</h3>' +
+               (p.copete ? '<p class="tip__d">' + esc(p.copete) + '</p>' : '') +
+               '<span class="tip__ir">Leer</span>' +
+             '</div>' +
+           '</a>';
+  }
+
   function pintarTips(publicaciones) {
     var seccion = el('tips');
     var caja = el('tips-lista');
@@ -316,28 +357,29 @@
       return;
     }
 
-    caja.innerHTML = publicaciones.map(function (p) {
-      var tipo = TIPOS[p.categoria] || TIPOS.tip;
-      var cabecera = p.imagen
-        ? '<div class="tip__foto"><img src="' + esc(p.imagen) + '" alt="' +
-          esc(p.imagenAlt || '') + '" loading="lazy"></div>'
-        : '<div class="tip__barra"></div>';
+    caja.innerHTML = publicaciones.map(tarjetaTip).join('');
+    seccion.hidden = false;
+  }
 
-      return '<a class="tip" href="tips/?nota=' + encodeURIComponent(p.id) + '" ' +
-               'style="--tip-color:' + tipo.color + ';--tip-color-texto:' + tipo.texto + '">' +
-               cabecera +
-               '<div class="tip__cuerpo">' +
-                 '<p class="tip__meta">' +
-                   '<span class="tip__tipo">' + esc(tipo.nombre) + '</span>' +
-                   '<span class="tip__fecha">' + esc(fechaLinda(p.fecha)) + '</span>' +
-                 '</p>' +
-                 '<h3 class="tip__t">' + esc(p.titulo) + '</h3>' +
-                 (p.copete ? '<p class="tip__d">' + esc(p.copete) + '</p>' : '') +
-                 '<span class="tip__ir">Leer</span>' +
-               '</div>' +
-             '</a>';
-    }).join('');
+  /* Un adelanto de lo último publicado, bien arriba: si alguien quiere
+     leerlo no tiene que bajar hasta el final de la página para
+     enterarse de que existe. La nota completa sigue viviendo sólo en
+     "Tips y recetas"; acá va nada más que esta tarjeta y un link para
+     ver el resto. Sin publicaciones, la sección no se dibuja: el lugar
+     que hoy explicaba "por qué conviene" queda para cuando haya algo
+     concreto para mostrar. */
+  function pintarUltimoTip(publicaciones) {
+    var seccion = el('conviene');
+    var caja = el('ultimoTip');
+    if (!seccion || !caja) return;
 
+    if (!publicaciones || !publicaciones.length) {
+      seccion.hidden = true;
+      return;
+    }
+
+    caja.innerHTML = tarjetaTip(publicaciones[0]) +
+      '<p class="ultimo-tip__mas"><a href="#tips">Ver todos los tips y recetas</a></p>';
     seccion.hidden = false;
   }
 
@@ -372,7 +414,9 @@
       pintarTodo();
       /* Las publicaciones sólo existen en la base, así que se dibujan
          cuando llegan y no en la primera pasada. */
-      pintarTips(r[2] && r[2].publicaciones);
+      var publicaciones = r[2] && r[2].publicaciones;
+      pintarTips(publicaciones);
+      pintarUltimoTip(publicaciones);
     });
   }
 
@@ -382,9 +426,14 @@
     iniciar();
   }
 
-  /* Para los tests. pintarTips va acá porque es lo único que depende
-     de la base y no tiene respaldo en un archivo: sin exponerlo, la
-     única forma de probar las tarjetas sería levantar el worker. */
-  global.AUME_LANDING = { pintarTodo: pintarTodo, pintarTips: pintarTips };
+  /* Para los tests. pintarTips y pintarUltimoTip van acá porque son lo
+     único que depende de la base y no tiene respaldo en un archivo: sin
+     exponerlos, la única forma de probar las tarjetas sería levantar
+     el worker. */
+  global.AUME_LANDING = {
+    pintarTodo: pintarTodo,
+    pintarTips: pintarTips,
+    pintarUltimoTip: pintarUltimoTip
+  };
 
 })(window);

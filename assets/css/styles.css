@@ -240,13 +240,26 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
 .btn:disabled{ opacity:.45; cursor:not-allowed; transform:none; }
 /* El botón principal lleva el naranja de marca con texto claro: es la
    combinación que se quiere ver (naranja + claro, no naranja + tinta
-   oscura). El verde, en cambio, necesita la variante oscura para que
-   el blanco entre encima. */
-.btn--primario{ background:var(--c-clasico); color:var(--blanco); box-shadow:var(--sombra-md); }
+   oscura). El texto en negrita y con una sombra apenas oscura atrás
+   (no se ve como sombra, sólo suma contraste) para que no se pierda
+   sobre el naranja, que es un color claro de por sí. El verde, en
+   cambio, necesita la variante oscura para que el blanco entre encima. */
+.btn--primario{
+  background:var(--c-clasico); color:var(--blanco); box-shadow:var(--sombra-md);
+  font-weight:700; text-shadow:0 1px 2px rgba(44,44,44,.25);
+}
 .btn--primario:hover:not(:disabled){ background:var(--c-clasico-hover); }
 .btn--verde{ background:var(--c-vegetariano-dark); color:var(--blanco); box-shadow:var(--sombra-md); }
 .btn--verde:hover:not(:disabled){ background:var(--c-vegetariano-hover); }
-.btn--fantasma{ background:transparent; color:var(--tinta); border:1.5px solid var(--linea); }
+/* El fantasma lleva fondo sólido (no transparente): así se lo ve como
+   botón sobre cualquier fondo de la página, no sólo sobre blanco. El
+   borde va más marcado que el de una simple línea divisoria, si no
+   queda perdido contra fondos de color (el naranja del cierre, la
+   mancha de la portada). */
+.btn--fantasma{
+  background:var(--blanco); color:var(--tinta);
+  border:1.5px solid rgba(44,44,44,.28); box-shadow:var(--sombra-sm);
+}
 .btn--fantasma:hover{ border-color:var(--c-clasico); color:var(--c-clasico-dark); }
 .btn--bloque{ width:100%; }
 /* "Vaciar pedido" es fantasma como cualquier otro botón secundario,

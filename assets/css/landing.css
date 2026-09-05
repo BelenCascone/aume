@@ -144,7 +144,7 @@ html{ scroll-padding-top:82px; }
   text-align:center;
 }
 @media (min-width:760px){
-  .cifras__in{ grid-template-columns:repeat(4, minmax(0,1fr)); }
+  .cifras__in{ grid-template-columns:repeat(3, minmax(0,1fr)); }
 }
 .cifra__n{
   font-family:var(--f-display); font-size:1.9rem; line-height:1;
@@ -256,17 +256,17 @@ html{ scroll-padding-top:82px; }
 }
 .forma__ir::after{ content:" →"; }
 
-/* ------------------------------------------------------ 9. POR QUÉ CONVIENE */
-.valores{
-  margin-top:30px; display:grid; gap:18px;
-  grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+/* --------------------------------------------------------- 9. ÚLTIMO TIP
+   Una sola tarjeta .tip (la misma clase que arma la grilla de "Tips y
+   recetas" más abajo), angosta para que se lea como un adelanto y no
+   como una sección entera. */
+.ultimo-tip{ margin-top:28px; max-width:420px; }
+.ultimo-tip__mas{ margin-top:14px; }
+.ultimo-tip__mas a{
+  font-size:.86rem; font-weight:600; color:var(--c-clasico-dark); text-decoration:none;
 }
-.valor{
-  background:var(--crema-alt); border-radius:var(--r-md); padding:22px 20px;
-}
-.seccion-l--alt .valor{ background:var(--blanco); }
-.valor__t{ font-size:1.15rem; color:var(--c-vegetariano-dark); }
-.valor__d{ margin-top:9px; font-size:.92rem; color:var(--tinta-60); }
+.ultimo-tip__mas a::after{ content:" →"; }
+.ultimo-tip__mas a:hover{ text-decoration:underline; }
 
 /* ------------------------------------------------------- 10. PARA TU EQUIPO */
 .seccion-l--empresas{ background:var(--c-vegetariano-suave); }
@@ -335,9 +335,17 @@ html{ scroll-padding-top:82px; }
   grid-template-columns:minmax(0,1fr);
 }
 @media (min-width:900px){
-  .entregas{ grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr); align-items:start; }
+  .entregas{ grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr); align-items:stretch; }
 }
 .envio{
+  background:var(--blanco); border:1px solid var(--linea);
+  border-radius:var(--r-md); padding:22px 20px;
+}
+/* Antes "Envío a domicilio" era una tarjeta y "Puntos de retiro" era
+   sólo un título flotando arriba de su grilla: quedaban desparejos.
+   Ahora las dos son una tarjeta del mismo tipo, una al lado de la
+   otra. */
+.puntos-l{
   background:var(--blanco); border:1px solid var(--linea);
   border-radius:var(--r-md); padding:22px 20px;
 }
@@ -385,7 +393,7 @@ html{ scroll-padding-top:82px; }
 }
 .cierre__d{
   margin-top:14px; margin-inline:auto; max-width:44ch;
-  color:rgba(44,44,44,.8);
+  color:var(--tinta); font-weight:600;
 }
 .cierre__acciones{
   margin-top:28px; display:flex; flex-wrap:wrap;
@@ -598,6 +606,65 @@ html{ scroll-padding-top:82px; }
 .mov .rev--on > *:nth-child(5){ transition-delay:.28s; }
 .mov .rev--on > *:nth-child(n+6){ transition-delay:.35s; }
 
+/* ------------------------------------------- Una escalera adentro de otra
+   La escalera de arriba sólo alcanza a los hijos DIRECTOS de .rev: una
+   grilla entera (los cuatro menús, los tres pasos, las formas de
+   pedir, la semana, los tips) es UN solo hijo, así que hasta acá esas
+   tarjetas aparecían todas juntas en el instante en que le tocaba el
+   turno a la grilla. Se sacan del sorteo de arriba (quedan con su
+   lugar ya puesto, sin animación propia) y cada tarjeta de adentro
+   arma su propia escalera, más corta, para que se lean una por una
+   igual que el resto de la página. */
+.mov .rev > .semana,
+.mov .rev > .tipos,
+.mov .rev > .pasos,
+.mov .rev > .formas,
+.mov .rev > .tips{
+  opacity:1; transform:none; transition:none;
+}
+.mov .rev .semana > *,
+.mov .rev .tipos > *,
+.mov .rev .pasos > *,
+.mov .rev .formas > *,
+.mov .rev .tips > *,
+.mov .rev .puntos-l__lista > *{
+  opacity:0; transform:translateY(14px);
+}
+.mov .rev--on .semana > *,
+.mov .rev--on .tipos > *,
+.mov .rev--on .pasos > *,
+.mov .rev--on .formas > *,
+.mov .rev--on .tips > *,
+.mov .rev--on .puntos-l__lista > *{
+  opacity:1; transform:none;
+  transition:opacity .5s var(--e-asentar), transform .5s var(--e-asentar);
+}
+.mov .rev--on .semana > *:nth-child(2),
+.mov .rev--on .tipos > *:nth-child(2),
+.mov .rev--on .pasos > *:nth-child(2),
+.mov .rev--on .formas > *:nth-child(2),
+.mov .rev--on .tips > *:nth-child(2),
+.mov .rev--on .puntos-l__lista > *:nth-child(2){ transition-delay:.06s; }
+.mov .rev--on .semana > *:nth-child(3),
+.mov .rev--on .tipos > *:nth-child(3),
+.mov .rev--on .pasos > *:nth-child(3),
+.mov .rev--on .formas > *:nth-child(3),
+.mov .rev--on .tips > *:nth-child(3),
+.mov .rev--on .puntos-l__lista > *:nth-child(3){ transition-delay:.12s; }
+.mov .rev--on .semana > *:nth-child(4),
+.mov .rev--on .tipos > *:nth-child(4),
+.mov .rev--on .formas > *:nth-child(4),
+.mov .rev--on .tips > *:nth-child(4){ transition-delay:.18s; }
+.mov .rev--on .semana > *:nth-child(5),
+.mov .rev--on .tips > *:nth-child(5){ transition-delay:.24s; }
+.mov .rev--on .semana > *:nth-child(n+6),
+.mov .rev--on .tips > *:nth-child(n+6){ transition-delay:.3s; }
+
+/* Los pasos ya dibujaban su raya de arriba con retrasos .3/.42/.54s;
+   ahora esos retrasos caen bien después de que la tarjeta se asentó
+   (a lo sumo .12s), así que la raya se sigue viendo como algo que pasa
+   DESPUÉS de que el paso ya está en su lugar. */
+
 /* -------------------------------------- La raya de la justa medida
    Abre cada sección debajo del volanta. Existe siempre; lo que cambia
    con el movimiento es que se dibuja desde el centro en vez de estar
@@ -643,6 +710,19 @@ html{ scroll-padding-top:82px; }
 .mov .hero__in.rev--on > *:nth-child(5){
   transition-delay:.52s;
   transition-duration:.8s;
+}
+
+/* La mancha de color de atrás respira, apenas: no es para que se note,
+   es para que la portada no se sienta una imagen fija antes de que
+   haya scroll. Es la única animación en @keyframes de todo este
+   archivo (el resto son transiciones, por lo que se explica arriba),
+   pero acá no hay conflicto: no es contenido que se vuelva a dibujar
+   con la respuesta de la API, es sólo el fondo, y corre siempre igual
+   sin depender de ningún estado. */
+.mov .hero::before{ animation:respirar 9s var(--e-asentar) infinite; }
+@keyframes respirar{
+  0%, 100%{ transform:scale(1); opacity:1; }
+  50%{ transform:scale(1.07); opacity:.85; }
 }
 
 /* --------------------------------------------------- La cabecera

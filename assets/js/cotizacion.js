@@ -20,7 +20,7 @@
 
   var aviso  = document.getElementById('cAviso');
   var boton  = document.getElementById('cEnviar');
-  var CAMPOS = ['contacto', 'empresa', 'email', 'telefono', 'personas', 'zona', 'dias', 'mensaje'];
+  var CAMPOS = ['contacto', 'empresa', 'email', 'telefono'];
 
   function valor(nombre) {
     var campo = form.elements[nombre];
