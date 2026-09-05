@@ -61,7 +61,7 @@ test.describe('Camino al pedido', () => {
       { texto: 'Elegir por día',      vista: '#vistaDia' },
       { texto: 'Ver las promos',      vista: '#vistaPromo' },
       { texto: 'Ver el plan del mes', vista: '#vistaMensual' },
-      { texto: 'Ver para sumar',      vista: '#vistaExtras' }
+      { texto: 'Ver postres, yogures y algo más', vista: '#vistaExtras' }
     ];
 
     for (const caso of casos) {
@@ -151,7 +151,9 @@ test.describe('Datos del negocio', () => {
       String(CFG.categorias.length),
       String(CFG.dias.length),
       String(CFG.tamanos.length),
-      String(CFG.puntosRetiro.length)
+      String(CFG.puntosRetiro.length),
+      '+' + CFG.marca.viandasPorDia,
+      '+' + CFG.marca.anios
     ]);
   });
 });
@@ -217,6 +219,27 @@ test.describe('Tips y recetas', () => {
     await page.goto('/tips/');
     await expect(page.locator('#estado')).toContainText('Volvé a los tips');
   });
+
+  /* El adelanto de "Lo último que publicamos" vive donde antes estaba
+     "El costo real de no planificar": sin publicaciones no hay nada
+     que adelantar, así que la sección entera queda oculta. */
+  test('sin publicaciones, el adelanto de lo último publicado tampoco se muestra', async ({ page }) => {
+    await expect(page.locator('#conviene')).toBeHidden();
+  });
+
+  test('con publicaciones, el adelanto muestra sólo la última y linkea a los tips', async ({ page }) => {
+    await page.evaluate(() => window.AUME_LANDING.pintarUltimoTip([
+      { id: 'tres-mitos', titulo: 'Tres mitos de invierno', copete: 'Los de siempre',
+        categoria: 'nutricion', fecha: '2026-08-20', imagen: '', imagenAlt: '' },
+      { id: 'garbanzos', titulo: 'Garbanzos crocantes', copete: 'Para picar',
+        categoria: 'receta', fecha: '2026-08-14', imagen: '', imagenAlt: '' }
+    ]));
+
+    await expect(page.locator('#conviene')).toBeVisible();
+    await expect(page.locator('#ultimoTip .tip')).toHaveCount(1);
+    await expect(page.locator('#ultimoTip .tip')).toContainText('Tres mitos de invierno');
+    await expect(page.locator('.ultimo-tip__mas a')).toHaveAttribute('href', '#tips');
+  });
 });
 
 
@@ -227,7 +250,7 @@ test.describe('Cotización para empresas', () => {
   test('el formulario está y pide lo mínimo para poder contestar', async ({ page }) => {
     const form = page.locator('#formCotizacion');
     await expect(form).toBeVisible();
-    for (const campo of ['contacto', 'empresa', 'email', 'telefono', 'personas', 'zona', 'dias', 'mensaje']) {
+    for (const campo of ['contacto', 'empresa', 'email', 'telefono']) {
       await expect(form.locator('[name="' + campo + '"]')).toHaveCount(1);
     }
   });
@@ -275,7 +298,6 @@ test.describe('Cotización para empresas', () => {
     await page.fill('#cContacto', 'Marina López');
     await page.fill('#cEmpresa', 'Estudio López');
     await page.fill('#cEmail', 'marina@estudio.com.ar');
-    await page.fill('#cPersonas', '12');
     await page.locator('#cEnviar').click();
 
     await expect(page.locator('#cAviso')).toContainText('Recibimos tu consulta');
@@ -284,7 +306,6 @@ test.describe('Cotización para empresas', () => {
 
     expect(recibido.contacto).toBe('Marina López');
     expect(recibido.email).toBe('marina@estudio.com.ar');
-    expect(recibido.personas).toBe('12');
   });
 
   test('si el servidor rechaza, lo dice y el formulario sigue ahí', async ({ page }) => {

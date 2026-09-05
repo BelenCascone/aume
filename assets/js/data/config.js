@@ -14,7 +14,12 @@ window.AUME_CONFIG = {
     origen: 'Del latín «Aurea Mediocritas»: la justa medida entre dos extremos.',
     ciudad: 'Paraná, Entre Ríos',
     instagram: 'aume.viandas',
-    instagramUrl: 'https://instagram.com/aume.viandas'
+    instagramUrl: 'https://instagram.com/aume.viandas',
+    /* Estos dos, a diferencia de las demás cifras de la landing (que
+       salen de contar arrays de acá mismo), son datos del negocio que
+       hay que actualizar a mano de tanto en tanto. */
+    anios: 4,
+    viandasPorDia: 150
   },
 
   /* Número de WhatsApp que recibe los pedidos.

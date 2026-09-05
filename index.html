@@ -101,7 +101,6 @@
 
       <div class="semana" id="semana"></div>
 
-      <p class="nota-semana" id="semanaNota"></p>
       <div class="cierre-bloque">
         <a class="btn btn--primario" href="pedido/index.html#menu">Pedir del menú de esta semana</a>
       </div>
@@ -111,7 +110,6 @@
   <!-- ===================================================== 4. LOS CUATRO MENÚS -->
   <section class="seccion-l seccion-l--alt" id="nuestros-menus">
     <div class="env rev">
-      <p class="ojo">Los menús</p>
       <h2 class="t2">Cuatro menús distintos, todos los días</h2>
       <p class="baj">
         Elegís el que va con vos, y podés cambiar de menú cuando quieras. Todos se
@@ -127,7 +125,6 @@
   <!-- ========================================================= 5. CÓMO FUNCIONA -->
   <section class="seccion-l" id="como">
     <div class="env rev">
-      <p class="ojo">Cómo funciona</p>
       <h2 class="t2">Tres pasos y listo</h2>
 
       <ol class="pasos">
@@ -164,10 +161,9 @@
        Cada tarjeta entra directo a su forma de pedir dentro de /pedido/. -->
   <section class="seccion-l seccion-l--alt" id="formas">
     <div class="env rev">
-      <p class="ojo">Formas de pedir</p>
-      <h2 class="t2">Como te sirva a vos</h2>
+      <h2 class="t2">Formas de pedir</h2>
       <p class="baj">
-        Todo va al mismo pedido y a la misma entrega, así que se pueden combinar.
+        Elegí la que más te sirva.
       </p>
 
       <div class="formas">
@@ -196,65 +192,40 @@
           <span class="forma__ir">Ver el plan del mes</span>
         </a>
         <a class="forma" href="pedido/index.html#sumar">
-          <h3 class="forma__t">Para sumar</h3>
+          <h3 class="forma__t">Postres, yogures y algo más</h3>
           <p class="forma__d">
             Postres, yogures y congelados por unidad, para tener siempre algo
             resuelto en la heladera.
           </p>
-          <span class="forma__ir">Ver para sumar</span>
+          <span class="forma__ir">Ver postres, yogures y algo más</span>
         </a>
       </div>
     </div>
   </section>
 
-  <!-- ======================================================== 7. POR QUÉ CONVIENE -->
-  <section class="seccion-l" id="conviene">
+  <!-- ======================================================== 7. ÚLTIMO TIP
+       Un adelanto de lo último publicado, para no obligar a bajar hasta
+       el final a quien quiera leerlo. Sin publicaciones, no hay nada
+       que adelantar: la sección entera queda oculta (la arranca/oculta
+       pintarUltimoTip en landing.js). -->
+  <section class="seccion-l" id="conviene" hidden>
     <div class="env rev">
-      <p class="ojo">Por qué conviene</p>
-      <h2 class="t2">El costo real de no planificar</h2>
-      <p class="baj">
-        No es sólo el ticket del súper: es el tiempo que perdés pensando qué
-        cocinar, el gas de una sola porción y la verdura que termina en el tacho.
-      </p>
-
-      <div class="valores">
-        <div class="valor">
-          <h3 class="valor__t">Ahorrás dinero</h3>
-          <p class="valor__d">
-            Se termina el picoteo de las cinco de la tarde y la compra impulsiva
-            del camino a casa.
-          </p>
-        </div>
-        <div class="valor">
-          <h3 class="valor__t">Ahorrás tiempo</h3>
-          <p class="valor__d">
-            Del freezer al plato en minutos. Ni cocinar, ni pensar el menú, ni
-            lavar la olla grande.
-          </p>
-        </div>
-        <div class="valor">
-          <h3 class="valor__t">Comés mejor</h3>
-          <p class="valor__d">
-            Comida real y equilibrada todos los días, sin resignar sabor y sin
-            desperdiciar nada.
-          </p>
-        </div>
-      </div>
+      <p class="ojo">Para leer</p>
+      <h2 class="t2">Lo último que publicamos</h2>
+      <div class="ultimo-tip" id="ultimoTip"></div>
     </div>
   </section>
 
-  <!-- ========================================================== 8. PARA TU EQUIPO
-       El formulario de cotización llega en una etapa siguiente. Hasta
-       entonces la consulta sale por WhatsApp, con el mensaje ya escrito. -->
+  <!-- ========================================================== 8. PARA TU EQUIPO -->
   <section class="seccion-l seccion-l--empresas" id="empresas">
     <div class="env empresas rev">
       <div class="empresas__texto">
         <p class="ojo">Para tu equipo</p>
         <h2 class="t2">El almuerzo de la oficina, resuelto</h2>
         <p class="baj">
-          Si sos varios en el trabajo, armamos un plan a la medida del equipo: los
-          menús que cada uno prefiera, entrega en el horario del almuerzo y una
-          sola coordinación por semana.
+          Armamos un plan a la medida de tu equipo. Los menús que cada uno
+          prefiera, entrega en el horario del almuerzo y una sola coordinación
+          por semana.
         </p>
         <ul class="empresas__lista">
           <li>Planes semanales y mensuales</li>
@@ -262,9 +233,6 @@
           <li>Opciones vegetarianas y de alto contenido proteico</li>
           <li>Entrega en tu oficina, al mediodía</li>
         </ul>
-        <a class="btn btn--fantasma empresas__cta" id="ctaEmpresas" href="#" target="_blank" rel="noopener">
-          O escribinos por WhatsApp
-        </a>
       </div>
       <!-- El único formulario del sitio. Se manda con fetch, no con un
            envío de HTML común: así `form-action 'none'` de la política de
@@ -299,35 +267,9 @@
           </div>
           <p class="campo-l__ayuda">Con uno de los dos alcanza.</p>
 
-          <div class="campo-l campo-l--par">
-            <div>
-              <label class="campo-l__l" for="cPersonas">¿Cuántos son?</label>
-              <input class="campo-l__i" type="number" id="cPersonas" name="personas"
-                     inputmode="numeric" min="1" max="2000">
-            </div>
-            <div>
-              <label class="campo-l__l" for="cDias">¿Qué días?</label>
-              <input class="campo-l__i" type="text" id="cDias" name="dias"
-                     maxlength="80" placeholder="Ej.: lunes a viernes">
-            </div>
-          </div>
-
-          <div class="campo-l">
-            <label class="campo-l__l" for="cZona">¿Dónde queda la oficina?</label>
-            <input class="campo-l__i" type="text" id="cZona" name="zona"
-                   maxlength="120" placeholder="Barrio o dirección">
-          </div>
-
-          <div class="campo-l">
-            <label class="campo-l__l" for="cMensaje">Algo más <span>(opcional)</span></label>
-            <textarea class="campo-l__ta" id="cMensaje" name="mensaje" rows="3"
-                      maxlength="1000" placeholder="Restricciones alimentarias, horarios…"></textarea>
-          </div>
-
           <button type="submit" class="btn btn--verde btn--bloque" id="cEnviar">
             Pedir la propuesta
           </button>
-          <p class="campo-l__ayuda">Te contestamos por el medio que nos dejes.</p>
         </form>
 
         <!-- Fuera del formulario a propósito: al enviarse bien, el
