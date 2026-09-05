@@ -26,6 +26,17 @@
 
   function plural(n, uno, muchos) { return n === 1 ? uno : muchos; }
 
+  /* La "é" minúscula de Glacial Indifference en negrita viene rota de
+     fábrica en la fuente: a tamaños chicos se dibuja como una marquita
+     suelta en vez de pegada a la letra (pasa con "César", "Teléfono",
+     cualquier palabra con "é"). En el peso normal la misma letra se ve
+     bien, así que esa única letra se escribe en ese peso y el resto de
+     la palabra sigue en negrita. Se usa en todo texto que puede venir
+     del panel (nombre de un producto, de un punto de retiro, etc.). */
+  function arreglarE(t) {
+    return esc(t).replace(/é/g, '<span class="e-arreglada">é<\/span>');
+  }
+
   /* --------------------------------------------------------- Avisos */
 
   var toastTimer = null;
@@ -124,6 +135,24 @@
     paso.classList.add(eraCero ? 'stepper--nuevo' : 'stepper--suma');
   }
 
+  /* Cambiar de categoría o de modo reemplaza el contenido de golpe (ver
+     app.js). Este nodo (#dias, o la vista que quedó a la vista) no se
+     recrea de un cambio a otro, así que la clase .entra no alcanza con
+     agregarla: si ya estaba puesta de la vez anterior no dispara de
+     nuevo la animación. Se saca, se fuerza el reflow y se vuelve a
+     poner —el mismo truco que usa abrirPanel más abajo— y se retira
+     sola al terminar para no dejar el nodo "sucio". */
+  function reasentar(nodo) {
+    if (!nodo || sinMovimiento()) return;
+    nodo.classList.remove('entra');
+    void nodo.offsetWidth;
+    nodo.classList.add('entra');
+    nodo.addEventListener('animationend', function fin() {
+      nodo.classList.remove('entra');
+      nodo.removeEventListener('animationend', fin);
+    });
+  }
+
   /* ---------------------------------------------- Paneles (bottom sheet) */
 
   var panelAbierto = null;
@@ -177,8 +206,6 @@
         return z.nombre + ': ' + Store.plata(z.costo);
       }).join(' · ') + '. ' + CFG.envio.aclaracion;
 
-    el('envioPromo').textContent = 'Las promos semanales llevan el envío bonificado';
-
     el('promoDesc').textContent =
       'Elegí cuántos días de la semana querés y te armamos las viandas. ' +
       'Llevan el envío bonificado' +
@@ -194,7 +221,7 @@
     el('puntos').innerHTML = CFG.puntosRetiro.map(function (p) {
       return '' +
         '<div class="punto">' +
-          '<p class="punto__n">' + esc(p.nombre) + '</p>' +
+          '<p class="punto__n">' + arreglarE(p.nombre) + '</p>' +
           '<p class="punto__d">' + esc(p.direccion) + '</p>' +
           '<p class="punto__h">' +
             p.horarios.map(function (h) { return '<span>' + esc(h) + '</span>'; }).join('') +
@@ -319,7 +346,7 @@
 
     return '' +
       '<div class="fijo" style="--c-fijo:' + esc(f.color) + '">' +
-        '<p class="fijo__t">' + esc(f.nombre) +
+        '<p class="fijo__t">' + arreglarE(f.nombre) +
           '<span class="fijo__cab">todos los días</span></p>' +
         '<div class="tamanos">' + controlesTamano(d, f.id) + '</div>' +
       '</div>';
@@ -354,7 +381,6 @@
 
   function pintarDias() {
     var catId = Store.estado.categoria;
-    var nombreCategoria = Store.buscarCategoria(catId).nombre;
 
     el('dias').innerHTML = CFG.dias.map(function (d) {
       var p = Store.plato(d.id, catId);
@@ -366,14 +392,13 @@
         if (CFG.extraFijo) enDia += Store.cantidadDe(d.id, CFG.extraFijo.id, t.id);
       });
 
-      /* La cabecera dice el día Y de qué menú es, pintada del color de
-         esa categoría: mirando una tarjeta suelta se sabe si es la
-         Clásica o la Vegetariana, sin tener que volver a las pestañas. */
+      /* Qué menú es esta tarjeta ya lo dice el color de la banda (y la
+         pestaña de arriba, que sigue elegida): repetirlo en cada día
+         era decir lo mismo tres veces. */
       var cabecera = '' +
         '<div class="dia__cab">' +
           '<h3 class="dia__nombre">' + esc(d.nombre) + '</h3>' +
           (enDia ? '<span class="dia__n">' + enDia + '</span>' : '') +
-          '<span class="dia__cat">' + esc(nombreCategoria) + '</span>' +
         '</div>';
 
       var estado = estadoDia(d.id);
@@ -417,45 +442,26 @@
   }
 
   /* --------------------------------------------- Promos y plan mensual
-     En los packs y en el plan mensual no se elige plato por plato: se
-     elige el tamaño y qué tipo de menú preferís que te armemos. Esa
-     preferencia se guarda acá hasta que se agrega al pedido. */
-
-  var prefElegida = {};
-
-  function prefDe(id) {
-    return prefElegida[id] || Store.prefPorDefecto();
-  }
-
-  function setPref(id, valor) {
-    if (Store.buscarPreferencia(valor)) prefElegida[id] = valor;
-  }
-
-  function selectorPref(id) {
-    var actual = prefDe(id);
-    return '' +
-      '<label class="pref">' +
-        '<span class="pref__l">¿Qué menú preferís?</span>' +
-        '<select class="campo__s pref__s" data-pref="' + esc(id) + '">' +
-          Store.preferencias().map(function (p) {
-            return '<option value="' + esc(p.id) + '"' +
-              (p.id === actual ? ' selected' : '') + '>' + esc(p.nombre) + '</option>';
-          }).join('') +
-        '</select>' +
-      '</label>';
-  }
+     En los packs y en el plan mensual no se elige plato por plato, sólo
+     el tamaño: qué tipo de menú prefiere se habla por WhatsApp con la
+     secretaria al coordinar la entrega, así que todo pack o plan entra
+     al pedido con la preferencia "combinada" por defecto. */
 
   function lineaEfectivo(pr) {
     if (!pr || pr.efectivo >= pr.lista) return '';
     return 'Efectivo ' + Store.plata(pr.efectivo);
   }
 
+  /* Un solo control no necesita media fila vacía al lado */
+  function grillaTamanos(controles) {
+    return '<div class="tamanos' + (controles.length === 1 ? ' tamanos--sola' : '') +
+           '">' + controles.join('') + '</div>';
+  }
+
   function pintarPacks() {
-    var pref = null;
+    var pref = Store.prefPorDefecto();
 
     el('packs').innerHTML = (CFG.packs.opciones || []).map(function (pk) {
-      pref = prefDe(pk.id);
-
       var botones = CFG.tamanos.filter(function (t) {
         return !!Store.precioPack(pk.id, t.id);
       }).map(function (t) {
@@ -475,16 +481,9 @@
               ? '<span class="oferta__badge">Envío bonificado</span>' : '') +
           '</div>' +
           '<p class="oferta__d">' + pk.dias + ' viandas para la semana, una por día.</p>' +
-          selectorPref(pk.id) +
-          '<div class="tamanos">' + botones + '</div>' +
+          grillaTamanos(botones) +
         '</article>';
     }).join('');
-  }
-
-  /* Un solo control no necesita media fila vacía al lado */
-  function grillaTamanos(controles) {
-    return '<div class="tamanos' + (controles.length === 1 ? ' tamanos--sola' : '') +
-           '">' + controles.join('') + '</div>';
   }
 
   function pintarPlan() {
@@ -493,7 +492,7 @@
 
     if (!pm) { cont.innerHTML = ''; return; }
 
-    var pref = prefDe('plan');
+    var pref = Store.prefPorDefecto();
     var botones = CFG.tamanos.filter(function (t) {
       return !!Store.precioPlan(t.id);
     }).map(function (t) {
@@ -525,7 +524,6 @@
           (pm.almuerzos ? pm.almuerzos + ' almuerzos, de lunes a viernes todo el mes. ' : '') +
           (pm.envioBonificado ? '' : 'El envío se cobra por entrega.') +
         '</p>' +
-        selectorPref('plan') +
         grillaTamanos(botones) +
       '</article>';
   }
@@ -571,7 +569,7 @@
             return '' +
               '<div class="producto">' +
                 '<div class="producto__info">' +
-                  '<p class="producto__t">' + esc(p.nombre) + '</p>' +
+                  '<p class="producto__t">' + arreglarE(p.nombre) + '</p>' +
                   (p.detalle ? '<p class="producto__d">' + esc(p.detalle) + '</p>' : '') +
                 '</div>' +
                 '<div class="producto__ctrl">' +
@@ -660,7 +658,7 @@
         var segunda, tercera;
 
         if (it.tipo === 'vianda') {
-          segunda = esc(it.plato ? it.plato.nombre : it.categoria.nombre);
+          segunda = arreglarE(it.plato ? it.plato.nombre : it.categoria.nombre);
           /* La Ensalada César se llama igual que su categoría: repetirla
              en las dos líneas queda a la vista y no aporta nada. */
           var meta = it.plato && it.plato.nombre === it.categoria.nombre
@@ -668,7 +666,7 @@
             : it.detalle;
           tercera = esc(meta) + ' · ' + Store.plata(it.precio) + ' c/u';
         } else {
-          segunda = esc(it.detalle);
+          segunda = arreglarE(it.detalle);
           tercera = Store.plata(it.precio) + ' c/u';
         }
 
@@ -676,7 +674,7 @@
           '<div class="item' + (it.tipo === 'vianda' ? '' : ' item--otro') +
             '" style="--c-it:' + esc(it.color) + '">' +
             '<div class="item__info">' +
-              '<p class="item__d">' + esc(it.titulo) + '</p>' +
+              '<p class="item__d">' + arreglarE(it.titulo) + '</p>' +
               '<p class="item__p">' + segunda + '</p>' +
               '<p class="item__m">' + tercera + '</p>' +
             '</div>' +
@@ -874,6 +872,7 @@
     toast: toast,
     volarAlPedido: volarAlPedido,
     marcarContador: marcarContador,
+    reasentar: reasentar,
     abrirPanel: abrirPanel,
     cerrarPanel: cerrarPanel,
     panelActivo: function () { return panelAbierto; },
@@ -889,8 +888,7 @@
     pintarCarrito: pintarCarrito,
     filaTotales: filaTotales,
     resumenCorto: resumenCorto,
-    setPref: setPref,
-    prefDe: prefDe
+    arreglarE: arreglarE
   };
 
 })(window);

@@ -148,6 +148,13 @@
     var color = delta > 0 && global.getComputedStyle
       ? global.getComputedStyle(pinta).color : '';
 
+    /* Si esto resta la última unidad, la línea desaparece del carrito:
+       hay que guardar cómo se llamaba ANTES de restar, porque después
+       Store.items() ya no la tiene más. */
+    var lineaAntes = delta < 0
+      ? Store.items().filter(function (it) { return it.clave === clave; })[0]
+      : null;
+
     Store.sumarClave(clave, delta);
     if (restaurar) restaurar();
 
@@ -156,7 +163,7 @@
       UI.volarAlPedido(caja, color);
     }
 
-    return { boton: b, delta: delta };
+    return { boton: b, delta: delta, lineaAntes: lineaAntes };
   }
 
   /* Aviso corto de qué se agregó, con el nombre que ve el cliente */
@@ -164,6 +171,15 @@
     var linea = Store.items().filter(function (it) { return it.clave === clave; })[0];
     if (!linea) return;
     UI.toast(linea.titulo + (linea.detalle ? ' · ' + linea.detalle : '') + ' agregado');
+  }
+
+  /* Aviso corto de qué se sacó al tocar "−". Fuera del carrito (acá) no
+     hay ningún otro indicio de que algo cambió: a diferencia del panel
+     "Mi pedido", donde la línea desaparece a la vista, en el menú, las
+     promos o "Para sumar" la tarjeta sigue igual. */
+  function avisarQuitado(linea) {
+    if (!linea) return;
+    UI.toast(linea.titulo + (linea.detalle ? ' · ' + linea.detalle : '') + ' quitado');
   }
 
   /* --------------------------------------------- Entrar por una dirección
@@ -196,19 +212,23 @@
     el('modos').addEventListener('click', function (e) {
       var b = e.target.closest('.modo');
       if (!b) return;
+      var cambia = b.dataset.modo !== Store.estado.modo;
       Store.setModo(b.dataset.modo);
       var nuevo = el('modos').querySelector('[data-modo="' + b.dataset.modo + '"]');
       if (nuevo) nuevo.focus({ preventScroll: true });
+      if (cambia) UI.reasentar(document.querySelector('.vista:not([hidden])'));
     });
 
     /* --- Pestañas de categoría --- */
     el('tabs').addEventListener('click', function (e) {
       var b = e.target.closest('.tab');
       if (!b) return;
+      var cambia = b.dataset.cat !== Store.estado.categoria;
       Store.setCategoria(b.dataset.cat);
       /* Devolvemos el foco a la pestaña recién elegida */
       var nueva = el('tabs').querySelector('[data-cat="' + b.dataset.cat + '"]');
       if (nueva) nueva.focus({ preventScroll: true });
+      if (cambia) UI.reasentar(el('dias'));
     });
 
     /* Navegación con flechas entre pestañas (accesibilidad) */
@@ -221,35 +241,33 @@
       Store.setCategoria(ids[j]);
       var nueva = el('tabs').querySelector('[data-cat="' + ids[j] + '"]');
       if (nueva) nueva.focus({ preventScroll: true });
+      if (j !== i) UI.reasentar(el('dias'));
     });
 
     /* --- Sumar / restar desde las tarjetas de día --- */
     el('dias').addEventListener('click', function (e) {
       var r = tocarBoton(el('dias'), e);
-      if (r && r.delta > 0) avisarAgregado(r.boton.dataset.clave);
+      if (!r) return;
+      if (r.delta > 0) avisarAgregado(r.boton.dataset.clave);
+      else avisarQuitado(r.lineaAntes);
     });
 
     /* --- Promos semanales y plan mensual --- */
     ['packs', 'planMensual'].forEach(function (id) {
       el(id).addEventListener('click', function (e) {
         var r = tocarBoton(el(id), e);
-        if (r && r.delta > 0) avisarAgregado(r.boton.dataset.clave);
-      });
-
-      /* El tipo de menú preferido se elige antes de agregar: cambiarlo
-         redibuja los botones porque cambia la línea del carrito. */
-      el(id).addEventListener('change', function (e) {
-        var s = e.target.closest('[data-pref]');
-        if (!s) return;
-        UI.setPref(s.dataset.pref, s.value);
-        pintarVista();
+        if (!r) return;
+        if (r.delta > 0) avisarAgregado(r.boton.dataset.clave);
+        else avisarQuitado(r.lineaAntes);
       });
     });
 
     /* --- Postres, yogures y congelados --- */
     el('extras').addEventListener('click', function (e) {
       var r = tocarBoton(el('extras'), e);
-      if (r && r.delta > 0) avisarAgregado(r.boton.dataset.clave);
+      if (!r) return;
+      if (r.delta > 0) avisarAgregado(r.boton.dataset.clave);
+      else avisarQuitado(r.lineaAntes);
     });
 
     /* --- Controles dentro del carrito --- */
