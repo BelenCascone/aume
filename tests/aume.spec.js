@@ -537,17 +537,18 @@ test.describe('Promos semanales', () => {
     expect(t.ahorroEfectivo).toBe(4500);
   });
 
-  test('el tipo de menú elegido viaja con la promo', async ({ page }) => {
+  /* El menú preferido ya no se elige acá: se habla por WhatsApp al
+     coordinar. Toda promo entra con la preferencia combinada. */
+  test('la promo entra con la preferencia combinada por defecto', async ({ page }) => {
     await irAModo(page, 'promo');
 
-    await page.locator('#packs select[data-pref="x3"]').selectOption('vegetariano');
-    await page.locator('#packs [data-clave="pack|x3|xl|vegetariano"]').click();
+    await page.locator('#packs [data-clave="pack|x3|xl|combinado"]').click();
 
     const items = await page.evaluate(() => window.AUME.Store.items());
     expect(items).toHaveLength(1);
     expect(items[0].tipo).toBe('pack');
-    expect(items[0].prefId).toBe('vegetariano');
-    expect(items[0].detalle).toContain('Vegetariano');
+    expect(items[0].prefId).toBe('combinado');
+    expect(items[0].detalle).toContain('Combinado');
   });
 
   /* Las viandas sueltas siguen pagando envío: eso no lo cambia la promo */

@@ -13,6 +13,7 @@
 
   var el   = UI.el;
   var esc  = UI.esc;
+  var arreglarE = UI.arreglarE;
 
   /* ------------------------------------------------ Opciones del form */
 
@@ -51,7 +52,7 @@
             (p.id === sel ? ' checked' : '') + '>' +
           '<span class="op__dot" aria-hidden="true"></span>' +
           '<span class="op__txt">' +
-            '<span class="op__t">' + esc(p.nombre) + '</span>' +
+            '<span class="op__t">' + arreglarE(p.nombre) + '</span>' +
             '<span class="op__d">' + esc(p.direccion) + '</span>' +
             '<span class="op__h">Horarios: ' + p.horarios.map(esc).join(' · ') + '</span>' +
           '</span>' +
@@ -70,7 +71,7 @@
             (z.id === sel ? ' checked' : '') + '>' +
           '<span class="op__dot" aria-hidden="true"></span>' +
           '<span class="op__txt">' +
-            '<span class="op__t">' + esc(z.nombre) + '</span>' +
+            '<span class="op__t">' + arreglarE(z.nombre) + '</span>' +
             '<span class="op__d">Costo del envío: ' + Store.plata(z.costo) + '</span>' +
           '</span>' +
         '</label>';
@@ -116,7 +117,15 @@
   function marcarError(idCampo, hayError) {
     var c = el(idCampo);
     if (!c) return;
-    c.classList.toggle('campo--error', !!hayError);
+    /* Se saca y se vuelve a poner (con reflow en el medio) en vez de
+       togglear: si el campo ya estaba en error y la persona vuelve a
+       tocar "Confirmar" sin corregirlo, el mensaje tiene que asentarse
+       de nuevo para que se note que hubo un segundo intento. */
+    c.classList.remove('campo--error');
+    if (hayError) {
+      void c.offsetWidth;
+      c.classList.add('campo--error');
+    }
   }
 
   /* Texto escrito por el cliente.

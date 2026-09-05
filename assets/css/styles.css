@@ -34,6 +34,15 @@
   font-display:swap;
 }
 
+/* El archivo en negrita de esta fuente trae rota la "é" minúscula: a
+   tamaños chicos se dibuja como una marquita suelta en vez de la letra
+   entera (se ve en "César", "Teléfono", "Método"...). No es cosa de
+   tamaño ni de kerning, es la única letra de la fuente que viene mal
+   armada. La arreglamos escribiendo esa letra en el peso normal —ahí
+   se ve bien— y dejando el resto de la palabra en negrita; el texto
+   dinámico la usa vía ui.js → arreglarE(). */
+.e-arreglada{ font-weight:500; }
+
 /* ---------------------------------------------------------------- 1. TOKENS */
 :root{
   /* PALETA DE MARCA
@@ -229,19 +238,26 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
 }
 .btn:active{ transform:scale(.98); }
 .btn:disabled{ opacity:.45; cursor:not-allowed; transform:none; }
-/* El naranja de la marca es claro: encima, el texto oscuro se lee al
-   doble que el blanco (5,3 contra 2,7 de contraste). Por eso el botón
-   principal lleva el color de marca tal cual y el texto en tinta.
-   El verde es al revés: hace falta bajarlo un poco para que el blanco
-   entre, así que el botón usa la variante oscura. */
-.btn--primario{ background:var(--c-clasico); color:var(--tinta); box-shadow:var(--sombra-md); }
+/* El botón principal lleva el naranja de marca con texto claro: es la
+   combinación que se quiere ver (naranja + claro, no naranja + tinta
+   oscura). El verde, en cambio, necesita la variante oscura para que
+   el blanco entre encima. */
+.btn--primario{ background:var(--c-clasico); color:var(--blanco); box-shadow:var(--sombra-md); }
 .btn--primario:hover:not(:disabled){ background:var(--c-clasico-hover); }
 .btn--verde{ background:var(--c-vegetariano-dark); color:var(--blanco); box-shadow:var(--sombra-md); }
 .btn--verde:hover:not(:disabled){ background:var(--c-vegetariano-hover); }
 .btn--fantasma{ background:transparent; color:var(--tinta); border:1.5px solid var(--linea); }
 .btn--fantasma:hover{ border-color:var(--c-clasico); color:var(--c-clasico-dark); }
 .btn--bloque{ width:100%; }
-.btn--vaciar{ margin-top:16px; font-size:.88rem; min-height:46px; }
+/* "Vaciar pedido" es fantasma como cualquier otro botón secundario,
+   pero con el borde y la letra de un color neutro se perdía contra el
+   fondo. El tono de alerta (más pálido que el del botón ya armado) lo
+   hace notarse sin que parezca una acción peligrosa antes de tiempo. */
+.btn--vaciar{
+  margin-top:16px; font-size:.88rem; min-height:46px;
+  color:var(--alerta); border-color:rgba(192,85,47,.35);
+}
+.btn--vaciar:hover{ color:var(--alerta); border-color:var(--alerta); }
 /* Estado "armado": el segundo toque confirma */
 .btn--peligro{
   background:var(--alerta); border-color:var(--alerta); color:var(--blanco);
@@ -319,7 +335,7 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
 /* Banda del color del menú: es lo que hace que un Clásico y un
    Vegetariano no se confundan al scrollear. */
 .dia__cab{
-  display:flex; align-items:center; gap:8px;
+  display:flex; align-items:center; justify-content:center; gap:8px;
   padding:8px 16px; background:var(--c-activo-suave);
   border-bottom:1px solid var(--blanco);
 }
@@ -333,12 +349,6 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
   padding-inline:6px; border-radius:var(--r-full);
   background:var(--c-activo); color:var(--blanco);
   font-size:.7rem; font-weight:700; line-height:1;
-}
-/* De qué menú es esta tarjeta */
-.dia__cat{
-  margin-left:auto;
-  font-size:.66rem; letter-spacing:.11em; text-transform:uppercase;
-  font-weight:700; color:var(--c-activo); white-space:nowrap;
 }
 .dia__cuerpo{ padding:12px 16px 14px; }
 .dia__plato{ font-family:var(--f-display); font-size:1.05rem; line-height:1.3; }
@@ -435,10 +445,6 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
   font-size:.68rem; font-weight:700; white-space:nowrap;
 }
 .oferta__d{ font-size:.84rem; color:var(--tinta-60); margin-top:5px; }
-
-.pref{ display:block; margin-top:12px; }
-.pref__l{ display:block; font-size:.74rem; font-weight:700; margin-bottom:5px; }
-.pref__s{ min-height:44px; padding-block:10px; }
 
 /* ----------------------------------------------- 10. POSTRES Y DEMÁS */
 .grupo{ margin-top:22px; }
@@ -746,6 +752,24 @@ input,select,textarea{ font-family:inherit; font-size:16px; color:inherit; }
   45% { transform:scale(1.3); }
   100%{ transform:scale(1); }
 }
+
+/* --------------------------------------------- 17b. CAMBIAR DE VISTA
+   Elegir otro tipo de menú (Clásico/Vegetariano/...) o cambiar de modo
+   (Por día/Promos/Mensual/Para sumar) reemplaza todo el contenido de
+   golpe. Un asentado breve —la misma física que usa el "acuse de
+   recibo"— avisa que lo que se ve ahora es otra cosa, sin demorar la
+   lectura. Lo dispara app.js agregando y sacando esta clase. */
+.entra{ animation:asentar .3s var(--e-asentar); }
+
+/* El error de un campo ya se marca con el borde en rojo (transición de
+   .campo__i más arriba); el texto que lo explica, en cambio, aparecía
+   de golpe. Se asienta igual que todo lo demás: nunca un rebote, que
+   es un gesto reservado para "listo, lo agregué". */
+.campo--error .campo__e{ animation:asentar .22s var(--e-asentar); }
+
+/* Última pantalla del pedido: entra asentándose dentro del panel, que
+   ya está abierto. Le da un cierre visual a todo el recorrido. */
+.listo{ animation:asentar .35s var(--e-asentar); }
 
 /* ---------------------------------------------------- 18. DESKTOP+ */
 @media (min-width:640px){
