@@ -1009,6 +1009,18 @@
       cambio = true;
     }
 
+    /* Puntos de retiro y medios de pago: la landing ya los tomaba de la
+       API y esta pantalla no, asi que un punto cargado desde el panel no
+       aparecia aca, y uno dado de baja se seguia pudiendo elegir — y el
+       servidor rechazaba el pedido al confirmarlo. */
+    var puntos = lista(d.puntosRetiro);
+    if (puntos) { CFG.puntosRetiro = puntos; cambio = true; }
+
+    var pagos = lista(d.metodosPago);
+    if (pagos) { CFG.metodosPago = pagos; cambio = true; }
+
+    if (typeof d.whatsapp === 'string' && d.whatsapp) { CFG.whatsapp = d.whatsapp; cambio = true; }
+
     return cambio;
   }
 
@@ -1082,6 +1094,20 @@
       cuandoArranco(function () {
         try {
           pintarEstaticos();
+
+          /* El checkout se arma una sola vez al arrancar, con los datos de
+             config.js. Si no lo repintamos aca, los puntos de retiro y los
+             medios de pago que llegaron de la base no aparecen donde el
+             cliente elige. setPunto revalida el elegido: si el punto se dio
+             de baja queda en null, en vez de viajar al servidor y que
+             rechace el pedido. */
+          var CO = global.AUME.Checkout;
+          if (cambio && CO) {
+            global.AUME.Store.setPunto(global.AUME.Store.estado.punto);
+            CO.pintarPuntos();
+            CO.pintarZonas();
+            CO.pintarPagos();
+          }
           if (cambioMenu) {
             var sacadas = limpiarCarritoViejo();
             if (sacadas) toast('Actualizamos el menú y sacamos lo que ya no se puede pedir');
