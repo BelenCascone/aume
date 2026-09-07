@@ -1,0 +1,594 @@
+From 170b1c8c87291eef4d728be7dfd43538d2672753 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 7 Sep 2026 02:11:14 +0000
+Subject: [PATCH] =?UTF-8?q?Landing:=20tres=20fondos,=20portada=20con=20fot?=
+ =?UTF-8?q?o=20y=20m=C3=A1s=20movimiento?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Los colores se pisaban porque el fondo cambiaba nueve veces de arriba a
+abajo. Ahora son tres superficies: el crema para casi todo, el crema
+alterno para separar algunos bloques y un solo momento de color fuerte,
+el cierre.
+
+- La franja de cifras deja de ser negra (era la única superficie oscura
+  del sitio y cortaba la lectura); va sobre crema, entre dos líneas, con
+  los números en el naranja de la marca.
+- La sección de empresas deja su verde agua propio: la tarjeta blanca
+  del formulario ya la distingue.
+
+La portada pasa a dos columnas, con la foto al lado del texto: es lo
+primero que mira alguien que llega de Instagram. En celular la foto va
+abajo, para leer primero qué es AUMÉ.
+
+Movimiento nuevo, todo apagado con prefers-reduced-motion:
+- la foto de portada entra creciendo y hace un parallax de 40px
+- las cifras cuentan desde cero al entrar en pantalla
+- barra de progreso de lectura debajo de la cabecera
+- la cabecera se achica al bajar
+- las fotos de los cuatro menús se acercan al pasar el mouse
+
+Las fotos reales se pueden ir agregando de a una sin tocar el código:
+landing.js prueba si existe el .jpg al lado de cada marcador y lo usa
+si está (FOTOS_REALES).
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01V16FDLiohokQPhM4jtKU7S
+---
+ assets/css/landing.css  | 149 +++++++++++++++++++++++++++++++++++++---
+ assets/js/landing.js    |  56 ++++++++++++++-
+ assets/js/movimiento.js | 144 +++++++++++++++++++++++++++++++++++++-
+ index.html              |  53 +++++++++-----
+ 4 files changed, 369 insertions(+), 33 deletions(-)
+
+diff --git a/assets/css/landing.css b/assets/css/landing.css
+index 362dea0..048d468 100644
+--- a/assets/css/landing.css
++++ b/assets/css/landing.css
+@@ -95,12 +95,15 @@ html{ scroll-padding-top:82px; }
+ }
+ 
+ /* --------------------------------------------------------- 3. PORTADA
+-   Tipográfica a propósito: hasta que llegue el material fotográfico, la
+-   portada se apoya en Playfair y en el color de marca. La mancha de
+-   color de atrás evita que quede un bloque de texto suelto. */
++   Texto a la izquierda y foto a la derecha. La foto es lo primero que
++   mira alguien que llega de Instagram, así que entra grande y desde el
++   primer momento; el texto la acompaña, no al revés.
++
++   En celular la foto va abajo del texto: primero se lee qué es AUMÉ y
++   recién después se ve el plato. */
+ .hero{
+   position:relative; overflow:hidden;
+-  padding-block:clamp(56px, 11vw, 116px);
++  padding-block:clamp(44px, 8vw, 92px);
+ }
+ .hero::before{
+   content:""; position:absolute; z-index:0;
+@@ -109,7 +112,49 @@ html{ scroll-padding-top:82px; }
+   background:radial-gradient(circle at 50% 50%,
+     var(--c-clasico-suave) 0%, rgba(251,241,232,0) 68%);
+ }
+-.hero__in{ position:relative; z-index:1; }
++.hero__in{
++  position:relative; z-index:1;
++  display:grid; gap:clamp(30px, 5vw, 56px);
++  align-items:center;
++}
++@media (min-width:900px){
++  .hero__in{ grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr); }
++}
++
++/* La foto. El marco redondeado y la sombra suave la separan del crema
++   sin necesidad de un borde duro. */
++.hero__foto{
++  margin:0; position:relative;
++  border-radius:var(--r-lg); overflow:hidden;
++  background:var(--crema-alt);
++  box-shadow:var(--sombra-md);
++  aspect-ratio:4/3;
++}
++@media (min-width:900px){
++  .hero__foto{ aspect-ratio:5/4; }
++}
++.hero__foto img{
++  width:100%; height:100%; object-fit:cover; display:block;
++  /* La escala de más es lo que le da lugar al parallax para moverse
++     sin que aparezca un borde vacío. */
++  transform:scale(1.06);
++}
++
++/* Un dato encima de la foto: es lo que hace que se lea como una marca
++   que trabaja y no como una foto de banco de imágenes. */
++.hero__sello{
++  position:absolute; z-index:2;
++  inset-block-end:16px; inset-inline-start:16px;
++  background:rgba(255,252,237,.94);
++  border-radius:100px; padding:9px 16px;
++  font-size:.8rem; font-weight:700; color:var(--c-vegetariano-dark);
++  box-shadow:var(--sombra-sm);
++  display:flex; align-items:center; gap:8px;
++}
++.hero__sello::before{
++  content:""; width:8px; height:8px; border-radius:50%;
++  background:var(--c-vegetariano); flex:0 0 auto;
++}
+ .hero__ojo{
+   font-size:.74rem; font-weight:700; letter-spacing:.15em;
+   text-transform:uppercase; color:var(--c-clasico-dark); margin-bottom:20px;
+@@ -118,6 +163,15 @@ html{ scroll-padding-top:82px; }
+   font-size:clamp(2.1rem, 6.4vw, 4rem);
+   line-height:1.07; max-width:17ch; text-wrap:balance;
+ }
++/* Con la foto al lado, la columna ya limita el ancho: el max-width de
++   arriba lo apretaría de más y partiría el título en cuatro renglones. */
++@media (min-width:900px){
++  .hero__t{
++    max-width:none;
++    font-size:clamp(2.4rem, 3.7vw, 3.4rem);
++  }
++  .hero__d{ max-width:44ch; }
++}
+ .hero__t em{
+   font-style:italic; color:var(--c-clasico-dark);
+ }
+@@ -134,9 +188,14 @@ html{ scroll-padding-top:82px; }
+ }
+ 
+ /* ---------------------------------------------------------- 4. CIFRAS */
++/* La franja era negra: era la única superficie oscura de toda la página
++   y, en vez de dar ritmo, cortaba la lectura en dos. Ahora va sobre el
++   mismo crema y se separa con dos líneas, que es suficiente para que se
++   lea como una banda aparte sin sumar un color más. */
+ .cifras{
+-  background:var(--tinta); color:var(--crema);
+-  padding-block:26px;
++  background:var(--crema);
++  border-block:1px solid var(--linea);
++  padding-block:clamp(28px, 4vw, 40px);
+ }
+ .cifras__in{
+   display:grid; gap:22px 14px;
+@@ -147,13 +206,15 @@ html{ scroll-padding-top:82px; }
+   .cifras__in{ grid-template-columns:repeat(3, minmax(0,1fr)); }
+ }
+ .cifra__n{
+-  font-family:var(--f-display); font-size:1.9rem; line-height:1;
+-  color:var(--blanco);
++  font-family:var(--f-display);
++  font-size:clamp(2rem, 4.6vw, 2.7rem); line-height:1;
++  color:var(--c-clasico-dark);
++  font-variant-numeric:tabular-nums;
+ }
+ .cifra__d{
+   margin-top:7px; font-size:.72rem; font-weight:600;
+   letter-spacing:.13em; text-transform:uppercase;
+-  color:rgba(255,252,237,.7);
++  color:var(--tinta-60);
+ }
+ 
+ /* ------------------------------------------- 5. MENÚ DE ESTA SEMANA */
+@@ -269,7 +330,10 @@ html{ scroll-padding-top:82px; }
+ .ultimo-tip__mas a:hover{ text-decoration:underline; }
+ 
+ /* ------------------------------------------------------- 10. PARA TU EQUIPO */
+-.seccion-l--empresas{ background:var(--c-vegetariano-suave); }
++/* Antes esta sección traía su propio verde agua: era la tercera familia
++   de color en la misma página. La tarjeta blanca del formulario ya la
++   distingue de lo que tiene alrededor, así que el fondo va con el resto. */
++.seccion-l--empresas{ background:var(--crema); }
+ .empresas{
+   display:grid; gap:26px;
+   grid-template-columns:minmax(0,1fr);
+@@ -766,6 +830,65 @@ html{ scroll-padding-top:82px; }
+ .hero__acciones .btn--primario:hover,
+ .cierre__acciones .btn--primario:hover{ transform:translateY(-2px); }
+ 
++/* --------------------------------------------- Barra de progreso
++   Una línea de 3px pegada abajo de la cabecera que se va llenando con
++   el scroll. No suma un color nuevo: usa el naranja de la marca, que
++   es el mismo del botón de pedir. */
++.progreso{
++  position:absolute; inset-inline:0; inset-block-end:-1px;
++  height:3px; overflow:hidden; pointer-events:none;
++}
++.progreso__barra{
++  display:block; height:100%; width:100%;
++  background:var(--c-clasico);
++  transform:scaleX(0); transform-origin:0 50%;
++}
++
++/* ------------------------------------------- La cabecera se achica
++   Al empezar a bajar, la barra se hace más baja y el logo se achica un
++   poco. Devuelve unos píxeles de pantalla justo cuando se está leyendo
++   y, de paso, avisa sin palabras que la página se está moviendo. */
++.cab__in{ transition:min-height .3s var(--e-asentar); }
++.cab__marca img{ transition:height .3s var(--e-asentar); }
++.cab--scroll .cab__in{ min-height:56px; }
++.cab--scroll .cab__marca img{ height:32px; }
++
++/* ------------------------------------------- Las fotos se acercan
++   Al pasar el mouse por una tarjeta de menú, la foto se acerca apenas
++   dentro de su marco. La tarjeta no se mueve: lo que respira es la
++   comida, que es lo que interesa mirar. */
++.tipo{
++  transition:border-color .25s ease, transform .3s var(--e-asentar),
++             box-shadow .3s ease;
++}
++.tipo:hover{
++  transform:translateY(-4px);
++  box-shadow:var(--sombra-md);
++  border-color:var(--tipo-color, var(--c-clasico));
++}
++.tipo__foto{ overflow:hidden; }
++.tipo__foto img{ transition:transform .5s var(--e-asentar); }
++.tipo:hover .tipo__foto img{ transform:scale(1.06); }
++
++/* La foto de la portada entra creciendo, una sola vez, en cuanto se
++   dibuja la página. Es el primer movimiento que se ve y el que da la
++   impresión de que la página está viva. */
++.mov .hero__foto{
++  clip-path:inset(0 0 0 0 round var(--r-lg));
++  animation:foto-entra 1s var(--e-asentar) both;
++}
++@keyframes foto-entra{
++  from{ opacity:0; transform:translateY(18px) scale(.97); }
++  to  { opacity:1; transform:none; }
++}
++.mov .hero__sello{
++  animation:sello-entra .6s var(--e-asentar) .55s both;
++}
++@keyframes sello-entra{
++  from{ opacity:0; transform:translateY(10px); }
++  to  { opacity:1; transform:none; }
++}
++
+ /* ------------------------------------------------------ Sin movimiento
+    Ya está cubierto de dos maneras (el script no pone .mov, y styles.css
+    apaga las transiciones), pero esto lo deja explícito acá también. */
+@@ -774,4 +897,8 @@ html{ scroll-padding-top:82px; }
+   .mov .rev .ojo::after,
+   .mov .rev .hero__ojo::after,
+   .mov .rev .paso::before{ transform:none; }
++  .mov .hero__foto,
++  .mov .hero__sello{ animation:none; }
++  .hero__foto img{ transform:scale(1.06) !important; }
++  .progreso{ display:none; }
+ }
+diff --git a/assets/js/landing.js b/assets/js/landing.js
+index 57e98de..7efcca0 100644
+--- a/assets/js/landing.js
++++ b/assets/js/landing.js
+@@ -202,7 +202,7 @@
+     caja.innerHTML = (CFG.categorias || []).map(function (cat) {
+       var foto = FOTO_POR_CATEGORIA[cat.id] || 'assets/img/landing/menu-clasico.svg';
+       return '<article class="tipo" style="--tipo-color:' + esc(cat.color) + '">' +
+-               '<div class="tipo__foto">' +
++               '<div class="tipo__foto" data-foto="' + esc(cat.id) + '">' +
+                  '<img src="' + esc(foto) + '" alt="" width="800" height="600" loading="lazy">' +
+                '</div>' +
+                '<div class="tipo__cuerpo">' +
+@@ -407,11 +407,15 @@
+ 
+   function iniciar() {
+     pintarTodo();
++    ponerFotosReales();
+ 
+     promesas.then(function (r) {
+       aplicarPrecios(r[0]);
+       aplicarMenu(r[1]);
+       pintarTodo();
++      /* Las tarjetas se vuelven a dibujar con lo que contestó la API, así
++         que las fotos hay que volver a ponerlas: los nodos son nuevos. */
++      ponerFotosReales();
+       /* Las publicaciones sólo existen en la base, así que se dibujan
+          cuando llegan y no en la primera pasada. */
+       var publicaciones = r[2] && r[2].publicaciones;
+@@ -420,6 +424,56 @@
+     });
+   }
+ 
++  /* ------------------------------------------------- FOTOS DE VERDAD
++     Mientras no haya material fotográfico, en assets/img/landing/ viven
++     cinco dibujos que ocupan el lugar. Esta función prueba, para cada
++     uno, si existe la foto real al lado con el mismo nombre y extensión
++     .jpg; si existe, la pone, y si no, deja el dibujo.
++
++     Así se pueden ir agregando las fotos de a una, sin tocar el código:
++     alcanza con guardarlas en esa carpeta con estos nombres.
++
++         hero.jpg               la de la portada (apaisada)
++         menu-clasico.jpg       una vianda del menú Clásico
++         menu-vegetariano.jpg   una del Vegetariano
++         menu-proteico.jpg      una del Proteico
++         menu-ensalada.jpg      una del Ensaladas
++         cocina.jpg             la cocina o el equipo
++
++     Se prueba con un Image() aparte en vez de cambiar el src y esperar
++     el error: así, si la foto no está, el navegador nunca muestra un
++     ícono de imagen rota. */
++
++  var FOTOS_REALES = {
++    hero:        'assets/img/landing/hero.jpg',
++    clasico:     'assets/img/landing/menu-clasico.jpg',
++    vegetariano: 'assets/img/landing/menu-vegetariano.jpg',
++    proteico:    'assets/img/landing/menu-proteico.jpg',
++    ensalada:    'assets/img/landing/menu-ensalada.jpg',
++    cocina:      'assets/img/landing/cocina.jpg'
++  };
++
++  function probarFoto(destino, ruta) {
++    var img = destino.querySelector('img');
++    if (!img) return;
++
++    var prueba = new Image();
++    prueba.onload = function () {
++      /* Sólo si cargó de verdad y tiene tamaño: un 404 que devuelve una
++         página de error puede disparar onload con 0×0. */
++      if (prueba.naturalWidth > 1) img.src = ruta;
++    };
++    prueba.src = ruta;
++  }
++
++  function ponerFotosReales() {
++    var cajas = document.querySelectorAll('[data-foto]');
++    for (var i = 0; i < cajas.length; i++) {
++      var clave = cajas[i].getAttribute('data-foto');
++      if (FOTOS_REALES[clave]) probarFoto(cajas[i], FOTOS_REALES[clave]);
++    }
++  }
++
+   if (document.readyState === 'loading') {
+     document.addEventListener('DOMContentLoaded', iniciar);
+   } else {
+diff --git a/assets/js/movimiento.js b/assets/js/movimiento.js
+index 6a2c076..6206ba4 100644
+--- a/assets/js/movimiento.js
++++ b/assets/js/movimiento.js
+@@ -68,14 +68,14 @@
+ 
+     for (var i = 0; i < bloques.length; i++) {
+       /* La portada no espera al scroll: ya está en pantalla */
+-      if (bloques[i].className.indexOf('hero__in') !== -1) continue;
++      if (bloques[i].className.indexOf('hero__texto') !== -1) continue;
+       mirada.observe(bloques[i]);
+     }
+ 
+     /* La portada entra sola, en orden de lectura. Los dos cuadros de
+        espera son para que el navegador alcance a dibujar el estado
+        inicial: sin eso no hay transición, hay salto. */
+-    var portada = doc.querySelector('.hero__in.rev');
++    var portada = doc.querySelector('.hero__texto.rev');
+     if (portada) {
+       global.requestAnimationFrame(function () {
+         global.requestAnimationFrame(function () {
+@@ -110,7 +110,145 @@
+     mirar();
+   }
+ 
+-  function iniciar() { revelar(); cabecera(); }
++  /* ------------------------------------------------ Barra de progreso
++     Una línea finita arriba de todo que se va llenando a medida que se
++     baja. Es de las pocas cosas que dan sensación de "página cuidada"
++     sin agregar ni un color ni distraer de lo que se está leyendo. */
++
++  function progreso() {
++    var barra = doc.querySelector('.progreso__barra');
++    if (!barra) return;
++
++    var pedido = false;
++
++    function mirar() {
++      var alto = doc.body.scrollHeight - global.innerHeight;
++      var y = global.pageYOffset || raiz.scrollTop || 0;
++      var parte = alto > 0 ? Math.min(1, Math.max(0, y / alto)) : 0;
++      barra.style.transform = 'scaleX(' + parte + ')';
++    }
++
++    global.addEventListener('scroll', function () {
++      if (pedido) return;
++      pedido = true;
++      global.requestAnimationFrame(function () { pedido = false; mirar(); });
++    }, { passive: true });
++
++    global.addEventListener('resize', mirar, { passive: true });
++    mirar();
++  }
++
++  /* ------------------------------------------------------- Parallax
++     La foto de la portada se mueve un poco más despacio que el resto de
++     la página. Es sutil a propósito: si se nota, molesta. El recorrido
++     total son 40px, y por eso la imagen va con scale(1.06) en el CSS,
++     para que nunca aparezca un borde vacío.
++
++     Se apaga solo en pantallas chicas: en un celular no se percibe y
++     mover una imagen grande en cada scroll gasta batería. */
++
++  function parallax() {
++    var foto = doc.querySelector('.hero__foto img');
++    if (!foto || !global.matchMedia || !global.matchMedia('(min-width: 900px)').matches) return;
++
++    var caja = foto.parentNode;
++    var pedido = false;
++    var RECORRIDO = 40;
++
++    function mirar() {
++      var r = caja.getBoundingClientRect();
++      if (r.bottom < 0 || r.top > global.innerHeight) return;
++      /* -1 arriba de la pantalla, +1 abajo */
++      var centro = (r.top + r.height / 2 - global.innerHeight / 2) / global.innerHeight;
++      var y = Math.max(-1, Math.min(1, centro)) * RECORRIDO;
++      foto.style.transform = 'scale(1.06) translate3d(0,' + y.toFixed(1) + 'px,0)';
++    }
++
++    global.addEventListener('scroll', function () {
++      if (pedido) return;
++      pedido = true;
++      global.requestAnimationFrame(function () { pedido = false; mirar(); });
++    }, { passive: true });
++
++    mirar();
++  }
++
++  /* ------------------------------------------------ Números que suben
++     Las cifras de la franja cuentan desde cero cuando entran en
++     pantalla. Cuentan UNA sola vez.
++
++     El texto de cada cifra lo escribe landing.js con lo que contesta la
++     API, así que acá no se inventa ningún número: se lee el que ya
++     está puesto, se separa lo que no es dígito (el "+" de "+150") y se
++     vuelve a escribir igual al terminar. Si no es un número, no se
++     toca. */
++
++  function contar() {
++    var caja = doc.getElementById('cifras');
++    if (!caja || !('IntersectionObserver' in global)) return;
++
++    var DURACION = 900;
++
++    function animar(nodo) {
++      var texto = (nodo.textContent || '').trim();
++      var crudo = texto.replace(/[^\d]/g, '');
++      if (!crudo) return;
++
++      var destino = parseInt(crudo, 10);
++      if (!destino || destino > 100000) return;
++
++      var antes = texto.slice(0, texto.indexOf(crudo.charAt(0)));
++      var despues = texto.slice(texto.indexOf(crudo) + crudo.length);
++      var arranque = null;
++
++      function paso(ahora) {
++        if (arranque === null) arranque = ahora;
++        var t = Math.min(1, (ahora - arranque) / DURACION);
++        /* Frena al final, como todo lo demás de la página */
++        var suave = 1 - Math.pow(1 - t, 3);
++        nodo.textContent = antes + Math.round(destino * suave) + despues;
++        if (t < 1) global.requestAnimationFrame(paso);
++      }
++
++      global.requestAnimationFrame(paso);
++    }
++
++    var mirada = new global.IntersectionObserver(function (entradas) {
++      for (var i = 0; i < entradas.length; i++) {
++        if (!entradas[i].isIntersecting) continue;
++        mirada.disconnect();
++        var nums = caja.querySelectorAll('.cifra__n');
++        for (var j = 0; j < nums.length; j++) animar(nums[j]);
++        return;
++      }
++    }, { threshold: 0.4 });
++
++    mirada.observe(caja);
++  }
++
++  /* landing.js dibuja las cifras cuando contesta la API, que puede ser
++     después de que esto corra. Se espera a que haya contenido antes de
++     ponerse a mirar. */
++  function contarCuandoHaya() {
++    var caja = doc.getElementById('cifras');
++    if (!caja) return;
++    if (caja.children.length) return contar();
++
++    var intentos = 0;
++    var reloj = global.setInterval(function () {
++      intentos++;
++      if (caja.children.length) { global.clearInterval(reloj); contar(); }
++      else if (intentos > 40) global.clearInterval(reloj);   /* 4 segundos y listo */
++    }, 100);
++  }
++
++  function iniciar() {
++    revelar();
++    cabecera();
++    progreso();
++    parallax();
++    contarCuandoHaya();
++  }
+ 
+   if (doc.readyState === 'loading') {
+     doc.addEventListener('DOMContentLoaded', iniciar);
+diff --git a/index.html b/index.html
+index 172fd2f..eaee07d 100644
+--- a/index.html
++++ b/index.html
+@@ -57,6 +57,10 @@
+ 
+     <a class="btn btn--primario cab__cta" href="pedido/index.html">Pedir mi vianda</a>
+   </div>
++
++  <!-- Cuánto falta para el final de la página. La llena movimiento.js;
++       sin JS queda en cero y no se ve. -->
++  <div class="progreso" aria-hidden="true"><span class="progreso__barra"></span></div>
+ </header>
+ 
+ <main id="contenido">
+@@ -65,22 +69,34 @@
+        Portada tipográfica: sin foto. Se apoya en Playfair y en el color
+        de marca hasta que llegue el material fotográfico. -->
+   <section class="hero" id="inicio">
+-    <div class="env hero__in rev">
+-      <p class="hero__ojo">Viandas saludables · Paraná, Entre Ríos</p>
+-      <h1 class="hero__t">
+-        Vos ocupate de tu día.<br>
+-        <em>Nosotros, de resolver qué comer.</em>
+-      </h1>
+-      <p class="hero__d">
+-        Comida casera, equilibrada y rica, lista para llevar. Elegís el menú de la
+-        semana y te lo llevamos a tu casa o a tu trabajo, o lo retirás por donde
+-        te quede cerca.
+-      </p>
+-      <div class="hero__acciones">
+-        <a class="btn btn--primario" href="pedido/index.html">Pedir mi vianda</a>
+-        <a class="btn btn--fantasma" href="#menu">Ver el menú de esta semana</a>
++    <div class="env hero__in">
++      <div class="hero__texto rev">
++        <p class="hero__ojo">Viandas saludables · Paraná, Entre Ríos</p>
++        <h1 class="hero__t">
++          Vos ocupate de tu día.<br>
++          <em>Nosotros, de resolver qué comer.</em>
++        </h1>
++        <p class="hero__d">
++          Comida casera, equilibrada y rica, lista para llevar. Elegís el menú de la
++          semana y te lo llevamos a tu casa o a tu trabajo, o lo retirás por donde
++          te quede cerca.
++        </p>
++        <div class="hero__acciones">
++          <a class="btn btn--primario" href="pedido/index.html">Pedir mi vianda</a>
++          <a class="btn btn--fantasma" href="#menu">Ver el menú de esta semana</a>
++        </div>
++        <p class="hero__firma">Aurea Mediocritas — la justa medida entre dos extremos.</p>
+       </div>
+-      <p class="hero__firma">Aurea Mediocritas — la justa medida entre dos extremos.</p>
++
++      <!-- La foto de portada. El JS le prueba primero la versión .jpg
++           (assets/js/landing.js, FOTOS_REALES) y, si todavía no está
++           cargada, se queda con este marcador. -->
++      <figure class="hero__foto" data-foto="hero">
++        <img src="assets/img/landing/cocina.svg"
++             alt="Viandas de AUMÉ recién armadas, listas para entregar"
++             width="1280" height="1024" fetchpriority="high">
++        <figcaption class="hero__sello">Cocinamos todos los días en Paraná</figcaption>
++      </figure>
+     </div>
+   </section>
+ 
+@@ -300,9 +316,10 @@
+   <!-- ========================================================= 10. QUIÉNES SOMOS -->
+   <section class="seccion-l" id="nosotros">
+     <div class="env nosotros rev">
+-      <div class="nosotros__foto">
+-        <!-- MARCADOR: reemplazar por una foto real de la cocina o del equipo -->
+-        <img src="assets/img/landing/cocina.svg" alt="" width="1200" height="600">
++      <div class="nosotros__foto" data-foto="cocina">
++        <!-- MARCADOR: se reemplaza solo si existe cocina.jpg al lado
++             (assets/js/landing.js, FOTOS_REALES). -->
++        <img src="assets/img/landing/cocina.svg" alt="La cocina de AUMÉ en Paraná" width="1200" height="600">
+       </div>
+       <div class="nosotros__texto">
+         <p class="ojo">Quiénes somos</p>
+-- 
+2.43.0
+
