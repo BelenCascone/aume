@@ -613,6 +613,7 @@
     pintarPuntos: pintarPuntos,
     pintarModalidad: pintarModalidad,
     pintarZonas: pintarZonas,
+    pintarPagos: pintarPagos,
     alternarCampos: alternarCampos,
     armarMensaje: armarMensaje
   };
