@@ -157,7 +157,7 @@
 
           <div class="save-bar">
             <p class="meta save-hint" id="pista" aria-live="polite"></p>
-            <button type="button" class="btn btn-secondary" id="btnDeshacer">Deshacer</button>
+            <button type="button" class="btn btn-secondary" id="btnDeshacer" disabled>Descartar cambios</button>
             <button type="submit" class="btn btn-primary" id="btnGuardar">Guardar cambios</button>
           </div>
         </div>
@@ -168,6 +168,25 @@
     </footer>
   </div>
 </div>
+
+<!-- Guardar publica en la web al instante y no hay forma de volver atras,
+     asi que antes se muestra que va a cambiar, en palabras. -->
+<dialog class="dlg" id="dlgConfirmar" aria-labelledby="dlgTitulo">
+  <div class="dialog-head">
+    <h2 id="dlgTitulo">Revisá los cambios</h2>
+    <button type="button" class="dialog-close" id="dlgCerrar" aria-label="Cerrar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
+  <div class="dialog-body">
+    <p class="meta" id="dlgResumen"></p>
+    <ul class="diff-list" id="dlgCambios"></ul>
+  </div>
+  <div class="dialog-foot">
+    <button type="button" class="btn btn-secondary" id="dlgCancelar">Volver a revisar</button>
+    <button type="button" class="btn btn-primary" id="dlgGuardar">Guardar y publicar</button>
+  </div>
+</dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="/admin/assets/js/panel.js"></script>

@@ -22,6 +22,13 @@
   function marcarSucio() {
     sucio = true;
     el('pista').textContent = 'Tenés cambios sin guardar.';
+    el('btnDeshacer').disabled = false;
+  }
+
+  function marcarLimpio(mensaje) {
+    sucio = false;
+    el('pista').textContent = mensaje || '';
+    el('btnDeshacer').disabled = true;
   }
 
   /* Un importe vacío significa "todavía sin definir", y eso es distinto
@@ -133,6 +140,123 @@
     el('planTotal').textContent = n ? plata(n) : 'A definir';
   }
 
+  /* ---------------------------------------------- Resumen de cambios
+
+     Guardar publica en la web en el mismo segundo y no hay forma de
+     volver atrás, así que antes de mandar nada comparamos lo que hay en
+     pantalla contra lo último que devolvió la API y lo decimos en
+     palabras. Un cero de más se ve acá, no en la web. */
+
+  /* "12.500", "$ 12.500" y 12500 son el mismo importe. Vacío es "sin
+     definir", que no es cero. */
+  function norm(v) {
+    if (v === null || v === undefined) return '';
+    var s = String(v).trim();
+    if (!s) return '';
+    var limpio = s.replace(/[\s$.,]/g, '');
+    return /^\d+$/.test(limpio) ? limpio : s;
+  }
+
+  function comoPlata(v) {
+    var s = norm(v);
+    if (s === '') return 'sin definir';
+    return /^\d+$/.test(s) ? plata(Number(s)) : s;
+  }
+
+  function comoTexto(v) {
+    var s = (v === null || v === undefined) ? '' : String(v).trim();
+    return s || 'vacío';
+  }
+
+  function comparar(r, etiqueta, antes, ahora, formato) {
+    if (norm(antes) === norm(ahora)) return;
+    var f = formato || comoPlata;
+    r.push({ campo: etiqueta, antes: f(antes), ahora: f(ahora) });
+  }
+
+  function resumenCambios(c) {
+    var d = datos, r = [];
+
+    d.tamanos.forEach(function (t) {
+      comparar(r, 'Vianda ' + t.nombre, d.preciosVianda[t.id], c.preciosVianda[t.id]);
+    });
+
+    d.envio.zonas.forEach(function (z, i) {
+      comparar(r, 'Envío ' + z.nombre, z.costo, c.envio.zonas[i].costo);
+    });
+    comparar(r, 'Aclaración del envío', d.envio.aclaracion, c.envio.aclaracion, comoTexto);
+
+    d.packs.opciones.forEach(function (p, i) {
+      var nuevo = c.packs.opciones[i];
+      d.tamanos.forEach(function (t) {
+        var pr = p.precios[t.id] || {}, np = nuevo.precios[t.id] || {};
+        var base = (p.nombre || ('Pack x' + p.dias)) + ' ' + t.nombre;
+        comparar(r, base, pr.lista, np.lista);
+        comparar(r, base + ' en efectivo', pr.efectivo, np.efectivo);
+      });
+    });
+
+    var pm = d.planMensual || { precios: {} }, nm = c.planMensual;
+    comparar(r, 'Mes del plan', pm.mes, nm.mes, comoTexto);
+    comparar(r, 'Almuerzos del mes', pm.almuerzos, nm.almuerzos, comoTexto);
+    comparar(r, 'Descuento en efectivo del plan', pm.descuentoEfectivo, nm.descuentoEfectivo, comoTexto);
+    if (!!pm.envioBonificado !== !!nm.envioBonificado) {
+      r.push({
+        campo: 'Envío del plan mensual',
+        antes: pm.envioBonificado ? 'bonificado' : 'se cobra',
+        ahora: nm.envioBonificado ? 'bonificado' : 'se cobra'
+      });
+    }
+    d.tamanos.forEach(function (t) {
+      var a = (pm.precios || {})[t.id] || {}, b = nm.precios[t.id] || {};
+      comparar(r, 'Plan mensual ' + t.nombre, a.lista, b.lista);
+      comparar(r, 'Plan mensual ' + t.nombre + ' en efectivo', a.efectivo, b.efectivo);
+    });
+
+    (d.productos || []).forEach(function (p, i) {
+      comparar(r, p.nombre, p.activo ? p.precio : '', c.productos[i].precio);
+    });
+
+    /* Los puntos de retiro se comparan por id: los nuevos vienen sin id, y
+       los que ya no están en la lista se apagan en la web. */
+    var viejos = {}, vistos = {};
+    (d.puntosRetiro || []).forEach(function (p) { viejos[p.id] = p; });
+    c.puntosRetiro.forEach(function (p) {
+      var v = p.id && viejos[p.id];
+      if (!v) {
+        r.push({ campo: 'Punto de retiro', antes: 'no existía', ahora: 'se agrega ' + comoTexto(p.nombre) });
+        return;
+      }
+      vistos[p.id] = true;
+      comparar(r, 'Punto ' + v.nombre + ' · nombre', v.nombre, p.nombre, comoTexto);
+      comparar(r, 'Punto ' + v.nombre + ' · dirección', v.direccion, p.direccion, comoTexto);
+      comparar(r, 'Punto ' + v.nombre + ' · horarios',
+        (v.horarios || []).join(' · '), (p.horarios || []).join(' · '), comoTexto);
+    });
+    (d.puntosRetiro || []).forEach(function (p) {
+      if (!vistos[p.id]) {
+        r.push({ campo: 'Punto de retiro', antes: p.nombre, ahora: 'se saca de la web' });
+      }
+    });
+
+    return r;
+  }
+
+  function pedirConfirmacion(cambios) {
+    el('dlgResumen').textContent = cambios.length === 1
+      ? 'Hay 1 cambio. Al guardar se publica en la web.'
+      : 'Hay ' + cambios.length + ' cambios. Al guardar se publican en la web.';
+    el('dlgCambios').innerHTML = cambios.map(function (x) {
+      return '<li class="diff-row">' +
+        '<span class="diff-campo">' + esc(x.campo) + '</span>' +
+        '<span class="diff-antes">' + esc(x.antes) + '</span>' +
+        '<span class="diff-flecha" aria-hidden="true">&rarr;</span>' +
+        '<span class="diff-ahora">' + esc(x.ahora) + '</span>' +
+      '</li>';
+    }).join('');
+    el('dlgConfirmar').showModal();
+  }
+
   /* --------------------------------------------------------- Guardar */
 
   function leer(id) {
@@ -197,16 +321,21 @@
     };
   }
 
-  async function guardar(ev) {
+  function guardar(ev) {
     ev.preventDefault();
+    var cambios = resumenCambios(cuerpo());
+    if (!cambios.length) { Panel.toast('No hay cambios para guardar.'); return; }
+    pedirConfirmacion(cambios);
+  }
+
+  async function enviar() {
     Panel.limpiarAviso(el('aviso'));
     el('btnGuardar').disabled = true;
     try {
       var r = await Panel.pedir('/api/precios', { metodo: 'PUT', cuerpo: cuerpo() });
       datos = r.precios;
-      sucio = false;
       pintar();
-      el('pista').textContent = 'Guardado. Ya se ve en la web.';
+      marcarLimpio('Guardado. Ya se ve en la web.');
       Panel.toast('Precios guardados.');
     } catch (e) {
       Panel.mostrarError(el('aviso'), e);
@@ -222,9 +351,8 @@
     el('cargando').hidden = false;
     try {
       datos = await Panel.pedir('/api/precios');
-      sucio = false;
       pintar();
-      el('pista').textContent = '';
+      marcarLimpio();
     } catch (e) {
       Panel.mostrarError(el('aviso'), e);
     } finally {
@@ -238,6 +366,11 @@
       marcarSucio();
       if (ev.target.id === 'iPlanMes' || ev.target.id === 'plan-estandar-lista') actualizarPreview();
     });
+
+    var dlg = el('dlgConfirmar');
+    el('dlgGuardar').addEventListener('click', function () { dlg.close(); enviar(); });
+    el('dlgCancelar').addEventListener('click', function () { dlg.close(); });
+    el('dlgCerrar').addEventListener('click', function () { dlg.close(); });
 
     el('btnDeshacer').addEventListener('click', function () {
       if (sucio && !confirm('¿Descartar los cambios y volver a lo guardado?')) return;

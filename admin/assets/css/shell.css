@@ -469,3 +469,21 @@ dialog.dlg::backdrop{background:rgba(44,44,44,.45)}
   .modulo:hover{transform:none}
   .modulo:hover .modulo__i{transform:none}
 }
+
+/* ── resumen de cambios antes de guardar (precios) ────────────────── */
+dialog.dlg[open]{display:flex;flex-direction:column}
+.diff-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.diff-row{display:grid;grid-template-columns:1fr auto auto auto;gap:6px 10px;
+  align-items:baseline;padding:10px 0;border-top:1px solid var(--border)}
+.diff-row:first-child{border-top:0;padding-top:0}
+.diff-campo{font-size:14px;font-weight:500}
+.diff-antes{font-size:13.5px;color:var(--muted);text-decoration:line-through}
+.diff-flecha{color:var(--muted);font-size:13px}
+.diff-ahora{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+@media (max-width:560px){
+  .diff-row{grid-template-columns:1fr;gap:2px}
+  .diff-flecha{display:none}
+  .diff-antes{text-decoration:none}
+  .diff-antes::before{content:"antes: "}
+  .diff-ahora::before{content:"ahora: ";font-weight:400;color:var(--muted)}
+}
