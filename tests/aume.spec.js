@@ -176,6 +176,123 @@ test.describe('Cabeceras de seguridad', () => {
   });
 });
 
+/* ------------------------------------------ Cabecera que se achica
+   Al bajar, la fila del logo se angosta y la semana —que ya se leyó y no
+   cambia— le deja el lugar a los accesos rápidos por día. Nada se va de
+   pantalla: se gana alto y una fila que pasa de informar a servir. */
+
+test.describe('Cabecera compacta', () => {
+
+  test('al scrollear se achica la fila del logo y aparecen los días', async ({ page }) => {
+    const alto = () => page.locator('.topbar__in').boundingBox().then((c) => c.height);
+
+    const entera = await alto();
+    await expect(page.locator('#dianav')).toBeHidden();
+
+    await page.evaluate(() => window.scrollTo(0, 400));
+    await page.waitForTimeout(450);
+
+    expect(await alto(), 'la cabecera no se achicó').toBeLessThan(entera);
+    await expect(page.locator('#dianav')).toBeVisible();
+    await expect(page.locator('#dianav .dianav__b')).toHaveCount(5);
+
+    /* Y el logo sigue estando: se achica, no desaparece */
+    await expect(page.locator('.marca__img')).toBeVisible();
+
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(700);
+    /* Con margen: es una transición, y medir justo en el último cuadro
+       da 51,8 en vez de 52. */
+    expect(await alto(), 'la cabecera no volvió a su alto')
+      .toBeGreaterThan(entera - 2);
+  });
+
+  test('los accesos por día llevan a la tarjeta de ese día', async ({ page }) => {
+    await page.evaluate(() => window.scrollTo(0, 400));
+    await page.waitForTimeout(450);
+
+    await page.locator('#dianav [data-ir="viernes"]').click();
+    await page.waitForTimeout(900);
+
+    const caja = await page.locator('#dias .dia[data-dia="viernes"]').boundingBox();
+    const tope = await page.locator('.topbar').boundingBox();
+    expect(caja, 'no está la tarjeta del viernes').not.toBeNull();
+    /* Justo debajo de lo que quedó fijo arriba, no tapada por eso */
+    expect(caja.y, 'el viernes quedó tapado por la cabecera')
+      .toBeGreaterThanOrEqual(tope.height - 4);
+    expect(caja.y, 'el viernes quedó demasiado abajo').toBeLessThan(tope.height + 190);
+  });
+
+  test('los accesos por día no aparecen fuera del menú', async ({ page }) => {
+    await irAModo(page, 'promo');
+    await page.evaluate(() => window.scrollTo(0, 400));
+    await page.waitForTimeout(450);
+    await expect(page.locator('#dianav')).toBeHidden();
+  });
+});
+
+/* ------------------------------------------- Cambiar de vista y volver
+   Cambiar de menú o de forma de pedir reemplaza toda la lista. Si se
+   estaba en la mitad de la página, lo que aparecía arriba era el medio
+   de una lista nueva, o el título tapado por la cabecera. */
+
+test('cambiar de categoría vuelve al principio de la lista', async ({ page }) => {
+  await page.evaluate(() => window.scrollTo(0, 900));
+  await page.waitForTimeout(400);
+
+  await page.locator('.tab[data-cat="vegetariano"]').click();
+  await page.waitForTimeout(900);
+
+  const caja = await page.locator('#dias .dia').first().boundingBox();
+  const tope = await page.locator('.topbar').boundingBox();
+  expect(caja.y, 'la lista nueva no arrancó desde el principio')
+    .toBeGreaterThanOrEqual(tope.height - 4);
+});
+
+/* ----------------------------------------------- Repintado parcial
+   Sumar una unidad cambia una línea, no la pantalla. Antes cada toque de
+   "+" rehacía con innerHTML los cinco días enteros: en un celular
+   modesto eso se siente como un tironcito en cada toque. Este test cuida
+   que las tarjetas que NO cambiaron sigan siendo los mismos nodos. */
+
+test('sumar una vianda no rehace las tarjetas de los otros días', async ({ page }) => {
+  await page.evaluate(() => {
+    document.querySelector('#dias .dia[data-dia="viernes"]').dataset.marca = 'sigo-viva';
+  });
+
+  await sumar(page, 'lunes', 'estandar', 1);
+  await page.waitForTimeout(200);
+
+  const sigue = await page.evaluate(() =>
+    document.querySelector('#dias .dia[data-dia="viernes"]').dataset.marca);
+  expect(sigue, 'se volvió a dibujar toda la lista por una unidad').toBe('sigo-viva');
+
+  /* Y lo que sí tenía que cambiar, cambió */
+  await expect(page.locator('#dias .dia[data-dia="lunes"] .dia__n')).toHaveText('1');
+  await expect(page.locator('#barraN')).toContainText('1 vianda');
+});
+
+/* --------------------------------------------- El pedido en escritorio
+   En una pantalla ancha el pedido no se esconde detrás de un botón: vive
+   en la columna de la derecha, siempre a la vista. Es el MISMO panel,
+   mudado ahí; no hay dos carritos. */
+
+test('en pantalla ancha el pedido se ve sin abrir ningún panel', async ({ page }, info) => {
+  test.skip(info.project.name !== 'escritorio', 'sólo aplica al viewport ancho');
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.waitForTimeout(300);
+
+  await sumar(page, 'lunes', 'estandar', 1);
+  await page.waitForTimeout(250);
+
+  /* Sin tocar "Ver pedido", el ítem ya está a la vista dentro del aside */
+  await expect(page.locator('#lateral #panelCarrito .item')).toHaveCount(1);
+  await expect(page.locator('#velo')).toBeHidden();
+
+  /* Y sigue habiendo un solo carrito en toda la página */
+  await expect(page.locator('#panelCarrito')).toHaveCount(1);
+});
+
 /* ------------------------------------------- Pantalla de pedido rápida
    La pantalla arranca en el menú: no hay hero ni pasos que scrollear
    antes de poder elegir. Y lo que sirve para elegir — el logo, los
@@ -197,7 +314,17 @@ test.describe('Acceso rápido al menú', () => {
   });
 
   test('el logo, los modos y los tipos de menú quedan fijos al scrollear', async ({ page }) => {
-    await page.evaluate(() => window.scrollTo(0, 1200));
+    /* Scrolleamos hasta la última tarjeta del menú, no hasta un número
+       fijo de pixeles. En escritorio los días van en dos columnas, así
+       que la lista mide la mitad y 1200px ya caían fuera del menú: ahí
+       las categorías dejan de acompañar, y está bien que lo hagan
+       (no hay nada más que filtrar). Lo que este test cuida es que no se
+       vayan MIENTRAS se está eligiendo. */
+    await page.evaluate(() => {
+      const ultima = document.querySelector('#dias .dia:last-child');
+      const y = ultima.getBoundingClientRect().top + window.pageYOffset - 60;
+      window.scrollTo(0, Math.max(0, y));
+    });
     await page.waitForTimeout(400);
 
     for (const sel of ['.marca__img', '#modos', '#tabs']) {

@@ -145,9 +145,18 @@
   var oyentes = [];
 
   function suscribir(fn) { oyentes.push(fn); }
-  function avisar() {
+
+  /* `detalle` cuenta QUÉ cambió, para que quien dibuja no tenga que
+     rehacer la pantalla entera por una unidad de más.
+
+       avisar()                              -> cambió algo grande
+       avisar({ tipo:'cantidad', clave:k })  -> sólo cambió esa línea
+
+     Quien no lo mire sigue funcionando igual que antes: el estado se
+     manda como segundo argumento, como siempre. */
+  function avisar(detalle) {
     guardar();
-    for (var i = 0; i < oyentes.length; i++) oyentes[i](estado);
+    for (var i = 0; i < oyentes.length; i++) oyentes[i](detalle || null, estado);
   }
 
   /* -------------------------------------------------------- Persistencia */
@@ -315,7 +324,7 @@
     var nuevo  = Math.max(0, Math.min(99, actual + delta));
     if (nuevo === 0) delete estado.carrito[k];
     else estado.carrito[k] = nuevo;
-    avisar();
+    avisar({ tipo: 'cantidad', clave: k });
   }
 
   /* Atajos por tipo, para que quien llama no tenga que armar la clave */

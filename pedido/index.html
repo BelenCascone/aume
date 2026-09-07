@@ -19,8 +19,25 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
+<!-- Los pesos pedidos son los que la hoja de estilos usa de verdad:
+     Playfair en 400 (el nombre del plato), 600 (títulos) y 700 (totales),
+     y Caveat en 400 (el día) y 500. Antes se pedían tres pesos de cada una
+     y ninguno era el 400, así que el navegador bajaba de más y encima
+     tenía que inventar el peso que faltaba. -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Caveat:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- La tipografía de la marca es lo primero que se ve escrito en la
+     pantalla: se pide ya, sin esperar a que el CSS se lea entero. En
+     WOFF2 las dos juntas pesan 34 KB en vez de 83 KB. -->
+<link rel="preload" href="../assets/fonts/GlacialIndifference-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/GlacialIndifference-Bold.woff2" as="font" type="font/woff2" crossorigin>
+
 <link rel="stylesheet" href="../assets/css/styles.css">
+
+<!-- El movimiento va acá arriba y sin defer a propósito: marca la página
+     antes del primer dibujado, así nada aparece y se esconde. Sin JS, o
+     con "menos movimiento" pedido en el sistema, no hace nada. -->
+<script src="../assets/js/movimiento-pedido.js"></script>
 </head>
 
 <body class="tema">
@@ -32,16 +49,28 @@
 <header class="topbar">
   <div class="contenedor topbar__in">
     <a class="marca" href="#inicio" aria-label="AUMÉ, volver arriba">
-      <img class="marca__img" src="../assets/img/logo.png" alt="AUMÉ" width="594" height="387">
+      <img class="marca__img" src="../assets/img/logo.png" alt="AUMÉ"
+           width="594" height="387" fetchpriority="high" decoding="async">
       <span class="marca__tag">viandas</span>
     </a>
     <p class="topbar__semana" id="semanaLabel"></p>
+
+    <!-- Accesos rápidos por día. Ocupan el lugar de la semana y aparecen
+         recién al scrollear, que es cuando dejan de verse los cinco días
+         juntos y empieza a hacer falta saltar de uno a otro. -->
+    <div class="dianav" id="dianav" role="group" aria-label="Ir a un día"></div>
   </div>
 
   <nav class="modos" aria-label="Qué querés pedir">
     <div class="contenedor modos__in" id="modos"></div>
   </nav>
 </header>
+
+<!-- En celular esto es una sola columna, como siempre. Pasados los
+     1100px se abre en dos: el menú a la izquierda y el pedido a la
+     derecha, siempre a la vista. El panel del carrito se muda solo a esa
+     columna (app.js); no hay dos carritos, hay uno que cambia de lugar. -->
+<div class="tablero">
 
 <main id="inicio">
 
@@ -105,6 +134,10 @@
     </div>
   </section>
 </main>
+
+<aside class="lateral" id="lateral" aria-label="Tu pedido" hidden></aside>
+
+</div><!-- /tablero -->
 
 <!-- ============================================================ FOOTER -->
 <footer class="pie">
@@ -245,12 +278,15 @@
 
 <!-- ========================================================== SCRIPTS -->
 <!-- 1) Datos editables -->
-<script src="../assets/js/data/config.js"></script>
-<script src="../assets/js/data/menu.js"></script>
+<!-- defer: el navegador los baja mientras termina de leer el HTML y los
+     ejecuta después, en este mismo orden. Antes bloqueaban el final del
+     dibujado sin necesidad. -->
+<script defer src="../assets/js/data/config.js"></script>
+<script defer src="../assets/js/data/menu.js"></script>
 <!-- 2) Lógica -->
-<script src="../assets/js/store.js"></script>
-<script src="../assets/js/ui.js"></script>
-<script src="../assets/js/checkout.js"></script>
-<script src="../assets/js/app.js"></script>
+<script defer src="../assets/js/store.js"></script>
+<script defer src="../assets/js/ui.js"></script>
+<script defer src="../assets/js/checkout.js"></script>
+<script defer src="../assets/js/app.js"></script>
 </body>
 </html>
