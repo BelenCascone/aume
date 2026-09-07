@@ -14,6 +14,13 @@ const tipos = {
   '.json': 'application/manifest+json; charset=utf-8',
   '.png' : 'image/png',
   '.svg' : 'image/svg+xml',
+  /* Las fotos de los platos y de la portada. Sin estas tres líneas se
+     sirven como application/octet-stream y, por el nosniff de abajo, el
+     navegador las descarta SIN AVISAR: la página se ve igual que si las
+     fotos no estuvieran. */
+  '.jpg' : 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
   /* Sin el tipo correcto, X-Content-Type-Options: nosniff hace que el
      navegador descarte la tipografía y el sitio se vea con la de respaldo. */
   '.otf' : 'font/otf',

@@ -4,7 +4,7 @@
    se ve el menú actualizado; si no hay, la web igual abre.
    Al publicar cambios grandes, subí el número de VERSION.
    ===================================================================== */
-var VERSION = 'aume-v9';
+var VERSION = 'aume-v10';
 
 /* La pantalla de pedidos se guarda por sus dos direcciones —'/pedido/' y
    '/pedido/index.html'— porque el cache busca por la dirección pedida, y

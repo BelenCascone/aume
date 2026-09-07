@@ -189,18 +189,33 @@ html{ scroll-padding-top:82px; }
 
 /* ---------------------------------------------------------- 4. CIFRAS */
 /* La franja era negra: era la única superficie oscura de toda la página
-   y, en vez de dar ritmo, cortaba la lectura en dos. Ahora va sobre el
-   mismo crema y se separa con dos líneas, que es suficiente para que se
-   lea como una banda aparte sin sumar un color más. */
+   y, en vez de dar ritmo, cortaba la lectura en dos. Sacarle el color de
+   golpe la dejaba perdida sobre el crema, así que ahora las cifras van
+   en una tarjeta blanca elevada, que es el mismo recurso que usan todas
+   las demás tarjetas del sitio: destaca sin sumar un color más.
+
+   Las líneas divisorias no se dibujan una por una: el fondo de la
+   grilla es del color de la línea y cada cifra tapa su celda en blanco,
+   así que la separación aparece sola donde haya división, sean dos
+   columnas o tres. */
 .cifras{
   background:var(--crema);
-  border-block:1px solid var(--linea);
-  padding-block:clamp(28px, 4vw, 40px);
+  padding-block:clamp(8px, 2vw, 20px) clamp(28px, 5vw, 48px);
 }
 .cifras__in{
-  display:grid; gap:22px 14px;
+  display:grid; gap:1px;
   grid-template-columns:repeat(2, minmax(0,1fr));
   text-align:center;
+  background:var(--linea);
+  border:1px solid var(--linea);
+  border-radius:var(--r-lg);
+  overflow:hidden;
+  box-shadow:var(--sombra-md);
+}
+.cifra{
+  background:var(--blanco);
+  padding:clamp(18px, 3vw, 26px) 12px;
+  display:flex; flex-direction:column; justify-content:center;
 }
 @media (min-width:760px){
   .cifras__in{ grid-template-columns:repeat(3, minmax(0,1fr)); }
