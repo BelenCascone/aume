@@ -114,7 +114,15 @@ export async function leerPrecios(db) {
       id: p.id, grupo: p.grupo, nombre: p.nombre, detalle: p.detalle, precio: p.precio,
       activo: p.activo === 1
     })),
-    whatsapp: aj.whatsapp || ''
+    whatsapp: aj.whatsapp || '',
+
+    /* Los dos ajustes sueltos que la web publica y que hasta ahora sólo se
+       podían cambiar con SQL. `whatsapp` queda además arriba de todo, como
+       estaba, porque la landing lo lee de ahí. */
+    negocio: {
+      whatsapp: aj.whatsapp || '',
+      menuNota: aj.menu_nota || ''
+    }
   };
 
   if (fija) {
@@ -172,6 +180,20 @@ function importe(v, campo, errs, permiteNulo) {
   return n;
 }
 
+/* El WhatsApp se guarda sólo con dígitos: es lo que termina en
+   wa.me/<numero>. No se acepta vacío ni corto, porque es la única vía por
+   la que entran los pedidos: si queda mal, el negocio se queda sin pedidos
+   y nadie se entera hasta que un cliente avisa. */
+function telefono(v, errs) {
+  const n = String(v == null ? '' : v).replace(/[^\d]/g, '');
+  if (!n) { errs.push('El WhatsApp no puede quedar vacío.'); return null; }
+  if (n.length < 10 || n.length > 15) {
+    errs.push('El WhatsApp tiene que tener entre 10 y 15 dígitos, con código de país y de área y sin el +.');
+    return null;
+  }
+  return n;
+}
+
 function texto(v, max) {
   return String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, max);
 }
@@ -186,6 +208,12 @@ async function guardar(ctx) {
   const errs = [];
   const ops = [];
   const db = ctx.db;
+
+  /* Los textos sueltos viven todos en `ajustes`, una fila por clave. */
+  const ajuste = (clave, valor) => db.prepare(
+    "INSERT INTO ajustes (clave, valor, actualizado_en) VALUES (?, ?, datetime('now')) " +
+    'ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor, actualizado_en = excluded.actualizado_en'
+  ).bind(clave, valor);
 
   /* --- Precio de la vianda por tamaño --- */
   if (c.preciosVianda && typeof c.preciosVianda === 'object') {
@@ -203,8 +231,21 @@ async function guardar(ctx) {
     }
   }
   if (c.envio && typeof c.envio.aclaracion === 'string') {
-    ops.push(db.prepare("INSERT INTO ajustes (clave, valor, actualizado_en) VALUES ('envio_aclaracion', ?, datetime('now')) ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor, actualizado_en = excluded.actualizado_en")
-      .bind(texto(c.envio.aclaracion, 200)));
+    ops.push(ajuste('envio_aclaracion', texto(c.envio.aclaracion, 200)));
+  }
+
+  /* --- Datos del negocio ---
+     Las dos las lee la web pública: el WhatsApp arma el link por donde se
+     manda el pedido, y la nota es el cartel de hasta cuándo se puede pedir
+     (la sirve /api/menus). Antes de esto había que entrar a la base. */
+  if (c.negocio && typeof c.negocio === 'object') {
+    if (c.negocio.whatsapp !== undefined) {
+      const tel = telefono(c.negocio.whatsapp, errs);
+      if (tel !== null) ops.push(ajuste('whatsapp', tel));
+    }
+    if (typeof c.negocio.menuNota === 'string') {
+      ops.push(ajuste('menu_nota', texto(c.negocio.menuNota, 200)));
+    }
   }
 
   /* --- Packs semanales: lista y efectivo por tamaño --- */

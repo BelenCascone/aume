@@ -113,6 +113,22 @@ export async function correr(t) {
   t.igual('ningún dato inválido llegó a la base',
     db.prepare("SELECT precio AS p FROM tamanos WHERE id='estandar'").get().p, 9500);
 
+  /* ------------------------------------------- Datos del negocio */
+  t.igual('el WhatsApp sale de ajustes', p.negocio.whatsapp, '5493435038054');
+  t.ok('la nota del menú también', typeof p.negocio.menuNota === 'string');
+
+  r = await guardar({ negocio: { whatsapp: '+54 9 343 444 4444', menuNota: 'Hasta el sábado 20:00 hs.' } });
+  t.igual('guardar los datos del negocio responde ok', r.estado, 200);
+  t.igual('el WhatsApp se guarda sólo con dígitos',
+    db.prepare("SELECT valor AS v FROM ajustes WHERE clave='whatsapp'").get().v, '5493434444444');
+  t.igual('la nota del menú queda en la base',
+    db.prepare("SELECT valor AS v FROM ajustes WHERE clave='menu_nota'").get().v, 'Hasta el sábado 20:00 hs.');
+
+  await rechaza('un WhatsApp vacío', { negocio: { whatsapp: '' } });
+  await rechaza('un WhatsApp demasiado corto', { negocio: { whatsapp: '343503' } });
+  t.igual('un WhatsApp inválido no pisa el que estaba',
+    db.prepare("SELECT valor AS v FROM ajustes WHERE clave='whatsapp'").get().v, '5493434444444');
+
   db.close();
 
   /* --------------------------- Una base a la que le falta la migración

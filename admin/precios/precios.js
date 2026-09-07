@@ -49,6 +49,11 @@
   function pintar() {
     var d = datos;
 
+    /* --- Datos del negocio --- */
+    var ng = d.negocio || {};
+    el('iWhatsapp').value = ng.whatsapp || '';
+    el('iMenuNota').value = ng.menuNota || '';
+
     /* --- Vianda por tamaño --- */
     el('viandas').innerHTML = d.tamanos.map(function (t) {
       return campoPrecio('vianda-' + t.id, t.nombre, d.preciosVianda[t.id]);
@@ -177,6 +182,13 @@
   function resumenCambios(c) {
     var d = datos, r = [];
 
+    /* El WhatsApp se compara sin separadores: escribirlo con espacios no es
+       un cambio, se guarda igual. */
+    var ng = d.negocio || {}, soloNum = function (v) { return String(v || '').replace(/\D/g, ''); };
+    comparar(r, 'WhatsApp de los pedidos',
+      soloNum(ng.whatsapp), soloNum(c.negocio.whatsapp), comoTexto);
+    comparar(r, 'Nota arriba del menú', ng.menuNota, c.negocio.menuNota, comoTexto);
+
     d.tamanos.forEach(function (t) {
       comparar(r, 'Vianda ' + t.nombre, d.preciosVianda[t.id], c.preciosVianda[t.id]);
     });
@@ -301,6 +313,10 @@
     }).filter(function (p) { return p.nombre.trim(); });
 
     return {
+      negocio: {
+        whatsapp: el('iWhatsapp').value,
+        menuNota: el('iMenuNota').value
+      },
       preciosVianda: preciosVianda,
       envio: {
         aclaracion: el('iAclaracion').value,
