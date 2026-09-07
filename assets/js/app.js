@@ -37,9 +37,33 @@
     pintarVista();
     UI.pintarBarra();
     UI.pintarCarrito();
+    espiarDias();
 
     /* El resumen del checkout sólo tiene sentido con ítems cargados */
     if (Store.totales().cantidad > 0) Checkout.pintarResumen();
+  }
+
+  /* ------------------------------------------------- Repintado parcial
+
+     Sumar o restar una unidad cambia una línea, no la pantalla. Antes,
+     cada toque de "+" volvía a armar con innerHTML los cinco días
+     enteros, sus veinte botones y el carrito; en un celular modesto eso
+     se siente como un tironcito en cada toque.
+
+     Ahora se cambia sólo el control que cambió, el globito de ese día y
+     la barra de abajo. El carrito y el resumen del checkout se
+     redibujan únicamente si están a la vista.
+
+     Si el control no está en pantalla —se cambió de vista, llegó un
+     menú nuevo desde la API— UI.repintarClave devuelve false y se
+     rehace todo como antes: nunca queda una pantalla a medias.       */
+
+  function pintarParcial(clave) {
+    if (!UI.repintarClave(clave)) { pintarTodo(); return; }
+
+    UI.pintarBarra();
+    if (UI.esLateral('panelCarrito') || UI.panelActivo() === 'panelCarrito') UI.pintarCarrito();
+    if (UI.panelActivo() === 'panelCheckout' && Store.totales().cantidad > 0) Checkout.pintarResumen();
   }
 
   /* Vuelve a poner el foco en el botón equivalente después de re-dibujar
@@ -59,10 +83,22 @@
      descontar la altura de la barra superior fija y para que funcione
      también con un panel abierto. */
 
-  function desplazarA(nodo) {
-    var topbar = document.querySelector('.topbar');
-    var alto = topbar ? topbar.offsetHeight : 0;
-    var destino = nodo.getBoundingClientRect().top + window.pageYOffset - alto - 12;
+  /* Alto de todo lo que queda pegado arriba en este momento: la barra
+     del logo con los modos y, si se está mirando el menú, la fila de
+     las cuatro categorías. Antes sólo se descontaba la primera, así que
+     al saltar a una sección el título quedaba tapado por las
+     categorías. */
+  function topeFijo() {
+    var barra = document.querySelector('.topbar');
+    var tabs  = document.querySelector('.tabs-wrap');
+    var alto  = barra ? barra.offsetHeight : 0;
+    if (tabs && tabs.offsetParent !== null) alto += tabs.offsetHeight;
+    return alto;
+  }
+
+  function desplazarA(nodo, margen) {
+    var destino = nodo.getBoundingClientRect().top + window.pageYOffset -
+                  topeFijo() - (margen == null ? 12 : margen);
     if (destino < 0) destino = 0;
 
     try {
@@ -72,12 +108,56 @@
     }
   }
 
+  /* Cambiar de menú o de forma de pedir reemplaza toda la lista. Si se
+     estaba en la mitad de la página, lo que aparece arriba es el medio
+     de una lista nueva —o, peor, el título tapado por la cabecera—.
+     Volvemos al principio de lo que se acaba de elegir. Si ya se estaba
+     arriba no se toca nada: nadie quiere que la página se le mueva sin
+     motivo. */
+  function alPrincipio(nodo) {
+    if (!nodo) return;
+    var y = nodo.getBoundingClientRect().top + window.pageYOffset - topeFijo() - 8;
+    if (y < 0) y = 0;
+    if (window.pageYOffset <= y + 4) return;
+    try { window.scrollTo({ top: y, behavior: 'smooth' }); }
+    catch (e) { window.scrollTo(0, y); }
+  }
+
+  /* ------------------------------------------- Qué día se está mirando
+
+     Una franja finita justo debajo de la cabecera: la tarjeta que pasa
+     por ahí es "el día que se está mirando", y se marca en los accesos
+     rápidos. Va con IntersectionObserver y no con un listener de
+     scroll: el navegador avisa solo, sin hacer cuentas en cada pixel. */
+
+  var espia = null;
+
+  function espiarDias() {
+    if (espia) { espia.disconnect(); espia = null; }
+    if (Store.estado.modo !== 'dia' || !('IntersectionObserver' in window)) return;
+
+    var tope = topeFijo();
+    var alto = window.innerHeight || 800;
+    var abajo = alto - tope - 72;
+    if (abajo < 0) abajo = 0;
+
+    espia = new IntersectionObserver(function (entradas) {
+      for (var i = 0; i < entradas.length; i++) {
+        if (entradas[i].isIntersecting) UI.marcarDiaNav(entradas[i].target.dataset.dia);
+      }
+    }, { rootMargin: (-tope - 2) + 'px 0px ' + (-abajo) + 'px 0px', threshold: 0 });
+
+    var tarjetas = document.querySelectorAll('#dias .dia[data-dia]');
+    for (var j = 0; j < tarjetas.length; j++) espia.observe(tarjetas[j]);
+  }
+
   /* -------------------------------------------------- Vaciar el pedido
      Confirmación dentro de la página (nada de confirm() nativo: los
      navegadores lo bloquean en varias situaciones y el botón no hacía nada).
      El primer toque arma el botón, el segundo vacía. Se desarma solo. */
 
   var timerVaciar = null;
+  var timerMedir = null;
 
   function desarmarVaciar() {
     var b = el('btnVaciar');
@@ -216,7 +296,15 @@
       Store.setModo(b.dataset.modo);
       var nuevo = el('modos').querySelector('[data-modo="' + b.dataset.modo + '"]');
       if (nuevo) nuevo.focus({ preventScroll: true });
-      if (cambia) UI.reasentar(document.querySelector('.vista:not([hidden])'));
+      if (cambia) alPrincipio(document.querySelector('.vista:not([hidden])'));
+    });
+
+    /* --- Accesos rápidos por día --- */
+    el('dianav').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-ir]');
+      if (!b) return;
+      var tarjeta = document.querySelector('#dias .dia[data-dia="' + b.dataset.ir + '"]');
+      if (tarjeta) desplazarA(tarjeta, 8);
     });
 
     /* --- Pestañas de categoría --- */
@@ -228,7 +316,7 @@
       /* Devolvemos el foco a la pestaña recién elegida */
       var nueva = el('tabs').querySelector('[data-cat="' + b.dataset.cat + '"]');
       if (nueva) nueva.focus({ preventScroll: true });
-      if (cambia) UI.reasentar(el('dias'));
+      if (cambia) alPrincipio(el('dias'));
     });
 
     /* Navegación con flechas entre pestañas (accesibilidad) */
@@ -241,7 +329,7 @@
       Store.setCategoria(ids[j]);
       var nueva = el('tabs').querySelector('[data-cat="' + ids[j] + '"]');
       if (nueva) nueva.focus({ preventScroll: true });
-      if (j !== i) UI.reasentar(el('dias'));
+      if (j !== i) alPrincipio(el('dias'));
     });
 
     /* --- Sumar / restar desde las tarjetas de día --- */
@@ -278,7 +366,18 @@
     });
 
     /* --- Abrir / cerrar paneles --- */
-    el('btnVerPedido').addEventListener('click', function () { UI.abrirPanel('panelCarrito'); });
+    /* En celular abre el panel; en escritorio el pedido ya está en la
+       columna de la derecha, así que lleva hasta él y lo destaca un
+       instante en vez de abrir un panel encima de todo. */
+    el('btnVerPedido').addEventListener('click', function () {
+      if (!UI.esLateral('panelCarrito')) { UI.abrirPanel('panelCarrito'); return; }
+      var lat = el('lateral');
+      if (!lat) return;
+      try { lat.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) { /* da igual */ }
+      lat.classList.remove('lateral--mira');
+      void lat.offsetWidth;
+      lat.classList.add('lateral--mira');
+    });
     el('btnIrCheckout').addEventListener('click', abrirCheckout);
 
     el('velo').addEventListener('click', UI.cerrarPanel);
@@ -309,6 +408,44 @@
     });
   }
 
+  /* ------------------------------------------- El pedido en escritorio
+
+     En una pantalla ancha, el pedido no tiene por qué esconderse detrás
+     de un botón: hay lugar de sobra para tenerlo siempre a la vista,
+     al lado del menú. Es el mismo panel de siempre —los mismos ítems,
+     los mismos botones, el mismo código—, mudado a la columna de la
+     derecha y sin el velo ni el rol de ventana modal, que ahí ya no
+     corresponden.
+
+     Al angostar la ventana vuelve a ser el panel que sube desde abajo.
+     Nada se duplica: hay un solo carrito en toda la página.          */
+
+  var anchoSobra = window.matchMedia ? window.matchMedia('(min-width:1100px)') : null;
+
+  function acomodarPedido() {
+    var p = el('panelCarrito');
+    var lat = el('lateral');
+    if (!p || !lat) return;
+
+    if (anchoSobra && anchoSobra.matches) {
+      if (p.parentNode !== lat) lat.appendChild(p);
+      if (UI.panelActivo() === 'panelCarrito') UI.cerrarPanel();
+      lat.hidden = false;
+      p.hidden = false;
+      p.classList.add('panel--lateral');
+      p.classList.remove('panel--on');
+      p.removeAttribute('role');
+      p.removeAttribute('aria-modal');
+    } else {
+      if (p.parentNode !== document.body) document.body.appendChild(p);
+      lat.hidden = true;
+      p.classList.remove('panel--lateral');
+      p.setAttribute('role', 'dialog');
+      p.setAttribute('aria-modal', 'true');
+      if (!p.classList.contains('panel--on')) p.hidden = true;
+    }
+  }
+
   /* ------------------------------------------------------------ Arranque */
 
   function iniciar() {
@@ -323,13 +460,29 @@
 
     UI.pintarEstaticos();
     Checkout.montar();
+    acomodarPedido();
     pintarTodo();
 
     conectarEventos();
 
-    /* Cada cambio de estado vuelve a dibujar lo que corresponda */
-    Store.suscribir(function () {
-      pintarTodo();
+    if (anchoSobra) {
+      var mudar = function () { acomodarPedido(); UI.pintarCarrito(); };
+      if (anchoSobra.addEventListener) anchoSobra.addEventListener('change', mudar);
+      else if (anchoSobra.addListener) anchoSobra.addListener(mudar);
+    }
+
+    /* La franja que decide qué día se está mirando depende del alto de
+       la ventana: si gira el celular hay que volver a medirla. */
+    window.addEventListener('resize', function () {
+      clearTimeout(timerMedir);
+      timerMedir = setTimeout(espiarDias, 200);
+    }, { passive: true });
+
+    /* Cada cambio de estado vuelve a dibujar lo que corresponda: una
+       unidad de más toca dos nodos, todo lo demás rehace la pantalla. */
+    Store.suscribir(function (detalle) {
+      if (detalle && detalle.tipo === 'cantidad') pintarParcial(detalle.clave);
+      else pintarTodo();
 
       /* Si el carrito quedó vacío con el checkout abierto, volvemos atrás */
       if (Store.totales().cantidad === 0 && UI.panelActivo() === 'panelCheckout') {

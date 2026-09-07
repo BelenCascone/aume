@@ -153,14 +153,90 @@
     });
   }
 
+  /* -------------------------------------------------- Aparecer al scrollear
+
+     La landing revela cada bloque cuando entra en pantalla. Acá pasa lo
+     mismo con las tarjetas —los días, las promos, los productos—, con
+     una diferencia: esas tarjetas las dibuja el JS y se vuelven a
+     dibujar al cambiar de menú, así que no alcanza con escribir una
+     clase en el HTML.
+
+     Las que ya están en pantalla entran solas, una tras otra (60ms de
+     diferencia: se lee como "una después de la otra" sin hacer esperar).
+     Las de más abajo esperan a que se llegue hasta ellas.
+
+     Con "menos movimiento" pedido en el sistema, o sin
+     IntersectionObserver, no se toca nada: las tarjetas nacen visibles.  */
+
+  var mirada = null;
+
+  function ojo() {
+    if (mirada) return mirada;
+    if (sinMovimiento() || !('IntersectionObserver' in global)) return null;
+
+    mirada = new global.IntersectionObserver(function (entradas) {
+      for (var i = 0; i < entradas.length; i++) {
+        if (!entradas[i].isIntersecting) continue;
+        mirada.unobserve(entradas[i].target);
+        entradas[i].target.classList.add('surge--on');
+      }
+    }, { rootMargin: '0px 0px -6% 0px', threshold: 0.04 });
+
+    return mirada;
+  }
+
+  function revelar(cont) {
+    if (!cont || !ojo()) return;
+
+    var hijos = cont.children;
+    var alto = global.innerHeight || 800;
+    var enPantalla = 0;
+
+    for (var i = 0; i < hijos.length; i++) {
+      var n = hijos[i];
+      n.classList.add('surge');
+
+      if (n.getBoundingClientRect().top < alto) {
+        n.style.transitionDelay = (Math.min(enPantalla, 6) * 0.06) + 's';
+        enPantalla++;
+        soltar(n);
+      } else {
+        n.style.transitionDelay = '0s';
+        mirada.observe(n);
+      }
+    }
+  }
+
+  /* Dos cuadros de espera para que el navegador alcance a dibujar el
+     estado escondido: sin eso no hay transición, hay salto. */
+  function soltar(nodo) {
+    global.requestAnimationFrame(function () {
+      global.requestAnimationFrame(function () { nodo.classList.add('surge--on'); });
+    });
+  }
+
   /* ---------------------------------------------- Paneles (bottom sheet) */
 
   var panelAbierto = null;
   var focoPrevio = null;
 
+  /* En escritorio el pedido vive en la columna de la derecha y no es un
+     panel: pedir que se "abra" no tiene sentido, y abrirlo taparía la
+     pantalla con un velo por nada. */
+  function esLateral(id) {
+    var p = el(id);
+    return !!(p && p.classList.contains('panel--lateral'));
+  }
+
   function abrirPanel(id) {
     var p = el(id);
-    if (!p) return;
+    if (!p || esLateral(id)) return;
+
+    /* El carrito se dibuja al abrirlo, no en cada toque de "+": mientras
+       está cerrado no hay ningún motivo para rehacerlo, y rehacerlo era
+       parte de lo que hacía pesado cada toque. */
+    if (id === 'panelCarrito') pintarCarrito();
+
     focoPrevio = document.activeElement;
 
     el('velo').hidden = false;
@@ -265,6 +341,44 @@
     MODOS.forEach(function (m) {
       el(m.vista).hidden = m.id !== activo;
     });
+
+    /* Los accesos rápidos por día sólo tienen sentido mirando el menú */
+    document.documentElement.classList.toggle('en-dia', activo === 'dia');
+  }
+
+  /* -------------------------------------------- Accesos rápidos por día
+
+     Cinco pastillas chiquitas —Lun, Mar, Mié, Jue, Vie— que llevan
+     directo a la tarjeta de ese día. Viven en la fila del logo, en el
+     lugar que ocupa la semana: aparecen recién cuando se scrollea, que
+     es cuando dejan de verse todos los días juntos y empieza a hacer
+     falta saltar. Así no cuestan ni un pixel de alto de pantalla.
+
+     Un día cerrado (feriado, o uno que ya pasó) se muestra apagado pero
+     lleva igual a su tarjeta: la semana se lee completa.               */
+
+  function pintarDiaNav() {
+    var cont = el('dianav');
+    if (!cont) return;
+
+    cont.innerHTML = CFG.dias.map(function (d) {
+      var cerrado = estadoDia(d.id) !== 'abierto';
+      return '' +
+        '<button type="button" class="dianav__b' + (cerrado ? ' dianav__b--off' : '') + '"' +
+        ' data-ir="' + esc(d.id) + '" aria-label="Ir a ' + esc(d.nombre) + '">' +
+          esc(d.nombre.slice(0, 3)) +
+        '</button>';
+    }).join('');
+  }
+
+  /* Marca en los accesos rápidos el día que se está mirando */
+  function marcarDiaNav(diaId) {
+    var cont = el('dianav');
+    if (!cont) return;
+    var b = cont.children;
+    for (var i = 0; i < b.length; i++) {
+      b[i].classList.toggle('dianav__b--aqui', b[i].dataset.ir === diaId);
+    }
   }
 
   /* ---------------------------------------------------------- Tabs */
@@ -317,10 +431,108 @@
       '</div>';
   }
 
+  /* Con qué se dibujó el control de cada clave. Se guarda al dibujarlo
+     para poder volver a dibujar ESE control solo —y no la pantalla
+     entera— cuando cambia su cantidad. Ver repintarClave(). */
+  var fichas = {};
+
   function control(clave, etiqueta, precioTxt, extraTxt, aria, datos, etiquetaStepper) {
+    fichas[clave] = {
+      etiqueta: etiqueta, precioTxt: precioTxt, extraTxt: extraTxt,
+      aria: aria, datos: datos, etiquetaStepper: etiquetaStepper
+    };
+    return dibujarControl(clave);
+  }
+
+  function dibujarControl(clave) {
+    var f = fichas[clave];
+    if (!f) return '';
     var n = Store.cantidadDeClave(clave);
-    if (n === 0) return botonAgregar(clave, etiqueta, precioTxt, extraTxt, 'Agregar ' + aria, datos);
-    return stepper(clave, n, etiquetaStepper || etiqueta, aria, datos);
+    if (n === 0) {
+      return botonAgregar(clave, f.etiqueta, f.precioTxt, f.extraTxt, 'Agregar ' + f.aria, f.datos);
+    }
+    return stepper(clave, n, f.etiquetaStepper || f.etiqueta, f.aria, f.datos);
+  }
+
+  /* ------------------------------------------------- Repintado parcial
+
+     Tocar "+" cambia UNA línea del pedido. Hasta acá eso rehacía con
+     innerHTML la vista entera: los cinco días, sus veinte botones y el
+     carrito, en cada toque. En una compu no se nota; en el celular de
+     cinco años con el que la mayoría va a pedir, sí.
+
+     Ahora se cambia sólo lo que cambió: el control de esa clave (esté
+     donde esté), el globito de cuántas hay de ese día y la barra de
+     abajo. El resto de la pantalla no se toca, así que no hay que
+     volver a medirla ni a dibujarla.
+
+     Si por algún motivo el control no está en pantalla (se cambió de
+     vista, llegó un menú nuevo), devuelve false y quien llama rehace
+     todo como antes: nunca queda una pantalla a medias.              */
+
+  function ranuraDe(nodo) {
+    if (!nodo || !nodo.closest) return null;
+    if (nodo.closest('#carritoContenido')) return null;   /* el carrito va aparte */
+    return nodo.classList.contains('tamano') ? nodo : nodo.closest('.stepper');
+  }
+
+  function repintarClave(clave) {
+    if (!fichas[clave]) return false;
+
+    var nodos = document.querySelectorAll('[data-clave="' + clave + '"]');
+    var ranuras = [];
+    for (var i = 0; i < nodos.length; i++) {
+      var r = ranuraDe(nodos[i]);
+      if (r && ranuras.indexOf(r) < 0) ranuras.push(r);
+    }
+    if (!ranuras.length) return false;
+
+    var html = dibujarControl(clave);
+    for (var j = 0; j < ranuras.length; j++) {
+      var molde = document.createElement('div');
+      molde.innerHTML = html;
+      var nuevo = molde.firstElementChild;
+      if (nuevo && ranuras[j].parentNode) ranuras[j].parentNode.replaceChild(nuevo, ranuras[j]);
+    }
+
+    /* Si era una vianda, el día también lleva la cuenta arriba */
+    var partes = String(clave).split('|');
+    if (partes[0] === 'vianda') actualizarDia(partes[1]);
+    return true;
+  }
+
+  /* El globito con cuántas viandas hay de ese día. Cuenta la categoría
+     que se está mirando y la opción fija, igual que al dibujar. */
+  function actualizarDia(diaId) {
+    var tarjeta = document.querySelector('#dias .dia[data-dia="' + diaId + '"]');
+    var cab = tarjeta ? tarjeta.querySelector('.dia__cab') : null;
+    if (!cab) return;
+
+    var catId = Store.estado.categoria;
+    var n = 0;
+    CFG.tamanos.forEach(function (t) {
+      n += Store.cantidadDe(diaId, catId, t.id);
+      if (CFG.extraFijo) n += Store.cantidadDe(diaId, CFG.extraFijo.id, t.id);
+    });
+
+    var globo = cab.querySelector('.dia__n');
+    if (!n) {
+      if (globo && globo.parentNode) globo.parentNode.removeChild(globo);
+      return;
+    }
+    if (!globo) {
+      globo = document.createElement('span');
+      globo.className = 'dia__n';
+      cab.appendChild(globo);
+    }
+    if (globo.textContent !== String(n)) {
+      globo.textContent = n;
+      if (!sinMovimiento()) {
+        globo.classList.remove('dia__n--cambia');
+        void globo.offsetWidth;
+        globo.classList.add('dia__n--cambia');
+      }
+    }
   }
 
   /* ------------------------------------------------------ Días / menú */
@@ -369,9 +581,9 @@
 
   /* Tarjeta de un día que no se puede pedir. Sin botones: la única forma
      de que no se sume algo que no se puede entregar es no ofrecerlo. */
-  function diaCerrado(cabecera, motivo, detalle) {
+  function diaCerrado(abre, cabecera, motivo, detalle) {
     return '' +
-      '<article class="dia dia--cerrado">' + cabecera +
+      '<article class="dia dia--cerrado"' + abre + '>' + cabecera +
         '<div class="dia__cuerpo">' +
           '<p class="dia__plato">' + esc(motivo) + '</p>' +
           '<p class="dia__desc">' + esc(detalle) + '</p>' +
@@ -401,19 +613,21 @@
           (enDia ? '<span class="dia__n">' + enDia + '</span>' : '') +
         '</div>';
 
+      var abre = ' data-dia="' + esc(d.id) + '"';
+
       var estado = estadoDia(d.id);
       if (estado === 'feriado') {
-        return diaCerrado(cabecera, 'Feriado',
+        return diaCerrado(abre, cabecera, 'Feriado',
           'Este día no cocinamos. Volvemos al día siguiente.');
       }
       if (estado === 'pasado') {
-        return diaCerrado(cabecera, 'Ya pasó',
+        return diaCerrado(abre, cabecera, 'Ya pasó',
           'Este día ya no se puede pedir. Elegí uno de los que vienen.');
       }
 
       if (!p) {
         return '' +
-          '<article class="dia">' + cabecera +
+          '<article class="dia"' + abre + '>' + cabecera +
             '<div class="dia__cuerpo">' +
               '<p class="dia__vacio">Esta semana no hay opción ' +
               esc(Store.buscarCategoria(catId).nombre.toLowerCase()) + ' para este día.</p>' +
@@ -429,7 +643,7 @@
         : '';
 
       return '' +
-        '<article class="dia">' + cabecera +
+        '<article class="dia"' + abre + '>' + cabecera +
           '<div class="dia__cuerpo">' +
             '<p class="dia__plato">' + esc(p.nombre) + '</p>' +
             (p.descripcion ? '<p class="dia__desc">' + esc(p.descripcion) + '</p>' : '') +
@@ -439,6 +653,9 @@
           '</div>' +
         '</article>';
     }).join('');
+
+    revelar(el('dias'));
+    pintarDiaNav();
   }
 
   /* --------------------------------------------- Promos y plan mensual
@@ -484,6 +701,8 @@
           grillaTamanos(botones) +
         '</article>';
     }).join('');
+
+    revelar(el('packs'));
   }
 
   function pintarPlan() {
@@ -526,6 +745,8 @@
         '</p>' +
         grillaTamanos(botones) +
       '</article>';
+
+    revelar(cont);
   }
 
   /* ------------------------------------------------------ Para sumar */
@@ -580,6 +801,8 @@
           }).join('') + '</div>' +
         '</section>';
     }).join('');
+
+    revelar(cont);
   }
 
   /* ------------------------------------------------- Barra inferior */
@@ -606,6 +829,14 @@
     barra.classList.toggle('barra--vacia', vacio);
     el('barraN').textContent = vacio ? 'Tu pedido está vacío' : resumenCorto(t);
     el('barraT').textContent = vacio ? 'Elegí lo que quieras sumar' : Store.plata(t.total);
+
+    /* Cuántas cosas hay, en un globito sobre el botón. Va como atributo
+       y lo dibuja el CSS: no hace falta un nodo más ni tocar el HTML. */
+    var b = el('btnVerPedido');
+    if (b) {
+      if (vacio) b.removeAttribute('data-n');
+      else b.setAttribute('data-n', t.cantidad);
+    }
   }
 
   /* ------------------------------------------------- Panel carrito */
@@ -778,18 +1009,6 @@
       cambio = true;
     }
 
-    /* Puntos de retiro y métodos de pago: la landing ya los tomaba de la
-       API y esta pantalla no, así que un punto cargado desde el panel no
-       aparecía acá y uno dado de baja se seguía pudiendo elegir — y el
-       servidor lo rechazaba al confirmar el pedido. */
-    var puntos = lista(d.puntosRetiro);
-    if (puntos) { CFG.puntosRetiro = puntos; cambio = true; }
-
-    var pagos = lista(d.metodosPago);
-    if (pagos) { CFG.metodosPago = pagos; cambio = true; }
-
-    if (typeof d.whatsapp === 'string' && d.whatsapp) { CFG.whatsapp = d.whatsapp; cambio = true; }
-
     return cambio;
   }
 
@@ -863,20 +1082,6 @@
       cuandoArranco(function () {
         try {
           pintarEstaticos();
-
-          /* El checkout se arma una sola vez al arrancar, con los datos de
-             config.js. Si no lo repintamos acá, los puntos de retiro y los
-             medios de pago que llegaron de la base no aparecen donde el
-             cliente elige. setPunto vuelve a validar el elegido: si el
-             punto se dio de baja, queda en null en vez de viajar al
-             servidor y que rechace el pedido. */
-          var CO = global.AUME.Checkout;
-          if (cambio && CO) {
-            global.AUME.Store.setPunto(global.AUME.Store.estado.punto);
-            CO.pintarPuntos();
-            CO.pintarZonas();
-            CO.pintarPagos();
-          }
           if (cambioMenu) {
             var sacadas = limpiarCarritoViejo();
             if (sacadas) toast('Actualizamos el menú y sacamos lo que ya no se puede pedir');
@@ -899,6 +1104,12 @@
     volarAlPedido: volarAlPedido,
     marcarContador: marcarContador,
     reasentar: reasentar,
+    revelar: revelar,
+    repintarClave: repintarClave,
+    actualizarDia: actualizarDia,
+    pintarDiaNav: pintarDiaNav,
+    marcarDiaNav: marcarDiaNav,
+    esLateral: esLateral,
     abrirPanel: abrirPanel,
     cerrarPanel: cerrarPanel,
     panelActivo: function () { return panelAbierto; },

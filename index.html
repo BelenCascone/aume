@@ -18,7 +18,12 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Caveat:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- La tipografía de la marca, en WOFF2: las dos juntas pesan 34 KB en
+     vez de 83 KB, y se piden ya en vez de esperar a que el CSS se lea. -->
+<link rel="preload" href="assets/fonts/GlacialIndifference-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/GlacialIndifference-Bold.woff2" as="font" type="font/woff2" crossorigin>
 
 <!-- styles.css primero: de ahí salen la paleta, las tipografías y los
      botones. La landing NO redefine ni un color de marca, sólo agrega
