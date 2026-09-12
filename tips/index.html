@@ -17,7 +17,10 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Caveat:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="preload" href="../assets/fonts/GlacialIndifference-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/GlacialIndifference-Bold.woff2" as="font" type="font/woff2" crossorigin>
 
 <link rel="stylesheet" href="../assets/css/styles.css">
 <link rel="stylesheet" href="../assets/css/landing.css">
@@ -30,32 +33,55 @@
 
 <a class="saltar" href="#contenido">Saltar al contenido</a>
 
-<!-- La misma cabecera de la landing: el logo primero y fijo. -->
-<header class="cab">
+<!-- La misma cabecera del resto del sitio. -->
+<header class="cab" id="cab">
   <div class="env cab__in">
     <a class="cab__marca" href="../" aria-label="AUMÉ, ir al inicio">
       <img src="../assets/img/logo.png" alt="AUMÉ" width="594" height="387">
       <span class="cab__tag">viandas</span>
     </a>
 
-    <nav class="cab__nav" aria-label="Secciones">
-      <a href="../#menu">Menú</a>
-      <a href="../#como">Cómo funciona</a>
-      <a href="../#empresas">Empresas</a>
-      <a href="../#tips">Tips</a>
-      <a href="../#entregas">Dónde llega</a>
-    </nav>
-
     <a class="btn btn--primario cab__cta" href="../pedido/index.html">Pedir mi vianda</a>
   </div>
+
+  <nav class="cab__nav" aria-label="Secciones del sitio">
+    <div class="env cab__nav-in">
+      <a href="../">Inicio</a>
+      <a href="../menu.html">Menú</a>
+      <a href="../precios.html">Precios y cómo pedir</a>
+      <a href="../nosotros.html">Nosotros</a>
+      <a href="./" aria-current="page">Tips y recetas</a>
+    </div>
+  </nav>
+
+  <div class="progreso" aria-hidden="true"><span class="progreso__barra"></span></div>
 </header>
 
 <main id="contenido">
-  <!-- El contenido lo escribe assets/js/nota.js con lo que devuelva la
-       API. Mientras tanto, un cartel: nunca una pantalla en blanco. -->
+
+  <!-- ============================================================== GRILLA
+       Todo lo publicado desde el panel. Con ?nota=<id> en la dirección,
+       esta sección se esconde y abajo se abre esa nota sola: son las dos
+       caras de la misma página (assets/js/nota.js). -->
+  <section class="seccion-l" id="grilla">
+    <div class="env rev">
+      <p class="ojo">Para leer</p>
+      <h1 class="t2">Tips, recetas e info nutricional</h1>
+      <p class="baj">
+        Lo que compartimos en Instagram, acá ordenado y sin que se pierda entre
+        las historias. Cada nota tiene su propio link para mandar por WhatsApp.
+      </p>
+
+      <div class="tips" id="tips-lista"></div>
+    </div>
+  </section>
+
+  <!-- El contenido de una nota lo escribe assets/js/nota.js con lo que
+       devuelva la API. Mientras tanto, un cartel: nunca una pantalla en
+       blanco. -->
   <article class="env nota rev" id="nota" hidden></article>
 
-  <p class="env nota__estado" id="estado">Buscando la publicación…</p>
+  <p class="env nota__estado" id="estado">Buscando las publicaciones…</p>
 </main>
 
 <footer class="pie-l">
@@ -67,9 +93,10 @@
     <div class="pie-l__datos" id="pieDatos"></div>
     <nav class="pie-l__nav" aria-label="Secciones del pie">
       <a href="../pedido/index.html">Pedir</a>
-      <a href="../#menu">Menú de la semana</a>
-      <a href="../#tips">Tips y recetas</a>
-      <a href="../#entregas">Puntos de retiro</a>
+      <a href="../">Inicio</a>
+      <a href="../menu.html">Menú de la semana</a>
+      <a href="../precios.html">Precios y cómo pedir</a>
+      <a href="../nosotros.html">Nosotros</a>
     </nav>
   </div>
 </footer>

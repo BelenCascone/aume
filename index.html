@@ -42,26 +42,29 @@
 <a class="saltar" href="#contenido">Saltar al contenido</a>
 
 <!-- ============================================================ CABECERA
-     El logo va primero y queda fijo mientras se scrollea, igual que en la
-     pantalla de pedidos. El botón de pedir nunca se va de la pantalla. -->
+     El logo va primero y queda fijo mientras se scrollea. Abajo, la fila
+     de páginas: en celular se desliza en horizontal en vez de esconderse
+     detrás de un botón de hamburguesa, porque lo que hay ahí adentro
+     —el menú y los precios— es justo lo que queremos que encuentren. -->
 <header class="cab" id="cab">
   <div class="env cab__in">
-    <a class="cab__marca" href="#inicio" aria-label="AUMÉ, ir al principio">
+    <a class="cab__marca" href="index.html" aria-label="AUMÉ, ir al inicio">
       <img src="assets/img/logo.png" alt="AUMÉ" width="594" height="387">
       <span class="cab__tag">viandas</span>
     </a>
 
-    <nav class="cab__nav" aria-label="Secciones">
-      <a href="#menu">Menú</a>
-      <a href="#como">Cómo funciona</a>
-      <a href="#empresas">Empresas</a>
-      <a href="#tips">Tips</a>
-      <a href="#nosotros">Nosotros</a>
-      <a href="#entregas">Dónde llega</a>
-    </nav>
-
     <a class="btn btn--primario cab__cta" href="pedido/index.html">Pedir mi vianda</a>
   </div>
+
+  <nav class="cab__nav" aria-label="Secciones del sitio">
+    <div class="env cab__nav-in">
+      <a href="index.html" aria-current="page">Inicio</a>
+      <a href="menu.html">Menú</a>
+      <a href="precios.html">Precios y cómo pedir</a>
+      <a href="nosotros.html">Nosotros</a>
+      <a href="tips/">Tips y recetas</a>
+    </div>
+  </nav>
 
   <!-- Cuánto falta para el final de la página. La llena movimiento.js;
        sin JS queda en cero y no se ve. -->
@@ -70,9 +73,7 @@
 
 <main id="contenido">
 
-  <!-- =============================================================== 1. PORTADA
-       Portada tipográfica: sin foto. Se apoya en Playfair y en el color
-       de marca hasta que llegue el material fotográfico. -->
+  <!-- =============================================================== 1. PORTADA -->
   <section class="hero" id="inicio">
     <div class="env hero__in">
       <div class="hero__texto rev">
@@ -88,7 +89,7 @@
         </p>
         <div class="hero__acciones">
           <a class="btn btn--primario" href="pedido/index.html">Pedir mi vianda</a>
-          <a class="btn btn--fantasma" href="#menu">Ver el menú de esta semana</a>
+          <a class="btn btn--fantasma" href="menu.html">Ver el menú de esta semana</a>
         </div>
         <p class="hero__firma">Aurea Mediocritas — la justa medida entre dos extremos.</p>
       </div>
@@ -113,131 +114,44 @@
     <div class="env cifras__in rev" id="cifras"></div>
   </section>
 
-  <!-- ================================================== 3. MENÚ DE ESTA SEMANA -->
-  <section class="seccion-l" id="menu">
+  <!-- ==================================================== 3. CUÁNDO HAY VIANDA
+       Los días los escribe landing.js con CFG.dias: si mañana se cocina
+       también el sábado, el círculo se prende solo. -->
+  <section class="seccion-l" id="cuando">
+    <div class="env rev">
+      <p class="ojo">Cuándo hay vianda</p>
+      <h2 class="t2">De lunes a viernes, cocinado esa misma mañana</h2>
+      <p class="baj">
+        Los pedidos se arman en la web y se confirman por WhatsApp.
+      </p>
+      <div class="diasv" id="diasv" role="list" aria-label="Días con vianda"></div>
+    </div>
+  </section>
+
+  <!-- ====================================================== 4. ADELANTO DEL MENÚ
+       La home muestra tres días; la semana entera vive en menu.html. Es
+       lo que hace que esta página se lea en cuatro pantallas y no en
+       doce. -->
+  <section class="seccion-l seccion-l--alt" id="menu">
     <div class="env rev">
       <p class="ojo">El menú</p>
-      <h2 class="t2">Lo que se come esta semana</h2>
+      <h2 class="t2">Un adelanto de esta semana</h2>
       <p class="baj" id="semanaLabel">Cargando el menú de la semana…</p>
 
-      <div class="semana" id="semana"></div>
+      <!-- data-limite: cuántos días entran acá. Sin el atributo se
+           dibuja la semana completa, que es lo que hace menu.html. -->
+      <div class="semana semana--riel" id="semana" data-limite="3"></div>
 
       <div class="cierre-bloque">
-        <a class="btn btn--primario" href="pedido/index.html#menu">Pedir del menú de esta semana</a>
+        <a class="btn btn--fantasma" href="menu.html">Ver la semana completa</a>
       </div>
     </div>
   </section>
 
-  <!-- ===================================================== 4. LOS CUATRO MENÚS -->
-  <section class="seccion-l seccion-l--alt" id="nuestros-menus">
-    <div class="env rev">
-      <h2 class="t2">Cuatro menús distintos, todos los días</h2>
-      <p class="baj">
-        Elegís el que va con vos, y podés cambiar de menú cuando quieras. Todos se
-        cocinan el mismo día, con ingredientes frescos.
-      </p>
-
-      <div class="tipos" id="tipos"></div>
-
-      <p class="fija" id="fija"></p>
-    </div>
-  </section>
-
-  <!-- ========================================================= 5. CÓMO FUNCIONA -->
-  <section class="seccion-l" id="como">
-    <div class="env rev">
-      <h2 class="t2">Tres pasos y listo</h2>
-
-      <ol class="pasos">
-        <li class="paso">
-          <p class="paso__n">Paso 1</p>
-          <h3 class="paso__t">Elegí tu menú</h3>
-          <p class="paso__d">
-            Mirá el menú de la semana y elegí entre los cuatro tipos, en porción de
-            350gr o XL de 500gr. Podés pedir un día suelto, una semana entera o el
-            plan del mes.
-          </p>
-        </li>
-        <li class="paso">
-          <p class="paso__n">Paso 2</p>
-          <h3 class="paso__t">Confirmá por WhatsApp</h3>
-          <p class="paso__d">
-            Armás el pedido en la web y se envía por WhatsApp con todo escrito: qué
-            pediste, cuánto es y cómo lo recibís. No hay que explicar nada dos veces.
-          </p>
-        </li>
-        <li class="paso">
-          <p class="paso__n">Paso 3</p>
-          <h3 class="paso__t">Recibilo o retiralo</h3>
-          <p class="paso__d">
-            Te lo llevamos a tu casa o a tu trabajo, o lo retirás sin costo por
-            alguno de los tres puntos de retiro, en el horario que más te sirva.
-          </p>
-        </li>
-      </ol>
-    </div>
-  </section>
-
-  <!-- ======================================================= 6. FORMAS DE PEDIR
-       Cada tarjeta entra directo a su forma de pedir dentro de /pedido/. -->
-  <section class="seccion-l seccion-l--alt" id="formas">
-    <div class="env rev">
-      <h2 class="t2">Formas de pedir</h2>
-      <p class="baj">
-        Elegí la que más te sirva.
-      </p>
-
-      <div class="formas">
-        <a class="forma" href="pedido/index.html#menu">
-          <h3 class="forma__t">Por día</h3>
-          <p class="forma__d">
-            Una vianda del día que quieras, en 350gr o XL de 500gr. Ideal para
-            probar o para los días sueltos.
-          </p>
-          <span class="forma__ir">Elegir por día</span>
-        </a>
-        <a class="forma" href="pedido/index.html#promos">
-          <h3 class="forma__t">Promos semanales</h3>
-          <p class="forma__d">
-            Packs de 3, 4 o 5 días. Salen más baratos que el día suelto y llevan el
-            envío bonificado.
-          </p>
-          <span class="forma__ir">Ver las promos</span>
-        </a>
-        <a class="forma" href="pedido/index.html#mensual">
-          <h3 class="forma__t">Plan mensual</h3>
-          <p class="forma__d">
-            Todos los almuerzos del mes resueltos de una vez, con el mejor precio
-            por vianda.
-          </p>
-          <span class="forma__ir">Ver el plan del mes</span>
-        </a>
-        <a class="forma" href="pedido/index.html#sumar">
-          <h3 class="forma__t">Postres, yogures y algo más</h3>
-          <p class="forma__d">
-            Postres, yogures y congelados por unidad, para tener siempre algo
-            resuelto en la heladera.
-          </p>
-          <span class="forma__ir">Ver postres, yogures y algo más</span>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======================================================== 7. ÚLTIMO TIP
-       Un adelanto de lo último publicado, para no obligar a bajar hasta
-       el final a quien quiera leerlo. Sin publicaciones, no hay nada
-       que adelantar: la sección entera queda oculta (la arranca/oculta
-       pintarUltimoTip en landing.js). -->
-  <section class="seccion-l" id="conviene" hidden>
-    <div class="env rev">
-      <p class="ojo">Para leer</p>
-      <h2 class="t2">Lo último que publicamos</h2>
-      <div class="ultimo-tip" id="ultimoTip"></div>
-    </div>
-  </section>
-
-  <!-- ========================================================== 8. PARA TU EQUIPO -->
+  <!-- ========================================================= 5. PARA TU EQUIPO
+       El único formulario del sitio. Se manda con fetch, no con un envío
+       de HTML común: así `form-action 'none'` de la política de
+       seguridad puede quedarse como está. -->
   <section class="seccion-l seccion-l--empresas" id="empresas">
     <div class="env empresas rev">
       <div class="empresas__texto">
@@ -255,9 +169,7 @@
           <li>Entrega en tu oficina, al mediodía</li>
         </ul>
       </div>
-      <!-- El único formulario del sitio. Se manda con fetch, no con un
-           envío de HTML común: así `form-action 'none'` de la política de
-           seguridad puede quedarse como está. -->
+
       <div class="empresas__marco">
         <form id="formCotizacion" novalidate>
           <p class="empresas__dato">Pedí tu propuesta</p>
@@ -300,69 +212,7 @@
     </div>
   </section>
 
-
-  <!-- ================================================= 9. TIPS Y RECETAS
-       Lo que carga la nutricionista desde el panel. Si todavía no hay
-       ninguna publicación, la sección entera no se dibuja: es mejor que
-       no esté a que esté vacía. -->
-  <section class="seccion-l" id="tips" hidden>
-    <div class="env rev">
-      <p class="ojo">Para leer</p>
-      <h2 class="t2">Tips, recetas e info nutricional</h2>
-      <p class="baj">
-        Lo que compartimos en Instagram, acá ordenado y sin que se pierda
-        entre las historias.
-      </p>
-
-      <div class="tips" id="tips-lista"></div>
-    </div>
-  </section>
-
-  <!-- ========================================================= 10. QUIÉNES SOMOS -->
-  <section class="seccion-l" id="nosotros">
-    <div class="env nosotros rev">
-      <div class="nosotros__foto" data-foto="cocina">
-        <!-- MARCADOR: se reemplaza solo si existe cocina.jpg al lado
-             (assets/js/landing.js, FOTOS_REALES). -->
-        <img src="assets/img/landing/cocina.svg" alt="La cocina de AUMÉ en Paraná" width="1200" height="600">
-      </div>
-      <div class="nosotros__texto">
-        <p class="ojo">Quiénes somos</p>
-        <h2 class="t2">El nombre lo dice todo</h2>
-        <p class="p">
-          <strong>AUMÉ</strong> viene de <em>Aurea Mediocritas</em>, una expresión
-          latina que alude a alcanzar un deseado punto medio entre dos extremos.
-          Esa es la idea: ni la dieta que no se disfruta, ni la comida que no
-          alimenta. La justa medida.
-        </p>
-        <p class="p">
-          Cocinamos en Paraná, con recetas caseras e ingredientes frescos, para que
-          comer bien no dependa de tener tiempo. Cada vianda se prepara pensando en
-          que sea rica, variada y suficiente: cuidarse no debería significar
-          resignar sabor.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======================================================= 11. DÓNDE Y CÓMO LLEGA -->
-  <section class="seccion-l seccion-l--alt" id="entregas">
-    <div class="env rev">
-      <p class="ojo">Dónde y cómo llega</p>
-      <h2 class="t2">Te lo llevamos o lo retirás</h2>
-
-      <div class="entregas">
-        <div class="envio" id="envio"></div>
-        <div class="puntos-l">
-          <h3 class="entregas__sub">Puntos de retiro</h3>
-          <p class="baj">Sin costo adicional. Retirás en el horario que más te sirva.</p>
-          <div class="puntos-l__lista" id="puntos"></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- =============================================================== 12. CIERRE -->
+  <!-- =============================================================== 6. CIERRE -->
   <section class="cierre">
     <div class="env cierre__in rev">
       <h2 class="cierre__t">¿Empezamos esta semana?</h2>
@@ -388,10 +238,10 @@
     <div class="pie-l__datos" id="pieDatos"></div>
     <nav class="pie-l__nav" aria-label="Secciones del pie">
       <a href="pedido/index.html">Pedir</a>
-      <a href="#menu">Menú de la semana</a>
-      <a href="#empresas">Empresas</a>
-      <a href="#tips">Tips y recetas</a>
-      <a href="#entregas">Puntos de retiro</a>
+      <a href="menu.html">Menú de la semana</a>
+      <a href="precios.html">Precios y cómo pedir</a>
+      <a href="nosotros.html">Nosotros</a>
+      <a href="tips/">Tips y recetas</a>
     </nav>
   </div>
 </footer>

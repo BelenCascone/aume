@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nosotros · AUMÉ</title>
+
+<meta name="description" content="AUMÉ viene de Aurea Mediocritas, la justa medida entre dos extremos. Cocinamos en Paraná, con recetas caseras e ingredientes frescos.">
+<meta name="theme-color" content="#DC8D43">
+<link rel="icon" href="assets/img/favicon-64.png" sizes="64x64" type="image/png">
+<link rel="apple-touch-icon" href="assets/img/icon-192.png">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Nosotros · AUMÉ">
+<meta property="og:description" content="Ni la dieta que no se disfruta, ni la comida que no alimenta. La justa medida.">
+<meta property="og:image" content="assets/img/logo.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Caveat:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="preload" href="assets/fonts/GlacialIndifference-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/GlacialIndifference-Bold.woff2" as="font" type="font/woff2" crossorigin>
+
+<link rel="stylesheet" href="assets/css/styles.css">
+<link rel="stylesheet" href="assets/css/landing.css">
+
+<script src="assets/js/movimiento.js"></script>
+</head>
+
+<body class="landing">
+
+<a class="saltar" href="#contenido">Saltar al contenido</a>
+
+<header class="cab" id="cab">
+  <div class="env cab__in">
+    <a class="cab__marca" href="index.html" aria-label="AUMÉ, ir al inicio">
+      <img src="assets/img/logo.png" alt="AUMÉ" width="594" height="387">
+      <span class="cab__tag">viandas</span>
+    </a>
+
+    <a class="btn btn--primario cab__cta" href="pedido/index.html">Pedir mi vianda</a>
+  </div>
+
+  <nav class="cab__nav" aria-label="Secciones del sitio">
+    <div class="env cab__nav-in">
+      <a href="index.html">Inicio</a>
+      <a href="menu.html">Menú</a>
+      <a href="precios.html">Precios y cómo pedir</a>
+      <a href="nosotros.html" aria-current="page">Nosotros</a>
+      <a href="tips/">Tips y recetas</a>
+    </div>
+  </nav>
+
+  <div class="progreso" aria-hidden="true"><span class="progreso__barra"></span></div>
+</header>
+
+<main id="contenido">
+
+  <!-- ========================================================== MANIFIESTO
+       El bloque se distingue por el crema suave de la marca y por el
+       tamaño de la tipografía, no por un color nuevo. -->
+  <section class="manifiesto">
+    <div class="env rev">
+      <p class="manifiesto__t">
+        Cocinar todos los días no es un problema de tiempo.
+        Es un problema de <em>decidir</em>. Nosotros ya lo decidimos por vos,
+        y lo hicimos bien.
+      </p>
+      <p class="manifiesto__pie">Ni la dieta que no se disfruta, ni la comida que no alimenta.</p>
+    </div>
+  </section>
+
+  <!-- ====================================================== QUIÉNES SOMOS -->
+  <section class="seccion-l" id="nosotros">
+    <div class="env nosotros rev">
+      <div class="nosotros__foto" data-foto="cocina">
+        <!-- MARCADOR: se reemplaza solo si existe cocina.jpg al lado
+             (assets/js/landing.js, FOTOS_REALES). -->
+        <img src="assets/img/landing/cocina.svg" alt="La cocina de AUMÉ en Paraná" width="1200" height="600">
+      </div>
+      <div class="nosotros__texto">
+        <p class="ojo">Quiénes somos</p>
+        <h1 class="t2">El nombre lo dice todo</h1>
+        <p class="p">
+          <strong>AUMÉ</strong> viene de <em>Aurea Mediocritas</em>, una expresión
+          latina que alude a alcanzar un deseado punto medio entre dos extremos.
+          Esa es la idea: ni la dieta que no se disfruta, ni la comida que no
+          alimenta. La justa medida.
+        </p>
+        <p class="p">
+          Cocinamos en Paraná, con recetas caseras e ingredientes frescos, para que
+          comer bien no dependa de tener tiempo. Cada vianda se prepara pensando en
+          que sea rica, variada y suficiente: cuidarse no debería significar
+          resignar sabor.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== CIERRE -->
+  <section class="cierre">
+    <div class="env cierre__in rev">
+      <h2 class="cierre__t">¿Empezamos esta semana?</h2>
+      <p class="cierre__d">
+        Armá tu pedido en un minuto. Lo confirmás por WhatsApp y listo.
+      </p>
+      <div class="cierre__acciones">
+        <a class="btn btn--primario" href="pedido/index.html">Pedir mi vianda</a>
+        <a class="btn btn--fantasma" href="menu.html">Ver el menú de la semana</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="pie-l">
+  <div class="env pie-l__in">
+    <div class="pie-l__marca">
+      <img src="assets/img/logo.png" alt="AUMÉ" width="594" height="387">
+      <p class="pie-l__tag">viandas</p>
+    </div>
+    <div class="pie-l__datos" id="pieDatos"></div>
+    <nav class="pie-l__nav" aria-label="Secciones del pie">
+      <a href="pedido/index.html">Pedir</a>
+      <a href="index.html">Inicio</a>
+      <a href="menu.html">Menú de la semana</a>
+      <a href="precios.html">Precios y cómo pedir</a>
+      <a href="tips/">Tips y recetas</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="assets/js/data/config.js"></script>
+<script src="assets/js/data/menu.js"></script>
+<script src="assets/js/landing.js"></script>
+</body>
+</html>

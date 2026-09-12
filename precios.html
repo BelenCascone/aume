@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Precios y cómo pedir · AUMÉ</title>
+
+<meta name="description" content="Los precios de las viandas de AUMÉ, los envíos en Paraná, los packs semanales y el plan mensual, y los tres puntos de retiro sin costo.">
+<meta name="theme-color" content="#DC8D43">
+<link rel="icon" href="assets/img/favicon-64.png" sizes="64x64" type="image/png">
+<link rel="apple-touch-icon" href="assets/img/icon-192.png">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Precios y cómo pedir · AUMÉ">
+<meta property="og:description" content="Los precios escritos, sin sorpresas: la vianda, el envío y el retiro.">
+<meta property="og:image" content="assets/img/logo.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Caveat:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="preload" href="assets/fonts/GlacialIndifference-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/GlacialIndifference-Bold.woff2" as="font" type="font/woff2" crossorigin>
+
+<link rel="stylesheet" href="assets/css/styles.css">
+<link rel="stylesheet" href="assets/css/landing.css">
+
+<script src="assets/js/movimiento.js"></script>
+</head>
+
+<body class="landing">
+
+<a class="saltar" href="#contenido">Saltar al contenido</a>
+
+<header class="cab" id="cab">
+  <div class="env cab__in">
+    <a class="cab__marca" href="index.html" aria-label="AUMÉ, ir al inicio">
+      <img src="assets/img/logo.png" alt="AUMÉ" width="594" height="387">
+      <span class="cab__tag">viandas</span>
+    </a>
+
+    <a class="btn btn--primario cab__cta" href="pedido/index.html">Pedir mi vianda</a>
+  </div>
+
+  <nav class="cab__nav" aria-label="Secciones del sitio">
+    <div class="env cab__nav-in">
+      <a href="index.html">Inicio</a>
+      <a href="menu.html">Menú</a>
+      <a href="precios.html" aria-current="page">Precios y cómo pedir</a>
+      <a href="nosotros.html">Nosotros</a>
+      <a href="tips/">Tips y recetas</a>
+    </div>
+  </nav>
+
+  <div class="progreso" aria-hidden="true"><span class="progreso__barra"></span></div>
+</header>
+
+<main id="contenido">
+
+  <!-- ============================================================= PRECIOS
+       Las tres tarjetas las escribe landing.js con config.js y con lo que
+       conteste /api/precios: acá no hay ni un número a mano. -->
+  <section class="seccion-l" id="precios-vianda">
+    <div class="env rev">
+      <p class="ojo">Sin sorpresas</p>
+      <h1 class="t2">Los precios, escritos</h1>
+      <p class="baj">
+        La vianda vale lo mismo en los cuatro menús. Lo único que cambia el precio
+        es el tamaño y, si te lo llevamos, la zona de entrega.
+      </p>
+
+      <div class="precios" id="precios"></div>
+    </div>
+  </section>
+
+  <!-- =============================================================== PACKS -->
+  <section class="seccion-l seccion-l--alt" id="packs-seccion">
+    <div class="env rev">
+      <p class="ojo">Cuantos más días, mejor sale</p>
+      <h2 class="t2">Packs semanales y plan mensual</h2>
+      <p class="baj">
+        Los packs semanales llevan el envío bonificado. El plan mensual resuelve
+        todos los almuerzos del mes de una sola vez.
+      </p>
+
+      <div class="packs" id="packs"></div>
+    </div>
+  </section>
+
+  <!-- ==================================================== FORMAS DE PEDIR -->
+  <section class="seccion-l" id="formas">
+    <div class="env rev">
+      <p class="ojo">Formas de pedir</p>
+      <h2 class="t2">Elegí la que más te sirva</h2>
+
+      <div class="formas">
+        <a class="forma" href="pedido/index.html#menu">
+          <h3 class="forma__t">Por día</h3>
+          <p class="forma__d">
+            Una vianda del día que quieras, en 350gr o XL de 500gr. Ideal para
+            probar o para los días sueltos.
+          </p>
+          <span class="forma__ir">Elegir por día</span>
+        </a>
+        <a class="forma" href="pedido/index.html#promos">
+          <h3 class="forma__t">Promos semanales</h3>
+          <p class="forma__d">
+            Packs de 3, 4 o 5 días. Salen más baratos que el día suelto y llevan el
+            envío bonificado.
+          </p>
+          <span class="forma__ir">Ver las promos</span>
+        </a>
+        <a class="forma" href="pedido/index.html#mensual">
+          <h3 class="forma__t">Plan mensual</h3>
+          <p class="forma__d">
+            Todos los almuerzos del mes resueltos de una vez, con el mejor precio
+            por vianda.
+          </p>
+          <span class="forma__ir">Ver el plan del mes</span>
+        </a>
+        <a class="forma" href="pedido/index.html#sumar">
+          <h3 class="forma__t">Postres, yogures y algo más</h3>
+          <p class="forma__d">
+            Postres, yogures y congelados por unidad, para tener siempre algo
+            resuelto en la heladera.
+          </p>
+          <span class="forma__ir">Ver postres, yogures y algo más</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================= CÓMO FUNCIONA -->
+  <section class="seccion-l seccion-l--alt" id="como">
+    <div class="env rev">
+      <p class="ojo">Cómo funciona</p>
+      <h2 class="t2">Tres pasos y listo</h2>
+      <p class="baj">
+        No hay que crear una cuenta ni cargar una tarjeta. El pedido se confirma
+        por WhatsApp, como siempre, pero ya escrito y sin ida y vuelta.
+      </p>
+
+      <ol class="pasos">
+        <li class="paso">
+          <p class="paso__n">Paso 1</p>
+          <h3 class="paso__t">Elegí tu menú</h3>
+          <p class="paso__d">
+            Mirá el menú de la semana y elegí entre los cuatro tipos, en porción de
+            350gr o XL de 500gr. Podés pedir un día suelto, una semana entera o el
+            plan del mes.
+          </p>
+        </li>
+        <li class="paso">
+          <p class="paso__n">Paso 2</p>
+          <h3 class="paso__t">Confirmá por WhatsApp</h3>
+          <p class="paso__d">
+            Armás el pedido en la web y se envía por WhatsApp con todo escrito: qué
+            pediste, cuánto es y cómo lo recibís. No hay que explicar nada dos veces.
+          </p>
+        </li>
+        <li class="paso">
+          <p class="paso__n">Paso 3</p>
+          <h3 class="paso__t">Recibilo o retiralo</h3>
+          <p class="paso__d">
+            Te lo llevamos a tu casa o a tu trabajo, o lo retirás sin costo por
+            alguno de los tres puntos de retiro, en el horario que más te sirva.
+          </p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ================================================== DÓNDE Y CÓMO LLEGA -->
+  <section class="seccion-l" id="entregas">
+    <div class="env rev">
+      <p class="ojo">Dónde y cómo llega</p>
+      <h2 class="t2">Te lo llevamos o lo retirás</h2>
+
+      <div class="entregas">
+        <div class="envio" id="envio"></div>
+        <div class="puntos-l">
+          <h3 class="entregas__sub">Puntos de retiro</h3>
+          <p class="baj">Sin costo adicional. Retirás en el horario que más te sirva.</p>
+          <div class="puntos-l__lista" id="puntos"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== CIERRE -->
+  <section class="cierre">
+    <div class="env cierre__in rev">
+      <h2 class="cierre__t">¿Empezamos esta semana?</h2>
+      <p class="cierre__d">
+        Armá tu pedido en un minuto. Lo confirmás por WhatsApp y listo.
+      </p>
+      <div class="cierre__acciones">
+        <a class="btn btn--primario" href="pedido/index.html">Pedir mi vianda</a>
+        <a class="btn btn--fantasma" href="index.html#empresas">Presupuesto para empresas</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="pie-l">
+  <div class="env pie-l__in">
+    <div class="pie-l__marca">
+      <img src="assets/img/logo.png" alt="AUMÉ" width="594" height="387">
+      <p class="pie-l__tag">viandas</p>
+    </div>
+    <div class="pie-l__datos" id="pieDatos"></div>
+    <nav class="pie-l__nav" aria-label="Secciones del pie">
+      <a href="pedido/index.html">Pedir</a>
+      <a href="index.html">Inicio</a>
+      <a href="menu.html">Menú de la semana</a>
+      <a href="nosotros.html">Nosotros</a>
+      <a href="tips/">Tips y recetas</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="assets/js/data/config.js"></script>
+<script src="assets/js/data/menu.js"></script>
+<script src="assets/js/landing.js"></script>
+</body>
+</html>
