@@ -1,0 +1,384 @@
+/* ===================================================================
+   AUMÉ · Propuesta de landing (multipágina)
+   Paleta y tipografías tomadas tal cual de assets/css/styles.css.
+   Glacial Indifference no está en Google Fonts: acá va Questrial como
+   suplente (mismo tono geométrico). En el sitio real va la de marca.
+   Mobile-first: la página se arma para el celular y después crece.
+   =================================================================== */
+
+:root{
+  --clasico:#DC8D43;      --clasico-dark:#9E6630;   --clasico-suave:#FBF1E8;
+  --vegetariano:#4B936A;  --vegetariano-dark:#42815D;
+  --proteico:#AD94B4;     --proteico-dark:#806E85;
+  --ensalada:#6EA6A4;     --ensalada-dark:#517B79;
+
+  --crema:#FFFCED;
+  --crema-alt:#F4F1E0;
+  --blanco:#FFFFFF;
+  --tinta:#2C2C2C;
+  --tinta-60:#6B6560;
+  --linea:#E8E3D0;
+
+  --fondo:var(--crema);
+  --fondo-alt:var(--crema-alt);
+  --superficie:var(--blanco);
+  --texto:var(--tinta);
+  --texto-suave:var(--tinta-60);
+  --borde:var(--linea);
+  --acento:var(--clasico);
+  --acento-texto:var(--clasico-dark);
+  --inverso-fondo:#241F19;
+  --inverso-texto:#F7F2E2;
+
+  --f-display:'Playfair Display', Georgia, 'Times New Roman', serif;
+  --f-script:'Caveat', 'Segoe Script', cursive;
+  --f-body:'Glacial Indifference', Questrial, 'Century Gothic', Futura, -apple-system, 'Segoe UI', sans-serif;
+
+  --e-asentar:cubic-bezier(.16,.84,.44,1);
+  --ancho:1120px;
+}
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --fondo:#1C1914; --fondo-alt:#241F19; --superficie:#2B2620;
+    --texto:#F7F2E2; --texto-suave:#B8AE9C; --borde:#3D362C;
+    --acento:#E8A263; --acento-texto:#E8A263;
+    --inverso-fondo:#100E0B; --inverso-texto:#F7F2E2;
+    --clasico-suave:#332A20; --clasico-dark:#E8A263;
+    --vegetariano-dark:#79C094; --proteico-dark:#CDB6D3; --ensalada-dark:#93C9C7;
+  }
+}
+:root[data-theme="dark"]{
+  --fondo:#1C1914; --fondo-alt:#241F19; --superficie:#2B2620;
+  --texto:#F7F2E2; --texto-suave:#B8AE9C; --borde:#3D362C;
+  --acento:#E8A263; --acento-texto:#E8A263;
+  --inverso-fondo:#100E0B; --inverso-texto:#F7F2E2;
+  --clasico-suave:#332A20; --clasico-dark:#E8A263;
+  --vegetariano-dark:#79C094; --proteico-dark:#CDB6D3; --ensalada-dark:#93C9C7;
+}
+
+*{ box-sizing:border-box }
+
+body{
+  margin:0;
+  background:var(--fondo);
+  color:var(--texto);
+  font-family:var(--f-body);
+  font-size:17px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+
+h1,h2,h3{ font-family:var(--f-display); font-weight:800; text-wrap:balance; margin:0; line-height:1.04; letter-spacing:-.015em; }
+a{ color:inherit }
+:focus-visible{ outline:2px solid var(--acento); outline-offset:2px; border-radius:2px; }
+
+.env{ width:100%; max-width:var(--ancho); margin-inline:auto; padding-inline:20px; }
+
+.ojo{
+  font-size:11.5px; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--acento-texto); margin:0 0 12px; font-weight:700;
+}
+
+/* ------------------------------------------------- barra de propuesta */
+.aviso{ background:var(--inverso-fondo); color:var(--inverso-texto); font-size:12px; }
+.aviso__in{ display:flex; flex-wrap:wrap; gap:4px 14px; align-items:baseline; padding-block:8px; }
+.aviso b{ color:var(--clasico); letter-spacing:.14em; text-transform:uppercase; font-size:11px; }
+.aviso span{ opacity:.7 }
+
+/* ------------------------------------------------------------ cabecera */
+.cab{
+  position:sticky; top:0; z-index:50;
+  background:color-mix(in srgb, var(--fondo) 93%, transparent);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--borde);
+}
+.cab__in{ display:flex; align-items:center; gap:16px; padding-block:12px; }
+.cab__marca{ text-decoration:none; display:flex; align-items:baseline; gap:7px; margin-right:auto; }
+.cab__logo{ font-family:var(--f-display); font-weight:900; font-size:25px; letter-spacing:.02em; }
+.cab__tag{ font-family:var(--f-script); font-size:19px; color:var(--acento-texto); }
+
+.cab__nav{
+  display:flex; gap:8px; overflow-x:auto; padding:0 20px 10px;
+  scrollbar-width:none; -ms-overflow-style:none;
+  max-width:var(--ancho); margin-inline:auto;
+}
+.cab__nav::-webkit-scrollbar{ display:none }
+.cab__nav a{
+  flex:none; text-decoration:none; font-size:12.5px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--texto-suave); font-weight:700;
+  padding:8px 15px; border:1px solid var(--borde); border-radius:999px;
+  background:var(--fondo); transition:color .2s, border-color .2s, background .2s;
+}
+.cab__nav a:hover{ color:var(--texto); border-color:var(--acento); }
+.cab__nav a[aria-current="page"]{ background:var(--texto); color:var(--fondo); border-color:var(--texto); }
+
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  font-family:var(--f-body); font-size:13.5px; letter-spacing:.09em;
+  text-transform:uppercase; text-decoration:none; font-weight:700;
+  padding:13px 24px; border-radius:999px; border:1.5px solid transparent;
+  cursor:pointer; transition:transform .25s var(--e-asentar), background .2s, color .2s, border-color .2s;
+}
+.btn--primario{ background:var(--acento); color:#2C2C2C; }
+.btn--primario:hover{ transform:translateY(-2px); background:var(--clasico-dark); color:#FFF; }
+.btn--fantasma{ border-color:var(--borde); color:var(--texto); }
+.btn--fantasma:hover{ border-color:var(--acento); transform:translateY(-2px); }
+.btn--chico{ padding:9px 16px; font-size:12px; }
+.cab__cta{ flex:none }
+
+/* ---------------------------------------------------------------- hero */
+.hero{ padding-block:36px 0; }
+.hero__in{ display:grid; gap:26px; align-items:end; }
+.hero__t{ font-size:clamp(2.7rem,10.5vw,6.4rem); margin:0 0 20px; }
+.hero__t em{ font-style:italic; font-weight:500; display:block; color:var(--acento-texto); }
+.hero__d{ font-size:17px; max-width:34ch; color:var(--texto-suave); margin:0 0 24px; }
+.acciones{ display:flex; flex-wrap:wrap; gap:10px; }
+.hero__firma{ font-family:var(--f-script); font-size:22px; color:var(--acento-texto); margin:22px 0 0; }
+
+.animar{ animation:asentar .8s var(--e-asentar) both }
+.animar--2{ animation-delay:.09s }
+@keyframes asentar{ from{ transform:translateY(12px); opacity:.001 } to{ transform:none; opacity:1 } }
+@media (prefers-reduced-motion: reduce){
+  .animar{ animation:none }
+  *{ animation-duration:.001ms !important; transition-duration:.001ms !important }
+  .marquesina__pista{ animation:none !important }
+}
+
+/* --------------------------------------------------- espacios de foto */
+.foto{
+  margin:0; position:relative; max-width:100%;
+  background:
+    repeating-linear-gradient(135deg, transparent 0 11px, color-mix(in srgb, var(--borde) 55%, transparent) 11px 12px),
+    var(--fondo-alt);
+  border:1.5px dashed var(--borde); border-radius:4px;
+  display:flex; flex-direction:column; justify-content:flex-end; padding:14px;
+}
+.foto__ficha{
+  font-size:10.5px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--texto-suave); background:var(--fondo);
+  border:1px solid var(--borde); border-radius:999px;
+  padding:6px 12px; align-self:flex-start; line-height:1.45;
+}
+.hero__foto{ aspect-ratio:16/11 }
+
+/* ------------------------------------------------------- fiel/balanza */
+.fiel{ display:flex; align-items:center; margin-block:40px }
+.fiel__linea{ flex:1; height:1px; background:var(--borde) }
+.fiel__punto{ width:9px; height:9px; background:var(--acento); flex:none; transform:rotate(45deg); border-radius:2px; }
+
+/* ------------------------------------------------- números y días */
+.cifras{ display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:var(--borde); border-block:1px solid var(--borde); }
+.cifra{ background:var(--fondo); padding:20px 18px }
+.cifra__n{ font-family:var(--f-display); font-weight:800; font-size:clamp(2rem,7vw,2.9rem); line-height:1; font-variant-numeric:tabular-nums; margin:0; }
+.cifra__n small{ font-size:.45em; font-family:var(--f-body); font-weight:700; letter-spacing:.02em; }
+.cifra__d{ font-size:12px; letter-spacing:.09em; text-transform:uppercase; color:var(--texto-suave); margin:8px 0 0; }
+
+.dias{ display:flex; gap:8px; flex-wrap:wrap; margin-top:18px }
+.dias__d{
+  font-size:13px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+  width:46px; height:46px; display:grid; place-items:center; border-radius:50%;
+  background:var(--acento); color:#2C2C2C;
+}
+.dias__d--no{ background:transparent; border:1px dashed var(--borde); color:var(--texto-suave); font-weight:400; }
+
+/* ------------------------------------------------------------ secciones */
+.sec{ padding-block:48px }
+.sec--alt{ background:var(--fondo-alt) }
+.t2{ font-size:clamp(1.95rem,6.6vw,3.2rem); margin:0 0 14px }
+.baj{ color:var(--texto-suave); max-width:56ch; margin:0 0 28px; font-size:16.5px }
+.nota-dato{
+  font-size:12.5px; color:var(--texto-suave); letter-spacing:.03em;
+  border-left:2px solid var(--acento); padding-left:12px; margin-top:24px;
+}
+code{ font-family:ui-monospace, Menlo, Consolas, monospace; font-size:.92em }
+
+/* --------------------------------------------------- riel de la semana */
+.riel{ display:flex; gap:14px; overflow-x:auto; padding-bottom:14px; scroll-snap-type:x mandatory; margin-inline:-20px; padding-inline:20px; }
+.dia{
+  flex:0 0 250px; scroll-snap-align:start;
+  background:var(--superficie); border:1px solid var(--borde);
+  border-radius:3px; padding:18px; display:flex; flex-direction:column; gap:10px;
+}
+.dia__d{ font-size:11.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--acento-texto); font-weight:700; margin:0; }
+.dia__foto{ aspect-ratio:16/10; padding:9px }
+.dia__foto .foto__ficha{ font-size:10px; padding:4px 9px }
+.dia__t{ font-family:var(--f-display); font-size:19.5px; font-weight:600; line-height:1.2 }
+.dia__x{ font-size:14.5px; color:var(--texto-suave); margin:0 }
+.etq{ display:flex; flex-wrap:wrap; gap:6px; margin-top:auto; padding-top:6px }
+.etq span{
+  font-size:10.5px; letter-spacing:.09em; text-transform:uppercase;
+  border:1px solid var(--borde); border-radius:999px; padding:4px 10px; color:var(--texto-suave);
+}
+
+/* ----------------------------------------------------- los cuatro menús */
+.menus{ border-top:1px solid var(--borde) }
+.menu-fila{
+  display:grid; grid-template-columns:40px minmax(0,1fr);
+  gap:8px 18px; align-items:center;
+  border-bottom:1px solid var(--borde); padding-block:20px; transition:background .3s;
+}
+.menu-fila:hover{ background:var(--clasico-suave) }
+.menu-fila__pastilla{ width:34px; height:34px; border-radius:50%; background:var(--c) }
+.menu-fila__t{ font-family:var(--f-display); font-size:clamp(1.4rem,5vw,2rem); font-weight:700; color:var(--ct) }
+.menu-fila__d{ color:var(--texto-suave); font-size:15.5px; margin:0; grid-column:2 }
+
+.cesar{
+  margin-top:26px; padding:18px 22px; background:var(--superficie);
+  border:1px solid var(--borde); border-left:3px solid var(--ensalada);
+  border-radius:3px; display:flex; flex-wrap:wrap; gap:4px 14px; align-items:baseline;
+}
+.cesar b{ font-family:var(--f-display); font-size:18px }
+.cesar span{ color:var(--texto-suave); font-size:15px }
+
+/* ------------------------------------------------------------ empresas */
+.empresas{ background:var(--inverso-fondo); color:var(--inverso-texto); padding-block:52px; }
+.empresas .ojo{ color:var(--clasico) }
+.empresas .t2{ color:var(--inverso-texto) }
+.empresas__in{ display:grid; gap:32px; align-items:start }
+.empresas__d{ color:color-mix(in srgb, var(--inverso-texto) 74%, transparent); max-width:52ch; margin:0 0 24px; font-size:16.5px }
+.empresas ul{ margin:0; padding:0; list-style:none; display:grid; gap:10px }
+.empresas li{ padding-left:24px; position:relative; color:color-mix(in srgb, var(--inverso-texto) 74%, transparent); font-size:15.5px }
+.empresas li::before{ content:""; position:absolute; left:0; top:10px; width:8px; height:8px; background:var(--clasico); border-radius:2px; transform:rotate(45deg) }
+
+.marco{ background:var(--superficie); color:var(--texto); border-radius:4px; padding:24px }
+.marco__t{ font-size:11.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--texto-suave); margin:0 0 18px; font-weight:700 }
+.campo{ display:grid; gap:6px; margin-bottom:14px }
+.campo label{ font-size:11.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--texto-suave) }
+.campo label i{ font-style:normal; text-transform:none; letter-spacing:0 }
+.campo input{
+  font-family:var(--f-body); font-size:16px; padding:12px 14px;
+  border:1px solid var(--borde); border-radius:3px; background:var(--fondo); color:var(--texto);
+}
+.par{ display:grid; grid-template-columns:1fr 1fr; gap:12px }
+.ayuda{ font-size:12.5px; color:var(--texto-suave); margin:0 0 16px }
+
+/* --------------------------------------------------------- manifiesto */
+.manifiesto{ background:var(--inverso-fondo); color:var(--inverso-texto); padding-block:56px }
+.manifiesto p{
+  font-family:var(--f-display); font-weight:500;
+  font-size:clamp(1.7rem,6.4vw,3.3rem); line-height:1.14; margin:0;
+  max-width:20ch; text-wrap:balance;
+}
+.manifiesto em{ font-style:italic; color:var(--clasico) }
+.manifiesto__pie{
+  font-family:var(--f-script) !important; font-size:23px !important;
+  color:var(--clasico) !important; margin-top:28px !important; max-width:none !important;
+}
+
+/* -------------------------------------------------------------- pasos */
+.pasos{ list-style:none; margin:0; padding:0; display:grid; gap:1px; background:var(--borde); border:1px solid var(--borde) }
+.paso{ background:var(--fondo); padding:24px 22px 28px }
+.paso__n{
+  font-family:var(--f-display); font-size:44px; font-weight:900; line-height:1;
+  color:var(--acento); margin:0 0 12px; font-variant-numeric:tabular-nums;
+}
+.paso__t{ font-size:20px; font-weight:700; margin-bottom:8px }
+.paso__d{ color:var(--texto-suave); font-size:15px; margin:0 }
+
+/* -------------------------------------------------------------- packs */
+.packs__sel{ display:flex; overflow-x:auto; gap:6px; background:var(--fondo-alt); border:1px solid var(--borde); border-radius:999px; padding:4px; margin-bottom:24px; scrollbar-width:none }
+.packs__sel::-webkit-scrollbar{ display:none }
+.packs__sel button{
+  flex:none; font-family:var(--f-body); font-size:12.5px; letter-spacing:.08em; text-transform:uppercase;
+  border:0; background:transparent; color:var(--texto-suave); cursor:pointer;
+  padding:11px 18px; border-radius:999px; font-weight:700; transition:background .25s, color .25s;
+}
+.packs__sel button[aria-selected="true"]{ background:var(--acento); color:#2C2C2C }
+
+.pack{ display:grid; gap:18px; align-items:center; background:var(--superficie); border:1px solid var(--borde); border-radius:3px; padding:24px }
+.pack__t{ font-family:var(--f-display); font-size:clamp(1.5rem,5vw,2.1rem); font-weight:700; margin-bottom:8px }
+.pack__d{ color:var(--texto-suave); margin:0; font-size:15.5px }
+.pack__precio{
+  border:1.5px dashed var(--borde); border-radius:3px; padding:14px 20px; text-align:center;
+  font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--texto-suave); line-height:1.7;
+}
+.pack__precio b{ display:block; font-family:var(--f-display); font-size:25px; letter-spacing:0; color:var(--texto); text-transform:none }
+
+/* ------------------------------------------------------------- precios */
+.precios{ display:grid; gap:16px }
+.precio{ background:var(--superficie); border:1px solid var(--borde); border-radius:3px; padding:22px }
+.precio__t{ font-size:11.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--texto-suave); margin:0 0 14px; font-weight:700 }
+.precio__l{ display:flex; justify-content:space-between; gap:14px; padding-block:9px; border-bottom:1px dotted var(--borde); font-size:15.5px }
+.precio__l:last-child{ border-bottom:0 }
+.precio__l b{ font-family:var(--f-display); font-size:19px; font-variant-numeric:tabular-nums }
+
+/* -------------------------------------------------------- testimonios */
+.marquesina{ overflow:hidden; border-block:1px solid var(--borde); padding-block:28px }
+.marquesina__pista{ display:flex; gap:20px; width:max-content; animation:correr 46s linear infinite }
+.marquesina:hover .marquesina__pista{ animation-play-state:paused }
+@keyframes correr{ from{ transform:translateX(0) } to{ transform:translateX(-50%) } }
+.testi{ width:300px; flex:none; margin:0 }
+.testi__c{ font-family:var(--f-display); font-size:19.5px; font-weight:600; line-height:1.28; margin:0 0 10px }
+.testi__a{ font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--texto-suave) }
+
+/* ------------------------------------------------------------- notas */
+.notas{ display:grid; gap:16px }
+.nota{
+  background:var(--superficie); border:1px solid var(--borde); border-radius:3px;
+  padding:22px; display:flex; flex-direction:column; gap:10px; text-decoration:none;
+  transition:border-color .25s, transform .25s var(--e-asentar);
+}
+.nota:hover{ border-color:var(--acento); transform:translateY(-2px) }
+.nota__cat{ font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--acento-texto); font-weight:700 }
+.nota__t{ font-family:var(--f-display); font-size:21px; font-weight:700; line-height:1.22 }
+.nota__x{ color:var(--texto-suave); font-size:15px; margin:0 }
+.nota__ir{ font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--texto-suave); margin-top:auto; padding-top:6px }
+
+/* ---------------------------------------------------------- nosotros */
+.nosotros{ display:grid; gap:28px; align-items:center }
+.nosotros__foto{ aspect-ratio:5/4 }
+.nosotros p{ color:var(--texto-suave); font-size:16.5px }
+.nosotros strong{ color:var(--texto) }
+
+/* ------------------------------------------------------------- cierre */
+.cierre{ background:var(--acento); color:#2C2C2C; padding-block:52px; text-align:center }
+.cierre h2{ font-size:clamp(1.9rem,7vw,3.4rem); margin-bottom:12px }
+.cierre p{ font-size:17px; margin:0 auto 24px; max-width:40ch; opacity:.8 }
+.cierre .acciones{ justify-content:center }
+.cierre .btn--primario{ background:#2C2C2C; color:var(--crema) }
+.cierre .btn--primario:hover{ background:#000; color:#FFF }
+.cierre .btn--fantasma{ border-color:rgba(44,44,44,.42); color:#2C2C2C }
+.cierre .btn--fantasma:hover{ border-color:#2C2C2C }
+
+/* ---------------------------------------------------------------- pie */
+.pie{ background:var(--inverso-fondo); color:var(--inverso-texto); padding-block:40px 28px }
+.pie__in{ display:grid; gap:28px }
+.pie__logo{ font-family:var(--f-display); font-weight:900; font-size:30px; margin:0 }
+.pie__tag{ font-family:var(--f-script); font-size:20px; color:var(--clasico); margin:0 }
+.pie h3{ font-size:11.5px; letter-spacing:.16em; text-transform:uppercase; font-family:var(--f-body); font-weight:700; color:var(--clasico); margin:0 0 12px }
+.pie a, .pie p.pie__l{ color:color-mix(in srgb, var(--inverso-texto) 72%, transparent); text-decoration:none; font-size:15px; display:block; margin:0 0 7px }
+.pie a:hover{ color:var(--inverso-texto) }
+.pie__legal{ margin-top:32px; padding-top:18px; border-top:1px solid rgba(255,255,255,.1); font-size:12px; opacity:.5 }
+
+/* ============================================================ 560px + */
+@media (min-width:560px){
+  .cifras{ grid-template-columns:repeat(4,1fr) }
+  .precios{ grid-template-columns:repeat(2,1fr) }
+  .pack{ grid-template-columns:minmax(0,1fr) auto }
+  .notas{ grid-template-columns:repeat(2,1fr) }
+  .pie__in{ grid-template-columns:1fr 1fr }
+}
+
+/* ============================================================ 900px + */
+@media (min-width:900px){
+  body{ font-size:17px }
+  .cab__in{ padding-block:14px; gap:24px }
+  .cab__nav{ padding:0 20px 12px }
+  .hero{ padding-block:56px 0 }
+  .hero__in{ grid-template-columns:minmax(0,1.2fr) minmax(0,.85fr); gap:52px }
+  .hero__foto{ aspect-ratio:4/5 }
+  .sec{ padding-block:76px }
+  .empresas{ padding-block:80px }
+  .empresas__in{ grid-template-columns:minmax(0,1fr) minmax(0,.82fr); gap:56px }
+  .manifiesto{ padding-block:100px }
+  .pasos{ grid-template-columns:repeat(3,1fr) }
+  .precios{ grid-template-columns:repeat(3,1fr) }
+  .notas{ grid-template-columns:repeat(3,1fr) }
+  .nosotros{ grid-template-columns:minmax(0,.9fr) minmax(0,1fr); gap:52px }
+  .menu-fila{ grid-template-columns:50px minmax(0,1fr) minmax(0,1.1fr); padding-block:24px }
+  .menu-fila__d{ grid-column:auto }
+  .pie__in{ grid-template-columns:1.2fr 1fr 1fr }
+  .cifra{ padding:26px 22px }
+  .dia{ flex-basis:268px }
+}

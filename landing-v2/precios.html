@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Precios y cómo pedir · AUMÉ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,800;0,900;1,500;1,600&family=Caveat:wght@600&family=Questrial&display=swap">
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+<div class="aviso">
+  <div class="env aviso__in">
+    <b>Propuesta de rediseño</b>
+    <span>Subpágina · Precios y cómo pedir</span>
+  </div>
+</div>
+
+<header class="cab">
+  <div class="env cab__in">
+    <a class="cab__marca" href="index.html">
+      <span class="cab__logo">AUMÉ</span>
+      <span class="cab__tag">viandas</span>
+    </a>
+    <a class="btn btn--primario btn--chico cab__cta" href="menu.html">Ver el menú</a>
+  </div>
+  <nav class="cab__nav" aria-label="Secciones del sitio">
+    <a href="index.html">Inicio</a>
+    <a href="menu.html">Menú</a>
+    <a href="precios.html" aria-current="page">Precios y cómo pedir</a>
+    <a href="nosotros.html">Nosotros</a>
+    <a href="tips.html">Tips y recetas</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ============================================================ PRECIOS -->
+  <section class="sec">
+    <div class="env">
+      <p class="ojo">Sin sorpresas</p>
+      <h1 class="t2">Los precios, escritos</h1>
+      <p class="baj">La vianda vale lo mismo en los cuatro menús. Lo único que cambia el precio es el tamaño y la zona de entrega.</p>
+
+      <div class="precios">
+        <div class="precio">
+          <p class="precio__t">La vianda</p>
+          <div class="precio__l"><span>350 gr</span><b>$9.000</b></div>
+          <div class="precio__l"><span>XL · 500 gr</span><b>$12.800</b></div>
+        </div>
+        <div class="precio">
+          <p class="precio__t">El envío · por entrega</p>
+          <div class="precio__l"><span>Dentro de bulevares</span><b>$2.000</b></div>
+          <div class="precio__l"><span>Fuera de bulevares</span><b>$2.500</b></div>
+        </div>
+        <div class="precio">
+          <p class="precio__t">Retiro</p>
+          <div class="precio__l"><span>Tres puntos en Paraná</span><b>$0</b></div>
+          <div class="precio__l"><span>En el horario que te sirva</span><b>—</b></div>
+        </div>
+      </div>
+
+      <p class="nota-dato">Los importes salen de <code>config.js</code> y se actualizan desde el panel: no hay que tocar la página para cambiar un precio.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================== PACKS -->
+  <section class="sec sec--alt">
+    <div class="env">
+      <p class="ojo">Formas de pedir</p>
+      <h2 class="t2">Cuantos más días, mejor sale</h2>
+      <p class="baj">Los packs semanales llevan el envío bonificado. El plan mensual resuelve todos los almuerzos del mes de una sola vez.</p>
+
+      <div class="packs__sel" role="tablist" aria-label="Días del pack">
+        <button type="button" id="pack3" role="tab" aria-selected="false" aria-controls="pack-detalle">3 días</button>
+        <button type="button" id="pack4" role="tab" aria-selected="false" aria-controls="pack-detalle">4 días</button>
+        <button type="button" id="pack5" role="tab" aria-selected="true" aria-controls="pack-detalle">5 días</button>
+        <button type="button" id="packmes" role="tab" aria-selected="false" aria-controls="pack-detalle">Plan mensual</button>
+      </div>
+
+      <div class="pack" id="pack-detalle" role="tabpanel">
+        <div>
+          <h3 class="pack__t" id="packTitulo">Semana completa · 5 viandas</h3>
+          <p class="pack__d" id="packTexto">De lunes a viernes, el menú que quieras cada día. Envío bonificado en toda la semana.</p>
+        </div>
+        <div class="pack__precio">
+          Precio del pack
+          <b>$ —</b>
+          sale de config.js
+        </div>
+      </div>
+
+      <p class="nota-dato">Los importes de los packs no se calculan: van tal cual están publicados en <code>config.js</code>, porque algunos están redondeados a mano.</p>
+    </div>
+  </section>
+
+  <!-- ====================================================== CÓMO FUNCIONA -->
+  <section class="sec">
+    <div class="env">
+      <p class="ojo">Cómo funciona</p>
+      <h2 class="t2">Tres pasos y listo</h2>
+      <p class="baj">No hay que crear una cuenta ni cargar una tarjeta. El pedido se confirma por WhatsApp, como siempre, pero ya escrito y sin ida y vuelta.</p>
+
+      <ol class="pasos">
+        <li class="paso">
+          <p class="paso__n">01</p>
+          <h3 class="paso__t">Elegí tu menú</h3>
+          <p class="paso__d">Mirá la semana y armá el pedido: el menú que quieras cada día, en 350 gr o XL de 500 gr. Un día suelto, una semana o el mes entero.</p>
+        </li>
+        <li class="paso">
+          <p class="paso__n">02</p>
+          <h3 class="paso__t">Confirmá por WhatsApp</h3>
+          <p class="paso__d">Tocás un botón y se abre el chat con todo escrito: qué pediste, cuánto es y cómo lo recibís. No hay que explicar nada dos veces.</p>
+        </li>
+        <li class="paso">
+          <p class="paso__n">03</p>
+          <h3 class="paso__t">Recibilo o retiralo</h3>
+          <p class="paso__d">Te lo llevamos a tu casa o a tu trabajo, o lo retirás sin costo por alguno de los tres puntos, en el horario que te sirva.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============================================================ ENTREGAS -->
+  <section class="sec sec--alt">
+    <div class="env">
+      <p class="ojo">Dónde y cómo llega</p>
+      <h2 class="t2">Te lo llevamos o lo retirás</h2>
+      <p class="baj">Los puntos de retiro se cargan desde el panel, así que si mañana se suma uno nuevo aparece solo acá.</p>
+
+      <div class="precios">
+        <div class="precio">
+          <p class="precio__t">Punto 1</p>
+          <div class="precio__l"><span>Dirección</span><b>—</b></div>
+          <div class="precio__l"><span>Horario</span><b>—</b></div>
+        </div>
+        <div class="precio">
+          <p class="precio__t">Punto 2</p>
+          <div class="precio__l"><span>Dirección</span><b>—</b></div>
+          <div class="precio__l"><span>Horario</span><b>—</b></div>
+        </div>
+        <div class="precio">
+          <p class="precio__t">Punto 3</p>
+          <div class="precio__l"><span>Dirección</span><b>—</b></div>
+          <div class="precio__l"><span>Horario</span><b>—</b></div>
+        </div>
+      </div>
+
+      <p class="nota-dato">Las direcciones y horarios reales salen de <code>config.js</code>; acá van vacíos para no publicar datos viejos.</p>
+    </div>
+  </section>
+
+  <section class="cierre">
+    <div class="env">
+      <h2>¿Empezamos esta semana?</h2>
+      <p>Armá tu pedido en un minuto. Lo confirmás por WhatsApp y listo.</p>
+      <div class="acciones">
+        <a class="btn btn--primario" href="menu.html">Ver el menú de la semana</a>
+        <a class="btn btn--fantasma" href="index.html#empresas">Presupuesto para empresas</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="pie">
+  <div class="env pie__in">
+    <div>
+      <p class="pie__logo">AUMÉ</p>
+      <p class="pie__tag">viandas</p>
+    </div>
+    <div>
+      <h3>Dónde estamos</h3>
+      <p class="pie__l">Paraná, Entre Ríos</p>
+      <p class="pie__l">Cocina propia · lunes a viernes</p>
+      <p class="pie__l">Tres puntos de retiro</p>
+    </div>
+    <div>
+      <h3>El sitio</h3>
+      <a href="index.html">Inicio</a>
+      <a href="menu.html">Menú de la semana</a>
+      <a href="nosotros.html">Nosotros</a>
+      <a href="tips.html">Tips y recetas</a>
+    </div>
+  </div>
+  <div class="env">
+    <p class="pie__legal">Propuesta visual de landing · los precios y envíos salen de config.js · fotos pendientes</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var packs = {
+    pack3:   ['3 días a elección · 3 viandas', 'Los días que quieras de la semana. Envío bonificado en las tres entregas.'],
+    pack4:   ['4 días a elección · 4 viandas', 'Casi la semana entera, con el menú que quieras cada día. Envío bonificado.'],
+    pack5:   ['Semana completa · 5 viandas', 'De lunes a viernes, el menú que quieras cada día. Envío bonificado en toda la semana.'],
+    packmes: ['Plan mensual · todos los hábiles', 'Todos los almuerzos del mes resueltos de una vez, al mejor precio por vianda.']
+  };
+  var botones = document.querySelectorAll('.packs__sel button');
+  var titulo = document.getElementById('packTitulo');
+  var texto  = document.getElementById('packTexto');
+
+  botones.forEach(function(b){
+    b.addEventListener('click', function(){
+      botones.forEach(function(o){ o.setAttribute('aria-selected','false'); });
+      b.setAttribute('aria-selected','true');
+      var d = packs[b.id];
+      if(d){ titulo.textContent = d[0]; texto.textContent = d[1]; }
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
