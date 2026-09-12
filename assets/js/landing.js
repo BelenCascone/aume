@@ -2,6 +2,17 @@
    AUMÉ · landing.js
    Dibuja la landing con los datos del negocio.
 
+   UN ARCHIVO PARA LAS CUATRO PÁGINAS
+   ---------------------------------------------------------------------
+   La landing dejó de ser una sola página larga: ahora son la portada,
+   el menú, los precios y nosotros. Las cuatro cargan este mismo
+   archivo, y cada función dibuja SÓLO si encuentra su caja en la
+   página (`if (!caja) return`). Así no hay cuatro archivos que se
+   pisen, ni una página que haga cosas de otra.
+
+   Lo de /tips/ no está acá: esa página tiene el suyo, nota.js, porque
+   es la única que no tiene respaldo en un archivo de datos.
+
    DE DÓNDE SALEN LOS DATOS
    ---------------------------------------------------------------------
    Los mismos dos archivos que usa la pantalla de pedidos —config.js y
@@ -149,7 +160,14 @@
     var platos   = MENU.platos    || {};
     var feriados = MENU.feriados  || {};
 
-    caja.innerHTML = (CFG.dias || []).map(function (dia) {
+    /* data-limite dice cuántos días entran. Lo usa la portada, que
+       muestra un adelanto de tres días; menu.html no lo escribe y ahí
+       se dibuja la semana entera. */
+    var dias   = CFG.dias || [];
+    var limite = parseInt(caja.getAttribute('data-limite') || '', 10);
+    if (limite > 0) dias = dias.slice(0, limite);
+
+    caja.innerHTML = dias.map(function (dia) {
       var delDia = platos[dia.id] || {};
 
       if (feriados[dia.id]) {
@@ -183,6 +201,210 @@
                '<div class="dia__lista">' + filas + '</div>' +
              '</article>';
     }).join('');
+  }
+
+  /* ------------------------------------------------ Días con vianda
+     Los círculos de "cuándo hay vianda", en la portada. Salen de
+     CFG.dias, igual que todo lo demás: si mañana se cocina también el
+     sábado, el círculo se prende solo y nadie tiene que tocar el HTML.
+
+     Los siete días de la semana están acá porque una semana tiene
+     siete: lo que decide cuál se prende es si está en CFG.dias. */
+  var SEMANA = [
+    { id: 'lunes',     corto: 'Lun', largo: 'Lunes' },
+    { id: 'martes',    corto: 'Mar', largo: 'Martes' },
+    { id: 'miercoles', corto: 'Mié', largo: 'Miércoles' },
+    { id: 'jueves',    corto: 'Jue', largo: 'Jueves' },
+    { id: 'viernes',   corto: 'Vie', largo: 'Viernes' },
+    { id: 'sabado',    corto: 'Sáb', largo: 'Sábado' },
+    { id: 'domingo',   corto: 'Dom', largo: 'Domingo' }
+  ];
+
+  function pintarDias() {
+    var caja = el('diasv');
+    if (!caja) return;
+
+    var hay = {};
+    (CFG.dias || []).forEach(function (d) { hay[d.id] = true; });
+
+    caja.innerHTML = SEMANA.map(function (d) {
+      var cocina = !!hay[d.id];
+      return '<span class="diasv__d' + (cocina ? '' : ' diasv__d--no') + '" ' +
+               'role="listitem" ' +
+               'title="' + esc(d.largo) + (cocina ? '' : ': no se cocina') + '">' +
+               arreglarE(d.corto) +
+             '</span>';
+    }).join('');
+  }
+
+  /* --------------------------------------------------------- Precios
+     Las tres tarjetas de precios.html. Ni un número escrito a mano:
+     salen de config.js y, cuando contesta, de /api/precios. */
+  function pintarPrecios() {
+    var caja = el('precios');
+    if (!caja) return;
+
+    function tarjeta(titulo, filas, nota) {
+      var cuerpo = filas.map(function (f) {
+        return '<div class="precio__l">' +
+                 '<span>' + arreglarE(f[0]) + '</span>' +
+                 '<b>' + esc(f[1]) + '</b>' +
+               '</div>';
+      }).join('');
+
+      return '<div class="precio">' +
+               '<p class="precio__t">' + arreglarE(titulo) + '</p>' +
+               cuerpo +
+               (nota ? '<p class="precio__n">' + esc(nota) + '</p>' : '') +
+             '</div>';
+    }
+
+    var precios = CFG.preciosVianda || {};
+    var vianda = (CFG.tamanos || []).map(function (t) {
+      return [t.nombre + ' · ' + t.gramos, plata(precios[t.id])];
+    });
+
+    var zonas = ((CFG.envio && CFG.envio.zonas) || []).map(function (z) {
+      return [z.nombre, plata(z.costo)];
+    });
+
+    var cuantos = (CFG.puntosRetiro || []).length;
+    var retiro = [[cuantos + (cuantos === 1 ? ' punto en Paraná' : ' puntos en Paraná'), 'Sin costo']];
+
+    var html = '';
+    if (vianda.length) {
+      html += tarjeta('La vianda', vianda,
+                      'El mismo precio en los cuatro menús: sólo cambia por tamaño.');
+    }
+    if (zonas.length) {
+      html += tarjeta('El envío · por entrega', zonas,
+                      (CFG.envio && CFG.envio.aclaracion) || '');
+    }
+    html += tarjeta('Retiro', retiro,
+                    'En el horario que te sirva. Las direcciones están más abajo.');
+
+    caja.innerHTML = html;
+  }
+
+  /* ----------------------------------------------------------- Packs
+     Los packs semanales y el plan mensual, con un selector arriba. Los
+     importes NO se calculan: van tal cual están publicados, porque
+     algunos están redondeados a mano.
+
+     El plan mensual entra en la misma fila que los packs, pero paga
+     envío o no según su propio dato: son dos cosas distintas y el
+     cartelito lo dice. */
+  function opcionesDePack() {
+    var packs   = CFG.packs || {};
+    var semana  = (CFG.dias || []).length;
+    var efectivo = packs.descuentoEfectivo
+      ? ' El precio ya tiene el descuento de ' + packs.descuentoEfectivo + ' pagando en efectivo.'
+      : '';
+
+    var lista = (packs.opciones || []).slice().sort(function (a, b) {
+      return (a.dias || 0) - (b.dias || 0);
+    }).map(function (o) {
+      /* El pack que cubre todos los días que se cocina es "la semana
+         entera"; los otros son días a elección. */
+      var entera = semana && o.dias === semana;
+      return {
+        id: o.id,
+        dias: o.dias,
+        boton: o.dias + ' días',
+        titulo: o.nombre,
+        detalle: (entera
+                   ? 'La semana completa, con el menú que elijas cada día.'
+                   : 'Los días que quieras de la semana, con el menú que elijas cada día.') +
+                 efectivo,
+        precios: o.precios || {},
+        envioBonificado: !!packs.envioBonificado
+      };
+    });
+
+    var mes = CFG.planMensual;
+    if (mes && mes.precios && mes.precios.estandar && mes.precios.estandar.efectivo) {
+      lista.push({
+        id: 'mensual',
+        dias: 0,
+        boton: 'Plan mensual',
+        titulo: 'Plan mensual' + (mes.mes ? ' · ' + mes.mes : ''),
+        detalle: 'Todos los almuerzos del mes resueltos de una vez' +
+                 (mes.almuerzos ? ' (' + mes.almuerzos + ' viandas)' : '') +
+                 ', al mejor precio por vianda.',
+        precios: mes.precios,
+        envioBonificado: !!mes.envioBonificado
+      });
+    }
+
+    return lista;
+  }
+
+  function pintarPacks() {
+    var caja = el('packs');
+    if (!caja) return;
+
+    var opciones = opcionesDePack();
+    if (!opciones.length) { caja.innerHTML = ''; return; }
+
+    /* Arranca elegido el pack de más días, que es el que conviene y el
+       que la mayoría termina pidiendo. El plan mensual no compite acá:
+       es otra cosa y se elige a propósito. */
+    var elegido = 0;
+    opciones.forEach(function (o, i) {
+      if (o.id !== 'mensual' && o.dias > (opciones[elegido].dias || 0)) elegido = i;
+    });
+
+    function detalle(o) {
+      var filas = (CFG.tamanos || []).map(function (t) {
+        var p = o.precios[t.id];
+        if (!p || !p.efectivo) return '';
+        return '<div class="pack__p">' +
+                 '<span class="pack__g">' + esc(t.gramos) + '</span>' +
+                 '<b>' + esc(plata(p.efectivo)) + '</b>' +
+                 (p.lista && p.lista !== p.efectivo
+                   ? '<small>en efectivo · lista ' + esc(plata(p.lista)) + '</small>'
+                   : '<small>en efectivo</small>') +
+               '</div>';
+      }).join('');
+
+      return '<div class="pack__texto">' +
+               '<h3 class="pack__t">' + arreglarE(o.titulo) + '</h3>' +
+               '<p class="pack__d">' + arreglarE(o.detalle) + '</p>' +
+               (o.envioBonificado
+                 ? '<span class="pack__envio">Envío bonificado</span>'
+                 : '<span class="pack__envio pack__envio--no">El envío se cobra aparte</span>') +
+             '</div>' +
+             '<div class="pack__precios">' + filas + '</div>';
+    }
+
+    caja.innerHTML =
+      '<div class="packs__sel" role="tablist" aria-label="Formas de pedir por semana o por mes">' +
+        opciones.map(function (o, i) {
+          return '<button type="button" role="tab" id="pack-' + esc(o.id) + '" ' +
+                   'aria-selected="' + (i === elegido ? 'true' : 'false') + '" ' +
+                   'aria-controls="packDetalle">' + arreglarE(o.boton) + '</button>';
+        }).join('') +
+      '</div>' +
+      '<div class="pack" id="packDetalle" role="tabpanel" tabindex="0" ' +
+           'aria-labelledby="pack-' + esc(opciones[elegido].id) + '">' +
+        detalle(opciones[elegido]) +
+      '</div>';
+
+    var botones = caja.querySelectorAll('.packs__sel button');
+    var panel   = el('packDetalle');
+
+    for (var i = 0; i < botones.length; i++) {
+      (function (boton, o) {
+        boton.addEventListener('click', function () {
+          for (var j = 0; j < botones.length; j++) {
+            botones[j].setAttribute('aria-selected', 'false');
+          }
+          boton.setAttribute('aria-selected', 'true');
+          panel.setAttribute('aria-labelledby', boton.id);
+          panel.innerHTML = detalle(o);
+        });
+      })(botones[i], opciones[i]);
+    }
   }
 
   /* Las ilustraciones son MARCADORES DE LUGAR, no fotos de AUMÉ. Cuando
@@ -300,93 +522,16 @@
   }
 
 
-  /* ---------------------------------------------------- Publicaciones
-
-     Los tips, las recetas y la info nutricional que carga la
-     nutricionista desde el panel. Es lo único de la landing que NO tiene
-     respaldo en un archivo: si no hay nada publicado o la API no
-     contesta, la sección entera no se dibuja. Preferimos que no esté a
-     que esté vacía. */
-
-  var TIPOS = {
-    tip:       { nombre: 'Tip',              color: 'var(--c-clasico)',     texto: 'var(--c-clasico-dark)' },
-    receta:    { nombre: 'Receta',           color: 'var(--c-vegetariano)', texto: 'var(--c-vegetariano-dark)' },
-    nutricion: { nombre: 'Info nutricional', color: 'var(--c-proteico)',    texto: 'var(--c-proteico-dark)' }
-  };
-
-  function fechaLinda(iso) {
-    if (!iso || iso.length < 10) return '';
-    var meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun',
-                 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-    var mes = meses[Number(iso.slice(5, 7)) - 1] || '';
-    return Number(iso.slice(8, 10)) + ' ' + mes + ' ' + iso.slice(0, 4);
-  }
-
-  /* Una tarjeta de publicación. La usan tanto la grilla de "Tips y
-     recetas" como el adelanto de la última nota más arriba: es la
-     misma tarjeta en los dos lados, sólo cambia dónde aparece. */
-  function tarjetaTip(p) {
-    var tipo = TIPOS[p.categoria] || TIPOS.tip;
-    var cabecera = p.imagen
-      ? '<div class="tip__foto"><img src="' + esc(p.imagen) + '" alt="' +
-        esc(p.imagenAlt || '') + '" loading="lazy"></div>'
-      : '<div class="tip__barra"></div>';
-
-    return '<a class="tip" href="tips/?nota=' + encodeURIComponent(p.id) + '" ' +
-             'style="--tip-color:' + tipo.color + ';--tip-color-texto:' + tipo.texto + '">' +
-             cabecera +
-             '<div class="tip__cuerpo">' +
-               '<p class="tip__meta">' +
-                 '<span class="tip__tipo">' + esc(tipo.nombre) + '</span>' +
-                 '<span class="tip__fecha">' + esc(fechaLinda(p.fecha)) + '</span>' +
-               '</p>' +
-               '<h3 class="tip__t">' + esc(p.titulo) + '</h3>' +
-               (p.copete ? '<p class="tip__d">' + esc(p.copete) + '</p>' : '') +
-               '<span class="tip__ir">Leer</span>' +
-             '</div>' +
-           '</a>';
-  }
-
-  function pintarTips(publicaciones) {
-    var seccion = el('tips');
-    var caja = el('tips-lista');
-    if (!seccion || !caja) return;
-
-    if (!publicaciones || !publicaciones.length) {
-      seccion.hidden = true;
-      return;
-    }
-
-    caja.innerHTML = publicaciones.map(tarjetaTip).join('');
-    seccion.hidden = false;
-  }
-
-  /* Un adelanto de lo último publicado, bien arriba: si alguien quiere
-     leerlo no tiene que bajar hasta el final de la página para
-     enterarse de que existe. La nota completa sigue viviendo sólo en
-     "Tips y recetas"; acá va nada más que esta tarjeta y un link para
-     ver el resto. Sin publicaciones, la sección no se dibuja: el lugar
-     que hoy explicaba "por qué conviene" queda para cuando haya algo
-     concreto para mostrar. */
-  function pintarUltimoTip(publicaciones) {
-    var seccion = el('conviene');
-    var caja = el('ultimoTip');
-    if (!seccion || !caja) return;
-
-    if (!publicaciones || !publicaciones.length) {
-      seccion.hidden = true;
-      return;
-    }
-
-    caja.innerHTML = tarjetaTip(publicaciones[0]) +
-      '<p class="ultimo-tip__mas"><a href="#tips">Ver todos los tips y recetas</a></p>';
-    seccion.hidden = false;
-  }
-
+  /* Todas estas funciones se van si no encuentran su caja: son las
+     mismas cinco páginas con el mismo archivo, y cada una dibuja
+     solamente lo que tiene. */
   function pintarTodo() {
     pintarCifras();
+    pintarDias();
     pintarSemana();
     pintarTipos();
+    pintarPrecios();
+    pintarPacks();
     pintarEnvio();
     pintarPuntos();
     pintarPie();
@@ -401,8 +546,7 @@
 
   var promesas = Promise.all([
     traer('/api/precios'),
-    traer('/api/menus'),
-    traer('/api/publicaciones?limite=6')
+    traer('/api/menus')
   ]);
 
   function iniciar() {
@@ -416,11 +560,6 @@
       /* Las tarjetas se vuelven a dibujar con lo que contestó la API, así
          que las fotos hay que volver a ponerlas: los nodos son nuevos. */
       ponerFotosReales();
-      /* Las publicaciones sólo existen en la base, así que se dibujan
-         cuando llegan y no en la primera pasada. */
-      var publicaciones = r[2] && r[2].publicaciones;
-      pintarTips(publicaciones);
-      pintarUltimoTip(publicaciones);
     });
   }
 
@@ -480,14 +619,10 @@
     iniciar();
   }
 
-  /* Para los tests. pintarTips y pintarUltimoTip van acá porque son lo
-     único que depende de la base y no tiene respaldo en un archivo: sin
-     exponerlos, la única forma de probar las tarjetas sería levantar
-     el worker. */
+  /* Para los tests, y para poder volver a dibujar a mano desde la
+     consola si alguna vez hace falta. */
   global.AUME_LANDING = {
-    pintarTodo: pintarTodo,
-    pintarTips: pintarTips,
-    pintarUltimoTip: pintarUltimoTip
+    pintarTodo: pintarTodo
   };
 
 })(window);

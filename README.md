@@ -12,18 +12,32 @@ y enviarlos ya armados por WhatsApp.
 No hace falta instalar nada: **doble clic en `index.html`** y se abre en el navegador.
 Funciona igual desde el celular una vez publicada (ver punto 4).
 
-El sitio tiene dos pantallas y cada una vive en su dirección:
+El sitio tiene una dirección por página:
 
 | Dirección | Qué es |
 |---|---|
-| `/` | La landing: la presentación de AUMÉ. Es lo que ve alguien que llega desde Instagram. |
-| `/pedido/` | La pantalla de pedidos: el menú, el carrito y el mensaje de WhatsApp. Es lo que había antes en la portada y funciona exactamente igual. |
+| `/` | La portada: qué es AUMÉ, los números, un adelanto del menú y el formulario de empresas. Es lo que ve alguien que llega desde Instagram, y es corta a propósito. |
+| `/menu.html` | El menú de la semana entero, día por día, y los cuatro tipos de menú. |
+| `/precios.html` | Los precios, los packs, las formas de pedir, los tres pasos y los puntos de retiro. |
+| `/nosotros.html` | El manifiesto y de dónde viene el nombre. |
+| `/tips/` | Los tips, las recetas y la info nutricional que carga la nutricionista. |
 | `/tips/?nota=…` | Una publicación sola, para poder compartir el link por WhatsApp. |
+| `/pedido/` | La pantalla de pedidos: el menú, el carrito y el mensaje de WhatsApp. |
 
-Los **textos de la landing** están escritos en `index.html` y se editan ahí
-mismo. Los **datos** —el menú de la semana, los cuatro menús, las zonas de
-envío y los puntos de retiro— no: esos salen de los mismos archivos de
-siempre (y del panel), así que se actualizan solos en las dos pantallas.
+**Por qué son varias páginas y no una sola larga.** La landing anterior era
+una página de doce pantallas de alto en celular: para llegar a los precios
+había que scrollear todo. Ahora lo que decide una compra —qué se come,
+cuándo hay y el contacto de empresas— queda arriba, y lo que se consulta
+—precios al detalle, quiénes somos, el blog— tiene su propia página. En la
+cabecera hay una fila de pastillas que en celular se desliza en horizontal;
+no hay menú de hamburguesa a propósito, porque esconde justo lo que
+queremos que encuentren.
+
+Los **textos** de cada página están escritos en su `.html` y se editan ahí
+mismo. Los **datos** —el menú de la semana, los cuatro menús, los precios,
+los packs, las zonas de envío y los puntos de retiro— no: esos salen de los
+mismos archivos de siempre (y del panel), así que se actualizan solos en
+todas las páginas.
 
 ---
 
@@ -149,14 +163,16 @@ quede con huecos hasta que llegue el material.
 **Cómo se reemplazan:** guardá la foto en esa misma carpeta y cambiá el
 nombre del archivo donde aparece. Los cuatro menús se nombran en
 `assets/js/landing.js` (buscá `FOTO_POR_CATEGORIA`); la de la cocina, en
-`index.html` (buscá `cocina.svg`).
+`nosotros.html` (buscá `cocina.svg`).
 
 Las cuatro de los menús se ven recortadas en un rectángulo apaisado, así que
 conviene que el plato esté centrado. La de la cocina se ve entera y es más
 ancha que alta.
 
-> La portada **no lleva foto a propósito**: mientras no haya material, se
-> apoya en la tipografía y en el color de marca.
+La foto de la portada y la de la cocina se nombran en
+`assets/js/landing.js` (buscá `FOTOS_REALES`): si el `.jpg` existe se usa,
+y si no queda el dibujo. Así se pueden ir agregando de a una sin tocar el
+código.
 
 ---
 
@@ -164,11 +180,14 @@ ancha que alta.
 
 ```
 aume/
-├── index.html                  La landing (la portada del sitio)
+├── index.html                  La portada del sitio
+├── menu.html                   El menú de la semana
+├── precios.html                Precios, packs, formas de pedir y retiros
+├── nosotros.html               El manifiesto y de dónde viene el nombre
 ├── pedido/
 │   └── index.html              Estructura de la pantalla de pedidos
 ├── tips/
-│   └── index.html              Una publicación suelta (/tips/?nota=…)
+│   └── index.html              Los tips: la grilla y, con ?nota=…, una sola
 ├── manifest.json               Datos de la PWA (nombre, colores, ícono)
 ├── sw.js                       Cache offline (sólo en sitio publicado)
 ├── _headers                    Cabeceras de seguridad del hosting
@@ -177,7 +196,8 @@ aume/
 ├── assets/
 │   ├── css/
 │   │   ├── styles.css          Estilos + paleta de marca en variables CSS
-│   │   └── landing.css         Sólo la landing (usa la paleta de styles.css)
+│   │   └── landing.css         Las cinco páginas de afuera del pedido
+│   │                           (usa la paleta de styles.css, no define colores)
 │   ├── fonts/                  Glacial Indifference + su licencia
 │   ├── img/                    logo.png + íconos (ya generados)
 │   │   └── landing/            Marcadores de lugar de las fotos ⚠️
@@ -189,8 +209,8 @@ aume/
 │       ├── ui.js               Dibujado de menú, carrito y paneles
 │       ├── checkout.js         Formulario y mensaje de WhatsApp
 │       ├── app.js              Arranque y eventos
-│       ├── landing.js          Dibuja la landing con los mismos datos
-│       ├── nota.js             Dibuja una publicación suelta
+│       ├── landing.js          Dibuja las cuatro páginas de la landing
+│       ├── nota.js             Dibuja /tips/: la grilla y una publicación
 │       └── cotizacion.js       El formulario de empresas
 │
 ├── package.json                Sólo para correr los tests

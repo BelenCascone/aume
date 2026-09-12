@@ -16,7 +16,7 @@
 /* styles.css deja aire para lo que queda fijo arriba en la pantalla de
    pedidos, que es más alto que la cabecera de acá. Como este archivo lo
    carga sólo la landing, alcanza con pisar el valor. */
-html{ scroll-padding-top:82px; }
+html{ scroll-padding-top:126px; }
 
 .env{
   width:100%; max-width:1080px;
@@ -72,23 +72,42 @@ html{ scroll-padding-top:82px; }
   font-family:var(--f-script); font-size:1.05rem;
   color:var(--tinta-60); line-height:1; margin-top:7px;
 }
-.cab__nav{
-  display:flex; gap:22px; margin-inline:auto;
-  font-size:.9rem; font-weight:500;
-}
-.cab__nav a{
-  color:var(--tinta); text-decoration:none;
-  padding-block:6px; border-bottom:2px solid transparent;
-}
-.cab__nav a:hover{ color:var(--c-clasico-dark); border-bottom-color:var(--c-clasico); }
-.cab__cta{ flex:0 0 auto; min-height:44px; padding:11px 20px; font-size:.9rem; }
+.cab__cta{ flex:0 0 auto; min-height:44px; padding:11px 20px; font-size:.9rem; margin-inline-start:auto; }
 
-/* En celular no entran los enlaces: queda el logo y el botón de pedir,
-   que es lo único que hay que poder tocar sin pensar. */
-@media (max-width:860px){
-  .cab__nav{ display:none; }
-  .cab__cta{ margin-inline-start:auto; }
+/* LA FILA DE PÁGINAS
+   -------------------------------------------------------------------
+   Va debajo del logo, a lo ancho de la barra, y en celular se desliza
+   en horizontal. NO hay menú de hamburguesa, y es a propósito: esconde
+   justo lo que queremos que encuentren (el menú de la semana y los
+   precios). Una pastilla que asoma por el borde derecho invita a
+   deslizar; tres rayas no invitan a nada.
+
+   Sin la barra de scroll a la vista, porque no aporta: la fila ya se
+   ve cortada y eso alcanza para saber que sigue. */
+.cab__nav{ padding-bottom:10px; }
+.cab__nav-in{
+  display:flex; gap:8px;
+  overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none;
+  -webkit-overflow-scrolling:touch;
 }
+.cab__nav-in::-webkit-scrollbar{ display:none; }
+.cab__nav a{
+  flex:0 0 auto;
+  color:var(--tinta-60); text-decoration:none;
+  font-size:.78rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
+  padding:9px 15px; border:1px solid var(--linea); border-radius:var(--r-full);
+  background:var(--blanco);
+  transition:color .2s ease, border-color .2s ease, background .2s ease;
+}
+.cab__nav a:hover{ color:var(--tinta); border-color:var(--c-clasico); }
+
+/* La página en la que se está: en el naranja de la marca, con el texto
+   en tinta. En blanco sobre ese naranja quedaría en 2,7:1 de
+   contraste; en tinta llega a 5,3:1. */
+.cab__nav a[aria-current="page"]{
+  background:var(--c-clasico); border-color:var(--c-clasico); color:var(--tinta);
+}
+
 @media (max-width:400px){
   .cab__cta{ padding:11px 15px; font-size:.85rem; }
   .cab__tag{ display:none; }
@@ -226,6 +245,38 @@ html{ scroll-padding-top:82px; }
   text-wrap:balance;
 }
 
+/* ------------------------------------------ 4 bis. CUÁNDO HAY VIANDA
+   Los siete días de la semana, con los que se cocina en el naranja de
+   la marca y los que no, apagados y con el borde punteado. Se entiende
+   de un vistazo y sin leer nada.
+
+   El texto va en tinta y no en blanco por lo mismo de siempre: el
+   naranja de la marca es claro. */
+.diasv{ display:flex; flex-wrap:wrap; gap:9px; margin-top:22px; }
+.diasv__d{
+  width:46px; height:46px; flex:0 0 auto;
+  /* Flex y no grid: la "é" de "Mié" viene en su propio <span> (el
+     arreglo de la tipografía, ver styles.css) y en una grilla se iría
+     sola a una segunda fila. */
+  display:flex; align-items:center; justify-content:center;
+  border-radius:50%;
+  background:var(--c-clasico); color:var(--tinta);
+  font-size:.78rem; font-weight:700; letter-spacing:.05em;
+  border:1px solid var(--c-clasico);
+}
+.diasv__d--no{
+  background:transparent; border:1px dashed var(--linea);
+  color:var(--tinta-60); font-weight:400;
+}
+
+/* En un celular angosto los siete no entran en una fila y el domingo
+   quedaba solo en un renglón. Achicados, la semana entra entera y se
+   lee de una. */
+@media (max-width:430px){
+  .diasv{ gap:7px; }
+  .diasv__d{ width:40px; height:40px; font-size:.72rem; }
+}
+
 /* ------------------------------------------- 5. MENÚ DE ESTA SEMANA */
 /* 188px es el ancho mínimo que deja entrar los cinco días en una fila
    en escritorio; más abajo se van acomodando solos. */
@@ -254,6 +305,25 @@ html{ scroll-padding-top:82px; }
 }
 .dia__nombre{ font-size:.87rem; line-height:1.35; margin-top:2px; }
 .dia--vacio .dia__nombre{ color:var(--tinta-60); font-style:italic; }
+
+/* EL ADELANTO DE LA PORTADA
+   -------------------------------------------------------------------
+   La portada muestra tres días y la semana entera vive en menu.html.
+   Acá los días van en una fila que se desliza en horizontal, con el
+   tercero asomando por el borde: se ve que hay más sin ocupar tres
+   pantallas de alto, que era justo el problema de la landing larga. */
+.semana--riel{
+  display:flex; gap:14px;
+  overflow-x:auto; scroll-snap-type:x mandatory;
+  scrollbar-width:none; -ms-overflow-style:none;
+  /* El riel se sale del contenedor para que el primer día arranque
+     pegado al margen y el último no quede cortado contra el borde. */
+  margin-inline:-22px; padding-inline:22px; padding-bottom:6px;
+}
+.semana--riel::-webkit-scrollbar{ display:none; }
+.semana--riel .dia{
+  flex:0 0 min(255px, 78vw); scroll-snap-align:start;
+}
 
 .nota-semana{
   margin-top:20px; font-size:.88rem; color:var(--tinta-60);
@@ -387,6 +457,113 @@ html{ scroll-padding-top:82px; }
 .empresas__pie{
   margin-top:18px; padding-top:15px; border-top:1px solid var(--linea);
   font-size:.86rem; color:var(--tinta-60);
+}
+
+/* ------------------------------------------------ 10 bis. LOS PRECIOS
+   Tres tarjetas iguales: la vianda, el envío y el retiro. Los importes
+   los escribe landing.js con config.js y con lo que conteste
+   /api/precios, así que cambiar un precio no es tocar esta página. */
+.precios{
+  margin-top:28px; display:grid; gap:16px;
+  grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));
+}
+.precio{
+  background:var(--blanco); border:1px solid var(--linea);
+  border-radius:var(--r-md); padding:22px 20px;
+}
+.precio__t{
+  font-size:.72rem; font-weight:700; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--tinta-60); margin-bottom:14px;
+}
+.precio__l{
+  display:flex; justify-content:space-between; align-items:baseline; gap:14px;
+  padding-block:9px; border-bottom:1px dashed var(--linea);
+  font-size:.93rem;
+}
+.precio__l:last-of-type{ border-bottom:0; }
+.precio__l b{
+  font-family:var(--f-display); font-size:1.2rem;
+  color:var(--c-clasico-dark); font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+.precio__n{ margin-top:12px; font-size:.82rem; color:var(--tinta-60); }
+
+/* --------------------------------------------------- 10 ter. LOS PACKS
+   Un selector arriba y una sola tarjeta abajo: se compara un pack por
+   vez, que es como se decide, en vez de tener cuatro columnas de
+   números al lado. */
+.packs{ margin-top:28px; }
+.packs__sel{
+  display:flex; gap:6px; overflow-x:auto;
+  background:var(--crema-alt); border:1px solid var(--linea);
+  border-radius:var(--r-full); padding:5px; margin-bottom:20px;
+  scrollbar-width:none; -ms-overflow-style:none;
+}
+.packs__sel::-webkit-scrollbar{ display:none; }
+.packs__sel button{
+  flex:0 0 auto; cursor:pointer;
+  font-family:var(--f-body); font-size:.76rem; font-weight:700;
+  letter-spacing:.08em; text-transform:uppercase;
+  border:0; background:transparent; color:var(--tinta-60);
+  padding:11px 17px; border-radius:var(--r-full);
+  transition:background .2s ease, color .2s ease;
+}
+.packs__sel button:hover{ color:var(--tinta); }
+.packs__sel button[aria-selected="true"]{
+  background:var(--c-clasico); color:var(--tinta);
+}
+.pack{
+  background:var(--blanco); border:1px solid var(--linea);
+  border-radius:var(--r-md); padding:24px 22px;
+  display:grid; gap:22px; align-items:center;
+}
+@media (min-width:720px){
+  .pack{ grid-template-columns:minmax(0,1fr) auto; }
+}
+.pack__t{ font-size:1.35rem; }
+.pack__d{ margin-top:9px; font-size:.93rem; color:var(--tinta-60); max-width:46ch; }
+.pack__envio{
+  display:inline-block; margin-top:14px; padding:6px 13px;
+  border-radius:var(--r-full); font-size:.78rem; font-weight:600;
+  background:var(--c-vegetariano-suave); color:var(--c-vegetariano-dark);
+}
+.pack__envio--no{
+  background:var(--crema-alt); color:var(--tinta-60);
+}
+.pack__precios{ display:grid; gap:12px; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); }
+.pack__p{
+  background:var(--crema); border:1px solid var(--linea);
+  border-radius:var(--r-sm); padding:14px 16px; text-align:center;
+}
+.pack__g{
+  display:block; font-size:.7rem; font-weight:700;
+  letter-spacing:.12em; text-transform:uppercase; color:var(--tinta-60);
+}
+.pack__p b{
+  display:block; margin-top:6px;
+  font-family:var(--f-display); font-size:1.5rem;
+  color:var(--c-clasico-dark); font-variant-numeric:tabular-nums;
+}
+.pack__p small{ display:block; margin-top:4px; font-size:.74rem; color:var(--tinta-60); }
+
+/* ----------------------------------------------- 10 quater. MANIFIESTO
+   La frase que abre "Nosotros". Se distingue del resto por el tamaño de
+   la tipografía y por el crema suave de la marca, no por un color
+   nuevo: la paleta de AUMÉ no tiene ningún oscuro para pintar un
+   bloque entero. */
+.manifiesto{
+  background:var(--c-clasico-suave);
+  padding-block:clamp(52px, 9vw, 104px);
+}
+.manifiesto__t{
+  font-family:var(--f-display);
+  font-size:clamp(1.6rem, 5.2vw, 3rem); line-height:1.16;
+  max-width:22ch; text-wrap:balance;
+}
+.manifiesto__t em{ font-style:italic; color:var(--c-clasico-dark); }
+.manifiesto__pie{
+  margin-top:26px; font-family:var(--f-script);
+  font-size:1.4rem; color:var(--c-vegetariano-dark);
 }
 
 /* -------------------------------------------------------- 11. QUIÉNES SOMOS */
@@ -692,6 +869,7 @@ html{ scroll-padding-top:82px; }
 .mov .rev > .tipos,
 .mov .rev > .pasos,
 .mov .rev > .formas,
+.mov .rev > .precios,
 .mov .rev > .tips{
   opacity:1; transform:none; transition:none;
 }
@@ -699,6 +877,7 @@ html{ scroll-padding-top:82px; }
 .mov .rev .tipos > *,
 .mov .rev .pasos > *,
 .mov .rev .formas > *,
+.mov .rev .precios > *,
 .mov .rev .tips > *,
 .mov .rev .puntos-l__lista > *{
   opacity:0; transform:translateY(14px);
@@ -707,6 +886,7 @@ html{ scroll-padding-top:82px; }
 .mov .rev--on .tipos > *,
 .mov .rev--on .pasos > *,
 .mov .rev--on .formas > *,
+.mov .rev--on .precios > *,
 .mov .rev--on .tips > *,
 .mov .rev--on .puntos-l__lista > *{
   opacity:1; transform:none;
@@ -716,12 +896,14 @@ html{ scroll-padding-top:82px; }
 .mov .rev--on .tipos > *:nth-child(2),
 .mov .rev--on .pasos > *:nth-child(2),
 .mov .rev--on .formas > *:nth-child(2),
+.mov .rev--on .precios > *:nth-child(2),
 .mov .rev--on .tips > *:nth-child(2),
 .mov .rev--on .puntos-l__lista > *:nth-child(2){ transition-delay:.06s; }
 .mov .rev--on .semana > *:nth-child(3),
 .mov .rev--on .tipos > *:nth-child(3),
 .mov .rev--on .pasos > *:nth-child(3),
 .mov .rev--on .formas > *:nth-child(3),
+.mov .rev--on .precios > *:nth-child(3),
 .mov .rev--on .tips > *:nth-child(3),
 .mov .rev--on .puntos-l__lista > *:nth-child(3){ transition-delay:.12s; }
 .mov .rev--on .semana > *:nth-child(4),
@@ -805,18 +987,12 @@ html{ scroll-padding-top:82px; }
 .cab{ transition:box-shadow .3s ease; }
 .cab--scroll{ box-shadow:0 6px 20px rgba(44,44,44,.07); }
 
-/* Los enlaces del menú subrayan desde el centro, como la raya de las
-   secciones. Es el mismo gesto, en chiquito. */
-.cab__nav a{ position:relative; border-bottom-color:transparent; }
-.cab__nav a::after{
-  content:""; position:absolute; inset-inline:0; inset-block-end:-2px;
-  height:2px; background:var(--c-clasico);
-  transform:scaleX(0); transform-origin:50% 50%;
-  transition:transform .25s var(--e-asentar);
-}
-.cab__nav a:hover::after,
-.cab__nav a:focus-visible::after{ transform:scaleX(1); }
-.cab__nav a:hover{ border-bottom-color:transparent; }
+/* Las pastillas de la fila de páginas se apoyan al tocarlas, con el
+   mismo gesto corto que el resto de lo que se puede tocar. */
+.cab__nav a{ transition:color .2s ease, border-color .2s ease,
+                        background .2s ease, transform .2s var(--e-asentar); }
+.cab__nav a:hover{ transform:translateY(-1px); }
+.cab__nav a[aria-current="page"]:hover{ transform:none; }
 
 /* ------------------------------------------------ Manos encima
    Las tarjetas que se pueden tocar se levantan apenas y se apoyan en su
