@@ -50,6 +50,9 @@ VALUES (5, 'Publicaciones: tips, recetas e info nutricional');
 INSERT OR IGNORE INTO esquema_version (version, descripcion)
 VALUES (6, 'Cotizaciones para empresas');
 
+INSERT OR IGNORE INTO esquema_version (version, descripcion)
+VALUES (7, 'Los tres postres con fruta, con su precio');
+
 
 -- =====================================================================
 -- CATÁLOGO  (lo que hoy vive en assets/js/data/config.js)

@@ -94,15 +94,25 @@ Todo eso vive en **`assets/js/data/config.js`**.
   septiembre; para bonificarlo, poné `envioBonificado: true`.
 - **Los postres, los yogures y los congelados** están en `productos`. Cada
   uno tiene `grupo` (`postres`, `yogures` o `congelados`), que es sólo el
-  orden en que se ven en la pantalla **Para sumar**.
+  orden en que se ven en la pantalla **Para sumar**. Hoy son cuatro: la
+  **ensalada de frutas** (400 g), el **chía pudding** (350 g) y el **yogur
+  con granola y frutas** (300 g), los tres a $4.800, con cuchara y sin
+  azúcar agregada; y las **hamburguesas de legumbres** por pack de 8.
 - **El número de WhatsApp** que recibe los pedidos ya está configurado. Si
   alguna vez cambia, va sin `+` ni espacios: `54` + `9` + característica sin el
   0 + número sin el 15.
 
-> ⚠️ **Los postres y los yogures están cargados de ejemplo.** Cambiá el
-> `nombre`, el `detalle` y el `precio` de cada uno (están marcados con
-> `CONFIRMAR` en `config.js`). Si alguno no va, borrá su bloque entero,
-> desde la llave `{` hasta la coma final.
+> **Lo que el cliente elige dentro de un postre no es otro producto.** El
+> yogur va con miel o con pasta de maní, y el chía pudding con miel o con
+> stevia: eso está escrito en el `detalle` y el cliente lo aclara en
+> **Aclaraciones** al cerrar el pedido, igual que el sobre de edulcorante o
+> azúcar. Así hay un solo botón por postre y un solo precio.
+
+> **El precio** de estos cuatro se cambia desde el panel (Precios → Otros
+> productos) y manda sobre lo que diga `config.js`. El **nombre**, el
+> **detalle** y **sumar un producto nuevo** siguen siendo cosa del código:
+> se tocan en `config.js` y en la base (`worker/db/semilla.sql` + un
+> archivo nuevo en `worker/db/cambios/`).
 
 En el mismo archivo están los **3 puntos de retiro** con sus direcciones y
 horarios, los métodos de pago y los días de la semana.
@@ -286,7 +296,7 @@ Las cuatro formas de pedir:
 | **Por día** | Una vianda de un día, en 350gr o XL 500gr. La Ensalada César está en todos los días, mire el menú que mire. | Se cobra |
 | **Promos** | Los packs semanales x3, x4 y x5. Se elige el tamaño y qué tipo de menú preferís que te armemos. | Bonificado |
 | **Mensual** | El plan del mes. Sólo se ofrecen los tamaños que tienen precio publicado. | Se cobra |
-| **Para sumar** | Postres, yogures y congelados, por unidad. | Se cobra |
+| **Para sumar** | Postres, yogures y congelados, por unidad. Los postres y los yogures se envían durante la mañana o junto con la vianda. | Se cobra |
 
 Todo va al mismo carrito y a la misma entrega. Si el pedido tiene una
 promo adentro, **el envío del pedido entero queda bonificado**: la entrega
@@ -429,10 +439,17 @@ esquema está en `worker/db/schema.sql` y los datos iniciales (copiados de
 > npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0005_publicaciones.sql
 > ```
 >
-> Y el de las cotizaciones de empresas:
+> El de las cotizaciones de empresas:
 >
 > ```bash
 > npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0006_cotizaciones.sql
+> ```
+>
+> Y el de los tres postres con fruta, que además saca los dos productos de
+> relleno que decían "Próximamente":
+>
+> ```bash
+> npx wrangler d1 execute aume-staging --remote --file=worker/db/cambios/0007_postres.sql
 > ```
 >
 > Las bases nuevas ya salen con eso desde `schema.sql`. Hay un entorno de

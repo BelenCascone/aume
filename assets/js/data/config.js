@@ -175,38 +175,32 @@ window.AUME_CONFIG = {
      "grupo" es sólo para ordenar la pantalla "Para sumar"; los grupos
      se definen abajo, en gruposProducto.
 
-     ⚠️ PRECIOS A CONFIRMAR: los postres y los yogures están cargados
-        con nombres y precios de EJEMPLO. Cambiá el nombre, el detalle y
-        el precio de cada uno y listo; si alguno no va, borrá la línea
-        entera (desde la llave { hasta la coma final).                  */
+     Los tres primeros son la línea de postres con fruta: los tres a
+     $4.800, sin azúcar agregada y con cuchara. Cuando el postre deja
+     elegir algo (miel, stevia o pasta de maní) va dicho en el detalle;
+     el cliente elige escribiéndolo en "Aclaraciones" al cerrar el
+     pedido.                                                            */
   productos: [
     {
-      id: 'postre-flan',
+      id: 'ensalada-frutas',
       grupo: 'postres',
-      nombre: 'Flan casero',                    /* ⚠️ CONFIRMAR */
-      detalle: 'Porción individual',
-      precio: 3500                              /* ⚠️ CONFIRMAR */
+      nombre: 'Ensalada de frutas',
+      detalle: '400 g · Arándanos, frutilla, banana, durazno, mandarina, manzana y kiwi, con jugo de naranja natural.',
+      precio: 4800
     },
     {
-      id: 'postre-budin',
+      id: 'chia-pudding',
       grupo: 'postres',
-      nombre: 'Budín de limón',                 /* ⚠️ CONFIRMAR */
-      detalle: 'Porción individual',
-      precio: 3500                              /* ⚠️ CONFIRMAR */
-    },
-    {
-      id: 'yogur-natural',
-      grupo: 'yogures',
-      nombre: 'Yogur natural',                  /* ⚠️ CONFIRMAR */
-      detalle: 'Pote individual',
-      precio: 2800                              /* ⚠️ CONFIRMAR */
+      nombre: 'Chía pudding',
+      detalle: '350 g · Base de chía, mousse de yogur y arándanos, y fruta fresca con coco. Con miel o con stevia.',
+      precio: 4800
     },
     {
       id: 'yogur-granola',
       grupo: 'yogures',
-      nombre: 'Yogur con granola',              /* ⚠️ CONFIRMAR */
-      detalle: 'Pote individual con granola casera',
-      precio: 3200                              /* ⚠️ CONFIRMAR */
+      nombre: 'Yogur con granola y frutas',
+      detalle: '300 g · Yogur natural, granola de avena, semillas y frutos secos, y cinco frutas. Con miel o pasta de maní.',
+      precio: 4800
     },
     {
       id: 'burger8',
@@ -221,8 +215,8 @@ window.AUME_CONFIG = {
      orden en que se ven. Un producto sin grupo (o con un grupo que no
      está acá) cae en el último. */
   gruposProducto: [
-    { id: 'postres',    nombre: 'Postres',    descripcion: 'Para cerrar el almuerzo.' },
-    { id: 'yogures',    nombre: 'Yogures',    descripcion: 'Livianos, para la tarde.' },
+    { id: 'postres',    nombre: 'Postres',    descripcion: 'Fruta fresca, sin azúcar agregada. Vienen con cuchara.' },
+    { id: 'yogures',    nombre: 'Yogures',    descripcion: 'Para el desayuno o la merienda. Vienen con cuchara.' },
     { id: 'congelados', nombre: 'Congelados', descripcion: 'Para tener siempre en el freezer.' }
   ],
 
