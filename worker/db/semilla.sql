@@ -68,12 +68,13 @@ INSERT OR IGNORE INTO metodos_pago (id, nombre, efectivo, orden) VALUES ('mercad
 -- --- Otros productos ----------------------------------------------
 -- Se suman al pedido por unidad. "grupo" es cómo se ordenan en la
 -- pantalla "Para sumar" de la web.
-INSERT OR IGNORE INTO productos (id, grupo, nombre, detalle, precio, orden) VALUES ('burger8', 'congelados', 'Hamburguesas de legumbres', 'Congeladas · Pack x8 unidades', 13000, 1);
--- Estos dos entran apagados: existen para que el panel pueda ponerles
--- precio, pero la web no los muestra hasta que lo tengan. Por eso acá no
--- hay precios de ejemplo: lo que está en la base es lo que se cobra.
-INSERT OR IGNORE INTO productos (id, grupo, nombre, detalle, precio, orden, activo) VALUES ('postres', 'postres', 'Postres', 'Próximamente', 0, 2, 0);
-INSERT OR IGNORE INTO productos (id, grupo, nombre, detalle, precio, orden, activo) VALUES ('yogures', 'yogures', 'Yogures', 'Próximamente', 0, 3, 0);
+-- Los tres postres con fruta van al mismo precio, sin azúcar agregada y
+-- con cuchara. Lo que el cliente elige (miel, stevia o pasta de maní) no
+-- es otro producto: lo escribe en las aclaraciones del pedido.
+INSERT OR IGNORE INTO productos (id, grupo, nombre, detalle, precio, orden) VALUES ('ensalada-frutas', 'postres', 'Ensalada de frutas', '400 g · Arándanos, frutilla, banana, durazno, mandarina, manzana y kiwi, con jugo de naranja natural.', 4800, 1);
+INSERT OR IGNORE INTO productos (id, grupo, nombre, detalle, precio, orden) VALUES ('chia-pudding', 'postres', 'Chía pudding', '350 g · Base de chía, mousse de yogur y arándanos, y fruta fresca con coco. Con miel o con stevia.', 4800, 2);
+INSERT OR IGNORE INTO productos (id, grupo, nombre, detalle, precio, orden) VALUES ('yogur-granola', 'yogures', 'Yogur con granola y frutas', '300 g · Yogur natural, granola de avena, semillas y frutos secos, y cinco frutas. Con miel o pasta de maní.', 4800, 3);
+INSERT OR IGNORE INTO productos (id, grupo, nombre, detalle, precio, orden) VALUES ('burger8', 'congelados', 'Hamburguesas de legumbres', 'Congeladas · Pack x8 unidades', 13000, 4);
 
 -- --- Packs semanales ----------------------------------------------
 -- Los packs llevan el envío bonificado. El precio efectivo va tal cual
